@@ -11,21 +11,26 @@ You can adopt the project to your development workflow. As of mine, I use `uv` a
 As the dataset files are too big, I don't include in here. Run the following commands
 In the root directory (`data_analysis`):
 1. Create and enter the datasets directory
-```
-```
 ```mkdir -p datasets```
+
 2. Download files from Google Drive using gdown (Ensure you replace the URL with your target Google Drive folder link)
 ```gdown --folder https://drive.google.com/drive/folders/16k2BfE3yQ5nHYVRCJZfpcqm6NdiagCxE -O datasets/```
+
 3. Unzip any nested zip archives
 ```unzip "datasets/*.zip" -d datasets/```
+
 4. Clean up downloaded zip files
 ```rm -f datasets/*.zip```
+
 5. Sync the packages 
 ```uv sync```
+
 6. setup build tools for project: 
 ```uv pip install -e .```
+
 7. Activate the virtual environment: 
 ```./venv/bin/activate```
+
 8. **NOT WORKING YET**: Run the whole workflow: 
 `python3 main.py`
 Result will be stored in the `outputs` directory.

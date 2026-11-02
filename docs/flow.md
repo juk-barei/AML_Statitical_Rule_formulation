@@ -4,7 +4,7 @@ These are just draft idea of flow only. No details yet. Further change can be ma
 ## Info: 
 Our seed dataset has: 
 - 4 csv files
-- Not complete all features yet. (needs aggregation and addtional ingestion)
+- Not complete all features yet. (needs aggregation and addtional ingestion). Refer to this doc: [eval](../outputs/eval_columns.md)
 
 ## Parameters:
 - Scores ($s_0 - s_6$) calculated from each rule
