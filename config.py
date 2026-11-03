@@ -9,8 +9,11 @@ SRC = ROOT / "datasets"
 OUTPUT = ROOT / "outputs"
 def print_path(path: Path):
     print(f"Path of the {argname('path')} is {path}")
+# DEFAULT VALUE
 DEFAULT_FILE_EXTENSION = "*.csv"
 DEFAULT_DEBUG_MODE = 0
+DEFAULT_OUTPUT_REPORT_EXTENSION = ".md"
+
 # === TEXT ===
 BOLD_START = '\033[1m'
 BOLD_END =  '\033[0m'
@@ -26,6 +29,19 @@ ARG_HELP_F_MESSAGE = f"""
     - 0: first dataframe to retrieve
     - 1, 2, 4: acccess the dataframe in the coreesponding index.
 {bold_text("NOTE: ")} You can't enter keywoard {bold_text("all")} as a part of index chaining. Ex: 1, all, 4. """
+
+# Markdown file
+# markdown_syntax = {
+#                     "TITLE": "# ", 
+#                     "BODY" :markdown_body_syntax
+#
+# }
+# markdown_body_syntax = {
+#                     "SECTION": ("## ", "### ", "#### ")
+#                     "LIST": {"- "},
+#                     "NUM_LIST": 1,
+# }
+# Another way is to build atomic element and multiply the # by a factor for better adaptability.
 
 def main():
     print_path(ROOT)
