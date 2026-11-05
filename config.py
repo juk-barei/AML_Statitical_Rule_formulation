@@ -2,6 +2,9 @@
 from pathlib import Path
 from varname import argname
 import warnings 
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
 warnings.filterwarnings("ignore")
 # == File ==
 ROOT = Path().cwd().resolve()
@@ -15,11 +18,11 @@ DEFAULT_DEBUG_MODE = 0
 DEFAULT_OUTPUT_REPORT_EXTENSION = ".md"
 
 # === TEXT ===
-BOLD_START = '\033[1m'
+BOLD_RED_START = '\033[1;31m'
 BOLD_END =  '\033[0m'
 
 def bold_text(text:str) -> str:
-    return BOLD_START+text+BOLD_END
+    return BOLD_RED_START+text+BOLD_END
 
 ARG_HELP_F_MESSAGE = f"""
 {bold_text("INFO")}: index of dataframe to access  from the dataframe list. Default shows only the first element df.
@@ -42,7 +45,7 @@ ARG_HELP_F_MESSAGE = f"""
 #                     "NUM_LIST": 1,
 # }
 # Another way is to build atomic element and multiply the # by a factor for better adaptability.
-
+    
 def main():
     print_path(ROOT)
     print_path(SRC)

@@ -6,7 +6,7 @@ import argparse
 from pandas.errors import EmptyDataError
 from config import OUTPUT, ROOT, SRC, DEFAULT_FILE_EXTENSION, Path, ARG_HELP_F_MESSAGE, DEFAULT_DEBUG_MODE, bold_text
 
-def load_csv_files(src:str|Path, file_extension: str)->dict[str: pd.DataFrame]:
+def load_csv_files(src:str | Path, file_extension: str)-> dict[str: pd.DataFrame]:
     """load csv files from a directory"""
     target_dir = Path(src)  
     # if (not isinstance(target_dir, Path)):
@@ -26,7 +26,7 @@ def get_file_order(df_dict: dict[str: pd.DataFrame], index: int) -> list[str, pd
     if(len(df_dict) == 0):
         raise ValueError("Can't acess the dataframe in the specified index. The dataframe list is empty")
     # Positive indexing handling
-    if (index>=0) and (len(df_dict)-1 <= index):
+    if (index>=0) and (len(df_dict) <= index):
         raise IndexError(f"No corresponding index in the dataframe. Input index: {index} ,max positive index allowed: {len(df_dict)-1}")
     # Negative index handling since it is not logical to do modulo index handling in this case.
     if ((index<0) and (len(df_dict)> -index)):

@@ -17,6 +17,7 @@ dependencies = [
     "pandas>=3.1.0",
     "pandas-stubs>=3.1.0.261029",
     "psycopg2>=2.9.13",
+    "scipy>=1.18.1",
     "seaborn>=0.13.2",
     "varname>=1.0.0",
 ]

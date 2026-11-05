@@ -66,7 +66,7 @@ Then do Jaccard Index calculation.
 ### Overall: 
 - Rule 1 Checks transaction velocity and holding time.
 - Rule 2 Checks wallet lifetime and volume concentration.
-- Rule 3 Checks structural fan-in / fan-out degrees && transfer amount dispersion 
+- Rule 3 Checks structural fan-in / fan-out degrees && transfer amount dispersion.
 - Rule 4 Checks TRX gas funder overlap (Jaccard Index).
 - Rule 5 Checks topological hop distance to blacklisted seeds.
 ## Risk score

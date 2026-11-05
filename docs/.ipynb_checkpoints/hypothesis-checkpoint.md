@@ -20,7 +20,7 @@ The high scoring should be based on how fast the account clearing the large amou
 
 
 ### 2. Temporal Burstines (S2)
-
+    
 **The Rule:** score risk between [0-1] where:
 - (a wallet's total operational lifetime <= **7 days**) **AND**
 - (its maximum 1-hour transaction volume(in+out) accounts for **75%** or more of its total lifetime volume).
@@ -66,7 +66,7 @@ Then do Jaccard Index calculation.
 ### Overall: 
 - Rule 1 Checks transaction velocity and holding time.
 - Rule 2 Checks wallet lifetime and volume concentration.
-- Rule 3 Checks structural fan-in / fan-out degrees && transfer amount dispersion 
+- Rule 3 Checks structural fan-in / fan-out degrees && transfer amount dispersion.
 - Rule 4 Checks TRX gas funder overlap (Jaccard Index).
 - Rule 5 Checks topological hop distance to blacklisted seeds.
 ## Risk score

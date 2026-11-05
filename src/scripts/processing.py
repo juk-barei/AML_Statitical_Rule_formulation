@@ -1,4 +1,4 @@
-""" This file is for EDA. """
+    """ This file is for EDA. """
 from pandas.core.indexes import extension
 import time
 from config import DEFAULT_FILE_EXTENSION, DEFAULT_OUTPUT_REPORT_EXTENSION, OUTPUT, argname
@@ -69,11 +69,11 @@ def write_report_file(text: str, filename: str, mode= 'a+', extension: str = DEF
     if (len(text)) == 0:
         print(f"Text with length 0: {text}, varname: {varname.varname(text)}")
     try:
-        filename += filename + extension 
+        filename = filename + extension 
         with open(OUTPUT/filename, mode) as file:
             file.write(text)
         print(f"Successfully written \n{text}\n to {OUTPUT/filename}.")
-    except FileExistsError as e:    
+    except FileExistsError as e:
         raise e("File doesn't exist.")
 
 def create_na_report(description:str, value:str, parent: str):

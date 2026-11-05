@@ -4,7 +4,7 @@ These are just draft idea of flow only. No details yet. Further change can be ma
 ## Info: 
 Our seed dataset has: 
 - 4 csv files
-- Not complete all features yet. (needs aggregation and addtional ingestion)
+- Not complete all features yet. (needs aggregation and addtional ingestion). Refer to this doc: [eval](../outputs/eval_columns.md)
 
 ## Parameters:
 - Scores ($s_0 - s_6$) calculated from each rule
@@ -32,7 +32,7 @@ We may use non-parametric test like  Mann-Whiteney U test or the Kolmogorov-Smir
 2. Measure the tradeoff Type 1 or Type 2 error.
 3. Choose threshold that maximize our target metric (95% precision, 95% accuracy...).
 
-## Main steps for weights calculation($w_0,w_1,..,w_6$)
+## Main steps for weights calculation($ w_0,w_1,..,w_6 $)
 **Note**:  1<=$w_i$<=3
 There are 3 ways we can do it:
 1. ML Method: Logistic Regression based on past data (seed data). But our dataset could be too small for capstone 1. (maybe plan for capstone 2?)
@@ -43,5 +43,4 @@ There are 3 ways we can do it:
 ## Normalize and combine scores
 Normalize the score to [0,1] range then do the combining of weights and Score from each rule.
 $S = sum(s_i * w_i), i=[1,2,..,6]$
-
 
