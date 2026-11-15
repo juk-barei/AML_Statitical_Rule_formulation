@@ -3,8 +3,23 @@ These are just draft idea of flow only. No details yet. Further change can be ma
 
 ## Info: 
 Our seed dataset has: 
-- 4 csv files
-- Not complete all features yet. (needs aggregation and addtional ingestion). Refer to this doc: [eval](../outputs/eval_columns.md)
+- 4 tables in the cloud PostgreSQL database, mirrored to local PostgreSQL by
+  `src/scripts/ETL.py`.
+- Not complete all features yet. (needs aggregation and addtional ingestion).
+  Refer to this doc: [eval](../outputs/eval_columns.md)
+
+## Data boundary
+
+- `src/scripts/ETL.py` is the only program that writes data. It extracts from
+  the cloud database in batches, uses up to five worker processes, and records
+  per-table/per-shard progress in `_etl_progress`.
+- The notebook (`src/notebooks/1.1_ILLICIT_EDA.ipynb`) calls `load_analysis_tables()` from
+  the ETL module and reads the local mirror only.
+- This separation lets ingestion continue while the notebook is reading. The
+  notebook should check `print_ingestion_status()` before trusting a table that
+  is still incomplete.
+- The column contract for H2/H4/H6 is documented in
+  [eval_columns.md](../outputs/eval_columns.md).
 
 ## Parameters:
 - Scores ($s_0 - s_6$) calculated from each rule
