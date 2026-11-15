@@ -20,7 +20,7 @@ The high scoring should be based on how fast the account clearing the large amou
 
 
 ### 2. Temporal Burstines (S2)
-    
+
 **The Rule:** score risk between [0-1] where:
 - (a wallet's total operational lifetime <= **7 days**) **AND**
 - (its maximum 1-hour transaction volume(in+out) accounts for **75%** or more of its total lifetime volume).
@@ -62,20 +62,6 @@ Then do Jaccard Index calculation.
 **REASONING:** Basically checks address with the past illict address from the records we downloaded from different sources. Formula is assigning the risk score based on how far is the interact of the input address to the illicit address found.
 
 **Note**: Idk how to make it go to range [0-1] yet. Maybe we don't need to convert to [0-1] in the first place.
-
-### Overall: 
-- Rule 1 Checks transaction velocity and holding time.
-- Rule 2 Checks wallet lifetime and volume concentration.
-- Rule 3 Checks structural fan-in / fan-out degrees && transfer amount dispersion.
-- Rule 4 Checks TRX gas funder overlap (Jaccard Index).
-- Rule 5 Checks topological hop distance to blacklisted seeds.
-## Risk score
-each rule works independently but they are combined at the end to form a risk score.
-If A is the input address,and 1<={w1,w2,w3,w4,w5}<=3 are weight of each rule (priority of each rule)
-Weight sum of all rule scores: S(A) =  w1*S1 + w2*S2 + w3*S3+ w4*S4 + w5*S5. 
-**Risk score formula**: R(A) = min(10,S(A)).
-
-**Note**: 0<=S(A)<=15.
 
 ### **6. How consistent is in and out transaction
 **The Rule:**  Score risk between $[0, 1]$ for wallets where:
