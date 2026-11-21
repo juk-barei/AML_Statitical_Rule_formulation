@@ -3,13 +3,12 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "data_analysis"
-version = "0.1.0"
-description = "Add your description here"
+name = "data_analysis_for_TRON_AML_project"
+version = "0.1.1"
+description = "Build systems for the backend."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "einspect>=0.5.16",
     "jupyterlab>=4.6.5",
     "jupyterlab-vim>=4.1.4",
     "matplotlib>=3.11.2",
@@ -17,17 +16,17 @@ dependencies = [
     "numpy>=2.5.4",
     "pandas>=3.1.0",
     "pandas-stubs>=3.1.0.261029",
-    "pip>=26.3",
     "psycopg>=3.3.8",
     "python-dotenv>=1.2.4",
     "scipy>=1.18.1",
     "seaborn>=0.13.2",
     "sqlalchemy>=2.1.8",
-    "varname>=1.0.0",
 ]
-[tool.setuptools]
-py-modules = ["config"]
+[project.optional-dependencies]
+check_var = ["varname>=1.0.0"]
+inspect_variable = ["einspect>=0.5.16"]
+[project.scripts]
+ingest = "src.scripts.ETL:main"
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["src*"]
-
+include = ["src", "src.*"]

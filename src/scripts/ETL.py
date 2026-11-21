@@ -1,3 +1,4 @@
+# ruff: noqa: S608
 """Batch ETL for the capstone database.
 
 This module is intentionally the only place that writes data.  The notebooks
@@ -32,17 +33,18 @@ import io
 import os
 import re
 import time
+from collections.abc import Sequence
 from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Sequence, cast
+from typing import Any, cast
 from urllib.parse import quote
 
-import pandas as pd
-from dotenv import load_dotenv
-from sqlalchemy import create_engine, inspect, text
-from sqlalchemy.engine import Connection, Engine
+import pandas as pd  # pyright: ignore[reportMissingImports]
+from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
+from sqlalchemy import create_engine, inspect, text  # pyright: ignore[reportMissingImports]
+from sqlalchemy.engine import Connection, Engine  # pyright: ignore[reportMissingImports]
 
 # ---------------------------------------------------------------------------
 # Time constants (kept explicit instead of using magic numbers)
@@ -155,6 +157,7 @@ class ShardTask:
     columns: tuple[str, ...]
     order_columns: tuple[str, ...]
     batch_size: int
+    row_limit: int | None = None
 
 
 @dataclass(frozen=True)
@@ -176,6 +179,21 @@ class ShardResult:
 def quote_identifier(name: str) -> str:
     """Quote a PostgreSQL identifier without trusting its spelling."""
     return '"' + name.replace('"', '""') + '"'
+
+
+def engine_schema(engine: Engine) -> str:
+    """Return the schema recorded by :func:`create_database_engine`."""
+    return cast(
+        str, engine.get_execution_options().get("capstone_schema") or "public"
+    )
+
+
+def qualified_name(engine: Engine, table_name: str) -> str:
+    """Return ``schema.table`` with both parts quoted."""
+    return (
+        f"{quote_identifier(engine_schema(engine))}."
+        f"{quote_identifier(table_name)}"
+    )
 
 
 def safe_error_message(error: BaseException) -> str:
@@ -241,6 +259,15 @@ def get_licit_online_db_link() -> str:
     return link
 
 
+def get_source_link(source: str) -> str:
+    """Return the online link for the requested source."""
+    if source == "illicit":
+        return get_illicit_online_db_link()
+    if source == "licit":
+        return get_licit_online_db_link()
+    raise ValueError(f"Unknown source: {source}. Use 'illicit' or 'licit'.")
+
+
 def get_local_db_link() -> str:
     name = os.getenv("LOCAL_DB_NAME")
     user = os.getenv("LOCAL_DB_USER")
@@ -277,19 +304,80 @@ def force_psycopg_driver(link: str) -> str:
     return link
 
 
+def validate_schema_name(schema: str) -> str:
+    """Return a safe PostgreSQL schema name."""
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", schema):
+        raise ValueError(
+            f"Invalid schema name: {schema!r}. Use letters, digits, and underscores."
+        )
+    return schema
+
+
+def ensure_schema(engine: Engine, schema: str) -> None:
+    """Create the target schema if it does not exist."""
+    schema = validate_schema_name(schema)
+    with engine.begin() as connection:
+        # pi-lens-ignore: python-sql-injection -- identifiers are quoted; schema is validated
+        connection.execute(
+            text(f"CREATE SCHEMA IF NOT EXISTS {quote_identifier(schema)}")
+        )
+
+
 def create_database_engine(
-    link: str, *, is_source: bool, pool_size: int = 1
+    link: str,
+    *,
+    is_source: bool,
+    pool_size: int = 1,
+    schema: str | None = None,
 ) -> Engine:
     connect_timeout = (
         SOURCE_CONNECT_TIMEOUT_SECONDS if is_source else LOCAL_CONNECT_TIMEOUT_SECONDS
     )
-    return create_engine(
+    connect_args: dict[str, Any] = {"connect_timeout": connect_timeout}
+    if schema:
+        schema = validate_schema_name(schema)
+        # Put the requested schema first; public is the fallback for extensions.
+        connect_args["options"] = f"-csearch_path={schema},public"
+    else:
+        schema = "public"
+    engine = create_engine(
         force_psycopg_driver(link),
         pool_pre_ping=True,
         pool_size=pool_size,
         max_overflow=0,
-        connect_args={"connect_timeout": connect_timeout},
+        connect_args=connect_args,
+        # Statements qualify their tables with this schema; search_path only
+        # remains as the fallback for extension lookups.
+        execution_options={"capstone_schema": schema},
     )
+    return engine
+
+
+def parse_row_limits(spec: str) -> dict[str, int]:
+    """Parse ``table=rows,table=rows``; ``all=rows`` is a fallback."""
+    limits: dict[str, int] = {}
+    for item in spec.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        if "=" not in item:
+            raise ValueError(
+                f"Invalid row limit {item!r}. Use table=rows, e.g. accounts=1000."
+            )
+        table, raw_rows = item.split("=", 1)
+        table = table.strip()
+        if table != "all":
+            validate_schema_name(table)
+        try:
+            rows = int(raw_rows.strip())
+        except ValueError as error:
+            raise ValueError(f"Invalid row count in {item!r}.") from error
+        if rows < 0:
+            raise ValueError(f"Row count must be >= 0 in {item!r}.")
+        if table in limits:
+            raise ValueError(f"Duplicate row limit for {table!r}.")
+        limits[table] = rows
+    return limits
 
 
 def read_table_rows(
@@ -299,7 +387,7 @@ def read_table_rows(
     where_params: dict[str, Any] | None = None,
 ) -> int:
     query = text(
-        f"SELECT COUNT(*) AS row_count FROM {quote_identifier(table_name)} {where_sql}"
+        f"SELECT COUNT(*) AS row_count FROM {qualified_name(engine, table_name)} {where_sql}"
     )
     with engine.connect() as connection:
         # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
@@ -312,19 +400,19 @@ def read_numeric_bounds(
     query = text(
         f"SELECT MIN({quote_identifier(column_name)}) AS min_value, "
         f"MAX({quote_identifier(column_name)}) AS max_value "
-        f"FROM {quote_identifier(table_name)}"
+        f"FROM {qualified_name(engine, table_name)}"
     )
     with engine.connect() as connection:
         # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
         row = connection.execute(query).one()
     return row.min_value, row.max_value
-
-
 def discover_source_tables(engine: Engine, requested: str) -> list[str]:
     """Return the requested tables, or every table in the source schema."""
     available = sorted(
         table_name
-        for table_name in inspect(engine).get_table_names()
+        for table_name in inspect(engine).get_table_names(
+            schema=engine_schema(engine)
+        )
         if not table_name.startswith("_etl_")
     )
     if requested.strip().lower() == "all":
@@ -354,7 +442,10 @@ def get_table_spec(table_name: str) -> TableSpec:
 
 def get_table_columns(engine: Engine, table_name: str) -> tuple[str, ...]:
     return tuple(
-        column["name"] for column in inspect(engine).get_columns(table_name)
+        column["name"]
+        for column in inspect(engine).get_columns(
+            table_name, schema=engine_schema(engine)
+        )
     )
 
 
@@ -370,9 +461,9 @@ def choose_order_columns(
         return known_order
 
     try:
-        raw_primary_key = inspect(engine).get_pk_constraint(table_name).get(
-            "constrained_columns", []
-        )
+        raw_primary_key = inspect(engine).get_pk_constraint(
+            table_name, schema=engine_schema(engine)
+        ).get("constrained_columns", [])
     except Exception:
         raw_primary_key = []
     primary_key = tuple(column for column in raw_primary_key if column in columns)
@@ -395,9 +486,9 @@ def choose_shard_column(
 
     # Unknown tables: use a single-column primary key when possible.
     try:
-        primary_key = inspect(engine).get_pk_constraint(table_name).get(
-            "constrained_columns", []
-        )
+        primary_key = inspect(engine).get_pk_constraint(
+            table_name, schema=engine_schema(engine)
+        ).get("constrained_columns", [])
     except Exception:
         primary_key = []
     if len(primary_key) == 1 and primary_key[0] in columns:
@@ -424,6 +515,7 @@ def plan_table_tasks(
     run_id: str,
     batch_size: int,
     requested_shards: int,
+    row_limit: int | None = None,
 ) -> list[ShardTask]:
     """Count rows and split one table into up to ``requested_shards`` chunks."""
     columns = get_table_columns(source_engine, local_table_name)
@@ -461,7 +553,20 @@ def plan_table_tasks(
             columns=columns,
             order_columns=order_columns,
             batch_size=batch_size,
+            row_limit=row_limit,
         )
+
+    if row_limit is not None:
+        limited_rows = min(total_rows, row_limit)
+        return [
+            make_task(
+                shard_index=0,
+                shard_count=1,
+                where_sql="",
+                where_params={},
+                source_rows=limited_rows,
+            )
+        ]
 
     if actual_shards <= 1 or shard_column is None or not order_columns:
         return [
@@ -572,13 +677,19 @@ def create_target_tables(
     """Create or refresh the local mirror tables before workers start."""
     source_inspector = inspect(source_engine)
     local_inspector = inspect(local_engine)
+    source_schema = engine_schema(source_engine)
+    target_schema = engine_schema(local_engine)
 
     for table_name in table_names:
-        table_exists = local_inspector.has_table(table_name)
+        table_exists = local_inspector.has_table(
+            table_name, schema=target_schema
+        )
         if resume and table_exists:
             continue
 
-        columns = source_inspector.get_columns(table_name)
+        columns = source_inspector.get_columns(
+            table_name, schema=source_schema
+        )
         source_column_names = [column["name"] for column in columns]
 
         # If the local schema already matches, truncate instead of dropping the
@@ -587,13 +698,17 @@ def create_target_tables(
         if table_exists:
             existing_column_names = [
                 column["name"]
-                for column in local_inspector.get_columns(table_name)
+                for column in local_inspector.get_columns(
+                    table_name, schema=target_schema
+                )
             ]
             if existing_column_names == source_column_names:
                 with local_engine.begin() as connection:
                     # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
                     connection.execute(
-                        text(f"TRUNCATE TABLE {quote_identifier(table_name)}")
+                        text(
+                            f"TRUNCATE TABLE {qualified_name(local_engine, table_name)}"
+                        )
                     )
                 continue
 
@@ -604,13 +719,16 @@ def create_target_tables(
                 f"{quote_identifier(column['name'])} {type_sql}"
             )
         create_sql = (
-            f"CREATE TABLE {quote_identifier(table_name)} "
+            f"CREATE TABLE {qualified_name(local_engine, table_name)} "
             f"({', '.join(column_definitions)})"
         )
         with local_engine.begin() as connection:
             # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
             connection.execute(
-                text(f"DROP TABLE IF EXISTS {quote_identifier(table_name)} CASCADE")
+                text(
+                    f"DROP TABLE IF EXISTS "
+                    f"{qualified_name(local_engine, table_name)} CASCADE"
+                )
             )
             # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
             connection.execute(text(create_sql))
@@ -622,8 +740,8 @@ def create_progress_tables(local_engine: Engine) -> None:
         # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
         connection.execute(
             text(
-                """
-                CREATE TABLE IF NOT EXISTS _etl_runs (
+                f"""
+                CREATE TABLE IF NOT EXISTS {qualified_name(local_engine, "_etl_runs")} (
                     run_id TEXT PRIMARY KEY,
                     started_at TIMESTAMPTZ NOT NULL,
                     finished_at TIMESTAMPTZ,
@@ -642,8 +760,8 @@ def create_progress_tables(local_engine: Engine) -> None:
         # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
         connection.execute(
             text(
-                """
-                CREATE TABLE IF NOT EXISTS _etl_progress (
+                f"""
+                CREATE TABLE IF NOT EXISTS {qualified_name(local_engine, "_etl_progress")} (
                     run_id TEXT NOT NULL,
                     table_name TEXT NOT NULL,
                     shard_index INTEGER NOT NULL,
@@ -666,8 +784,8 @@ def create_progress_tables(local_engine: Engine) -> None:
 def latest_run_id(local_engine: Engine, *, unfinished_only: bool = False) -> str | None:
     status_filter = "WHERE status NOT IN ('completed')" if unfinished_only else ""
     query = text(
-        f"SELECT run_id FROM _etl_runs {status_filter} "
-        f"ORDER BY started_at DESC LIMIT 1"
+        f"SELECT run_id FROM {qualified_name(local_engine, '_etl_runs')} "
+        f"{status_filter} ORDER BY started_at DESC LIMIT 1"
     )
     with local_engine.connect() as connection:
         # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
@@ -685,13 +803,13 @@ def seed_progress(
     tables: Sequence[str],
     total_source_rows: int,
 ) -> None:
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     with local_engine.begin() as connection:
         # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
         connection.execute(
             text(
-                """
-                INSERT INTO _etl_runs (
+                f"""
+                INSERT INTO {qualified_name(local_engine, "_etl_runs")} (
                     run_id, started_at, status, workers, batch_size,
                     shards_per_table, tables, total_source_rows
                 ) VALUES (
@@ -724,8 +842,8 @@ def seed_progress(
             # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
             connection.execute(
                 text(
-                    """
-                    INSERT INTO _etl_progress (
+                    f"""
+                    INSERT INTO {qualified_name(local_engine, "_etl_progress")} (
                         run_id, table_name, shard_index, shard_count,
                         source_rows, ingested_rows, status
                     ) VALUES (
@@ -747,9 +865,14 @@ def seed_progress(
 
 def clear_task_rows(local_engine: Engine, task: ShardTask) -> None:
     """Delete a partial shard before resuming it, keeping completed shards."""
-    if not inspect(local_engine).has_table(task.target_name):
+    if not inspect(local_engine).has_table(
+        task.target_name, schema=engine_schema(local_engine)
+    ):
         return
-    delete_sql = f"DELETE FROM {quote_identifier(task.target_name)} {task.where_sql}"
+    delete_sql = (
+        f"DELETE FROM {qualified_name(local_engine, task.target_name)} "
+        f"{task.where_sql}"
+    )
     with local_engine.begin() as connection:
         # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
         connection.execute(text(delete_sql), task.where_params)
@@ -760,8 +883,8 @@ def reset_task_progress(local_engine: Engine, task: ShardTask) -> None:
         # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
         connection.execute(
             text(
-                """
-                UPDATE _etl_progress SET
+                f"""
+                UPDATE {qualified_name(local_engine, "_etl_progress")} SET
                     status = 'pending',
                     ingested_rows = 0,
                     started_at = NULL,
@@ -786,8 +909,8 @@ def completed_shard_indices(
     local_engine: Engine, run_id: str, table_name: str
 ) -> set[int]:
     query = text(
-        """
-        SELECT shard_index FROM _etl_progress
+        f"""
+        SELECT shard_index FROM {qualified_name(local_engine, "_etl_progress")}
         WHERE run_id = :run_id AND table_name = :table_name
           AND status = 'completed'
         """
@@ -818,13 +941,13 @@ def write_progress(
     rows_per_second = (
         ingested_rows / elapsed_seconds if elapsed_seconds > 0 else 0.0
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     with local_engine.begin() as connection:
         # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
         connection.execute(
             text(
-                """
-                INSERT INTO _etl_progress (
+                f"""
+                INSERT INTO {qualified_name(local_engine, "_etl_progress")} (
                     run_id, table_name, shard_index, shard_count,
                     source_rows, ingested_rows, status, started_at,
                     updated_at, elapsed_seconds, rows_per_second, error_message
@@ -838,7 +961,10 @@ def write_progress(
                     shard_count = EXCLUDED.shard_count,
                     ingested_rows = EXCLUDED.ingested_rows,
                     status = EXCLUDED.status,
-                    started_at = COALESCE(_etl_progress.started_at, EXCLUDED.started_at),
+                    started_at = COALESCE(
+                        {qualified_name(local_engine, "_etl_progress")}.started_at,
+                        EXCLUDED.started_at
+                    ),
                     updated_at = EXCLUDED.updated_at,
                     elapsed_seconds = EXCLUDED.elapsed_seconds,
                     rows_per_second = EXCLUDED.rows_per_second,
@@ -869,7 +995,12 @@ _SOURCE_ENGINE: Engine | None = None
 _LOCAL_ENGINE: Engine | None = None
 
 
-def worker_init(source_link: str, local_link: str) -> None:
+def worker_init(
+    source_link: str,
+    local_link: str,
+    source_schema: str,
+    target_schema: str,
+) -> None:
     """Create one source connection pool and one local pool per process.
 
     The local pool needs two connections: one stays checked out for the whole
@@ -878,13 +1009,15 @@ def worker_init(source_link: str, local_link: str) -> None:
     progress write would block until the pool times out.
     """
     global _SOURCE_ENGINE, _LOCAL_ENGINE
-    _SOURCE_ENGINE = create_database_engine(source_link, is_source=True)
+    _SOURCE_ENGINE = create_database_engine(
+        source_link, is_source=True, schema=source_schema
+    )
     _LOCAL_ENGINE = create_database_engine(
-        local_link, is_source=False, pool_size=2
+        local_link, is_source=False, schema=target_schema, pool_size=2
     )
 
 
-def build_batch_query(task: ShardTask) -> str:
+def build_batch_query(task: ShardTask, schema: str) -> str:
     select_columns = ", ".join(
         quote_identifier(column) for column in task.columns
     )
@@ -894,7 +1027,7 @@ def build_batch_query(task: ShardTask) -> str:
     where_sql = f"\n{task.where_sql}" if task.where_sql.strip() else ""
     return (
         f"SELECT {select_columns}\n"
-        f"FROM {quote_identifier(task.table_name)}"
+        f"FROM {quote_identifier(schema)}.{quote_identifier(task.table_name)}"
         f"{where_sql}\n"
         f"ORDER BY {order_columns}\n"
         f"LIMIT :batch_limit OFFSET :batch_offset"
@@ -929,6 +1062,7 @@ def copy_dataframe_to_postgres(
     target_name: str,
     columns: Sequence[str],
     raw_connection: Any,
+    schema: str,
 ) -> None:
     """Stream one batch through PostgreSQL COPY (fast path for psycopg)."""
     ordered_frame = normalize_integer_columns(
@@ -943,7 +1077,7 @@ def copy_dataframe_to_postgres(
     )
     buffer.seek(0)
     copy_sql = (
-        f"COPY {quote_identifier(target_name)} "
+        f"COPY {quote_identifier(schema)}.{quote_identifier(target_name)} "
         f"({', '.join(quote_identifier(column) for column in columns)}) "
         f"FROM STDIN WITH (FORMAT CSV, NULL '{NULL_SENTINEL}')"
     )
@@ -960,8 +1094,10 @@ def ingest_shard(task: ShardTask) -> ShardResult:
     """Read one shard from the cloud in batches and COPY it into the local DB."""
     if _SOURCE_ENGINE is None or _LOCAL_ENGINE is None:
         raise RuntimeError("Worker engines were not initialized.")
+    source_engine = _SOURCE_ENGINE
+    local_engine = _LOCAL_ENGINE
 
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     start_time = time.perf_counter()
     write_progress(
         _LOCAL_ENGINE,
@@ -979,20 +1115,31 @@ def ingest_shard(task: ShardTask) -> ShardResult:
     local_raw_connection: Any = None
 
     try:
-        source_connection = _SOURCE_ENGINE.connect().execution_options(
+        source_connection = source_engine.connect().execution_options(
             isolation_level="REPEATABLE READ"
         )
-        local_raw_connection = _LOCAL_ENGINE.raw_connection()
+        local_raw_connection = local_engine.raw_connection()
+        if source_connection is None:
+            raise RuntimeError("Source connection was not created.")
 
         with source_connection.begin():
             while True:
-                query = text(build_batch_query(task))
+                batch_limit = task.batch_size
+                if task.row_limit is not None:
+                    remaining = task.row_limit - ingested_rows
+                    if remaining <= 0:
+                        break
+                    batch_limit = min(batch_limit, remaining)
+
+                query = text(
+                    build_batch_query(task, engine_schema(source_engine))
+                )
                 dataframe = pd.read_sql_query(
                     query,
                     source_connection,
                     params={
                         **task.where_params,
-                        "batch_limit": task.batch_size,
+                        "batch_limit": batch_limit,
                         "batch_offset": batch_offset,
                     },
                 )
@@ -1004,6 +1151,7 @@ def ingest_shard(task: ShardTask) -> ShardResult:
                     task.target_name,
                     task.columns,
                     local_raw_connection,
+                    engine_schema(local_engine),
                 )
                 local_raw_connection.commit()
 
@@ -1021,7 +1169,9 @@ def ingest_shard(task: ShardTask) -> ShardResult:
                     )
                     last_progress_time = now
 
-                if len(dataframe) < task.batch_size:
+                if len(dataframe) < batch_limit:
+                    break
+                if task.row_limit is not None and ingested_rows >= task.row_limit:
                     break
 
         elapsed_seconds = time.perf_counter() - start_time
@@ -1079,14 +1229,17 @@ def get_ingestion_status(
     run_id: str | None = None,
     *,
     engine: Engine | None = None,
+    schema: str = "public",
 ) -> pd.DataFrame:
     """Return one row per table for a run (latest run by default)."""
     load_environment()
     own_engine = engine is None
     local_engine = engine or create_database_engine(
-        get_local_db_link(), is_source=False
+        get_local_db_link(), is_source=False, schema=schema
     )
     try:
+        if own_engine:
+            ensure_schema(local_engine, schema)
         create_progress_tables(local_engine)
         if run_id is None:
             run_id = latest_run_id(local_engine)
@@ -1094,7 +1247,7 @@ def get_ingestion_status(
             return pd.DataFrame()
 
         query = text(
-            """
+            f"""
             SELECT
                 table_name,
                 SUM(source_rows) AS source_rows,
@@ -1105,7 +1258,7 @@ def get_ingestion_status(
                 MIN(started_at) AS started_at,
                 MAX(updated_at) AS updated_at,
                 SUM(elapsed_seconds) AS worker_elapsed_seconds
-            FROM _etl_progress
+            FROM {qualified_name(local_engine, "_etl_progress")}
             WHERE run_id = :run_id
             GROUP BY table_name
             ORDER BY table_name
@@ -1135,9 +1288,11 @@ def get_ingestion_status(
             local_engine.dispose()
 
 
-def print_ingestion_status(run_id: str | None = None) -> pd.DataFrame:
+def print_ingestion_status(
+    run_id: str | None = None, schema: str = "public"
+) -> pd.DataFrame:
     """Print a compact live table and return the underlying dataframe."""
-    status = get_ingestion_status(run_id)
+    status = get_ingestion_status(run_id, schema=schema)
     if status.empty:
         print("No ETL run found in the local database.")
         return status
@@ -1162,7 +1317,7 @@ def build_ingestion_report(
     tables: Sequence[str],
 ) -> pd.DataFrame:
     """Compare source row counts with the actual local row counts."""
-    source_rows_by_table: dict[str, int] = {table: 0 for table in tables}
+    source_rows_by_table: dict[str, int] = dict.fromkeys(tables, 0)
     for task in tasks:
         source_rows_by_table[task.table_name] += task.source_rows
 
@@ -1236,10 +1391,13 @@ def build_ingestion_report(
     return pd.DataFrame(report_rows)
 
 
-def write_report(report: pd.DataFrame, run_id: str) -> Path:
+def write_report(
+    report: pd.DataFrame, run_id: str, *, label: str | None = None
+) -> Path:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    latest_path = OUTPUT_DIR / "ingestion_report.csv"
-    run_path = OUTPUT_DIR / f"ingestion_report_{run_id}.csv"
+    suffix = f"_{label}" if label else ""
+    latest_path = OUTPUT_DIR / f"ingestion_report{suffix}.csv"
+    run_path = OUTPUT_DIR / f"ingestion_report{suffix}_{run_id}.csv"
     report.to_csv(latest_path, index=False)
     report.to_csv(run_path, index=False)
     return latest_path
@@ -1257,8 +1415,8 @@ def finish_run(
         # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
         connection.execute(
             text(
-                """
-                UPDATE _etl_runs SET
+                f"""
+                UPDATE {qualified_name(local_engine, "_etl_runs")} SET
                     finished_at = :finished_at,
                     status = :status,
                     total_ingested_rows = :total_ingested_rows,
@@ -1267,7 +1425,7 @@ def finish_run(
                 """
             ),
             {
-                "finished_at": datetime.now(timezone.utc),
+                "finished_at": datetime.now(UTC),
                 "status": status,
                 "total_ingested_rows": total_ingested_rows,
                 "error_message": error_message,
@@ -1305,7 +1463,9 @@ def drop_post_ingest_indexes(
                 # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
                 connection.execute(
                     text(
-                        f"DROP INDEX IF EXISTS {quote_identifier(index_name)}"
+                        f"DROP INDEX IF EXISTS "
+                        f"{quote_identifier(engine_schema(local_engine))}."
+                        f"{quote_identifier(index_name)}"
                     )
                 )
 
@@ -1315,11 +1475,15 @@ def create_post_ingest_indexes(
 ) -> None:
     """Add the indexes used by the notebook after all rows are present."""
     inspector = inspect(local_engine)
+    target_schema = engine_schema(local_engine)
     for table_name in table_names:
-        if not inspector.has_table(table_name):
+        if not inspector.has_table(table_name, schema=target_schema):
             continue
         available_columns = {
-            column["name"] for column in inspector.get_columns(table_name)
+            column["name"]
+            for column in inspector.get_columns(
+                table_name, schema=target_schema
+            )
         }
         indexes = POST_INGEST_INDEXES.get(table_name, ())
         for index_name, columns in indexes:
@@ -1331,7 +1495,7 @@ def create_post_ingest_indexes(
                 continue
             index_sql = (
                 f"CREATE INDEX IF NOT EXISTS {quote_identifier(index_name)} "
-                f"ON {quote_identifier(table_name)} "
+                f"ON {qualified_name(local_engine, table_name)} "
                 f"({', '.join(quote_identifier(column) for column in columns)})"
             )
             try:
@@ -1352,6 +1516,7 @@ def wait_for_workers(
     run_id: str,
     poll_engine: Engine,
     started_at: datetime,
+    schema: str = "public",
 ) -> list[ShardResult]:
     pending = set(futures)
     results: list[ShardResult] = []
@@ -1382,10 +1547,10 @@ def wait_for_workers(
                 )
 
         elapsed_seconds = (
-            datetime.now(timezone.utc) - started_at
+            datetime.now(UTC) - started_at
         ).total_seconds()
         print(f"\n[{elapsed_seconds:.0f}s] local mirror progress")
-        print_ingestion_status(run_id)
+        print_ingestion_status(run_id, schema=schema)
         print("-" * 78)
 
     return results
@@ -1393,8 +1558,11 @@ def wait_for_workers(
 
 def run_etl(args: argparse.Namespace) -> int:
     load_environment()
-    source_link = get_illicit_online_db_link()
+    source_link = get_source_link(args.source)
     local_link = get_local_db_link()
+    source_schema = validate_schema_name(args.source_schema)
+    target_schema = validate_schema_name(args.schema)
+    row_limits = parse_row_limits(args.row_limits)
     workers = max(1, min(args.workers, MAX_WORKERS))
     if args.workers > MAX_WORKERS:
         print(f"Capping workers at MAX_WORKERS={MAX_WORKERS}.")
@@ -1402,8 +1570,12 @@ def run_etl(args: argparse.Namespace) -> int:
     shards_per_table = max(1, args.shards_per_table)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    source_engine = create_database_engine(source_link, is_source=True)
-    local_engine = create_database_engine(local_link, is_source=False)
+    source_engine = create_database_engine(
+        source_link, is_source=True, schema=source_schema
+    )
+    local_engine = create_database_engine(
+        local_link, is_source=False, schema=target_schema
+    )
 
     try:
         table_names = discover_source_tables(source_engine, args.tables)
@@ -1412,6 +1584,7 @@ def run_etl(args: argparse.Namespace) -> int:
             return 1
 
         if not args.dry_run:
+            ensure_schema(local_engine, target_schema)
             create_progress_tables(local_engine)
 
         existing_run_id = (
@@ -1420,15 +1593,18 @@ def run_etl(args: argparse.Namespace) -> int:
             else None
         )
         resume = existing_run_id is not None
-        run_id = existing_run_id or datetime.now(timezone.utc).strftime(
+        run_id = existing_run_id or datetime.now(UTC).strftime(
             "etl_%Y%m%dT%H%M%S_%fZ"
         )
         if resume:
             print(f"Resuming run {run_id}")
 
         print(f"Run id: {run_id}")
+        print(f"Source: {args.source} | source schema: {source_schema} | target schema: {target_schema}")
         print(f"Source tables: {', '.join(table_names)}")
         print(f"Workers: {workers} | batch size: {batch_size:,}")
+        if row_limits:
+            print(f"Row limits: {row_limits}")
 
         all_tasks: list[ShardTask] = []
         for table_name in table_names:
@@ -1438,6 +1614,7 @@ def run_etl(args: argparse.Namespace) -> int:
                 run_id,
                 batch_size,
                 shards_per_table,
+                row_limit=row_limits.get(table_name, row_limits.get("all")),
             )
             all_tasks.extend(table_tasks)
             table_source_rows = sum(task.source_rows for task in table_tasks)
@@ -1498,7 +1675,11 @@ def run_etl(args: argparse.Namespace) -> int:
             report = build_ingestion_report(
                 local_engine, run_id, all_tasks, tables=table_names
             )
-            write_report(report, run_id)
+            write_report(
+                report,
+                run_id,
+                label=f"{args.source}_{target_schema}",
+            )
             finish_run(
                 local_engine,
                 run_id,
@@ -1513,21 +1694,24 @@ def run_etl(args: argparse.Namespace) -> int:
         # Do not carry forked SQLAlchemy pools into the children.
         source_engine.dispose()
         local_engine.dispose()
-        started_at = datetime.now(timezone.utc)
+        started_at = datetime.now(UTC)
 
         executor = ProcessPoolExecutor(
             max_workers=workers,
             initializer=worker_init,
-            initargs=(source_link, local_link),
+            initargs=(source_link, local_link, source_schema, target_schema),
         )
-        poll_engine = create_database_engine(local_link, is_source=False)
+        poll_engine = create_database_engine(
+            local_link, is_source=False, schema=target_schema
+        )
         try:
             futures = [executor.submit(ingest_shard, task) for task in tasks_to_run]
-            results = wait_for_workers(
+            wait_for_workers(
                 futures,
                 run_id=run_id,
                 poll_engine=poll_engine,
                 started_at=started_at,
+                schema=target_schema,
             )
         except KeyboardInterrupt:
             print("\nInterrupted. Completed shards are safe; rerun with --resume.")
@@ -1556,12 +1740,18 @@ def run_etl(args: argparse.Namespace) -> int:
             executor.shutdown(wait=True)
             poll_engine.dispose()
 
-        report_engine = create_database_engine(local_link, is_source=False)
+        report_engine = create_database_engine(
+            local_link, is_source=False, schema=target_schema
+        )
         try:
             report = build_ingestion_report(
                 report_engine, run_id, all_tasks, tables=table_names
             )
-            report_path = write_report(report, run_id)
+            report_path = write_report(
+                report,
+                run_id,
+                label=f"{args.source}_{target_schema}",
+            )
             failed = report["status"].isin(["failed", "partial", "pending"])
             run_status = "failed" if failed.any() else "completed"
             finish_run(
@@ -1619,7 +1809,7 @@ def read_local_table(
         )
         query = (
             f"SELECT {select_columns} "
-            f"FROM {quote_identifier(table_name)}"
+            f"FROM {qualified_name(local_engine, table_name)}"
         )
         if limit is not None:
             query += f" LIMIT {int(limit)}"
@@ -1705,6 +1895,30 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Comma-separated table names, or 'all' (default).",
     )
     parser.add_argument(
+        "--source",
+        choices=("illicit", "licit"),
+        default="illicit",
+        help="Online database to ingest: illicit (default) or licit.",
+    )
+    parser.add_argument(
+        "--schema",
+        default="public",
+        help="Target schema in the local mirror. Default: public.",
+    )
+    parser.add_argument(
+        "--source-schema",
+        default="public",
+        help="Schema to read in the online database. Default: public.",
+    )
+    parser.add_argument(
+        "--row-limits",
+        default="",
+        help=(
+            "Optional rows per table, e.g. accounts=1000,transactions=5000. "
+            "Use all=1000 as a fallback. Applies to each source table."
+        ),
+    )
+    parser.add_argument(
         "--resume",
         action="store_true",
         help="Resume the latest unfinished run; completed shards are skipped.",
@@ -1738,7 +1952,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         if args.status:
             load_environment()
-            print_ingestion_status()
+            print_ingestion_status(schema=args.schema)
             return 0
         if args.workers < 1:
             raise ValueError("--workers must be at least 1.")

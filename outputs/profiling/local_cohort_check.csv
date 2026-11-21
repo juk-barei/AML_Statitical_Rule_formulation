@@ -1,0 +1,9 @@
+metric,value,unit,snapshot_at,method,note
+illicit_accounts,2125343,wallets,2026-11-21T08:58Z,"select count(*) from illicit.accounts","read-only via src.scripts.ETL.get_local_engine(); PostgreSQL TCP localhost:5432"
+illicit_blacklisted_wallets,11418,wallets,2026-11-21T08:58Z,"select count(*) from illicit.blacklisted_wallets","read-only via src.scripts.ETL.get_local_engine()"
+illicit_suspicious_distinct,1338468,wallets,2026-11-21T08:58Z,"select count(distinct wallet_address) from illicit.wallet_hops where hop_level between 1 and 5 and wallet_address not in (select wallet_address from illicit.blacklisted_wallets)","read-only via src.scripts.ETL.get_local_engine()"
+licit_accounts,3149914,wallets,2026-11-21T08:58Z,"select count(*) from licit.accounts","licit ETL was running; count is a moving partial"
+licit_seed_wallets,721,wallets,2026-11-21T08:58Z,"select count(*) from licit.seed_wallets","read-only via src.scripts.ETL.get_local_engine()"
+licit_blacklist_overlap,843,wallets,2026-11-21T08:58Z,"select count(*) from licit.accounts a join illicit.blacklisted_wallets b on a.address=b.wallet_address","read-only via src.scripts.ETL.get_local_engine()"
+licit_seed_blacklist_overlap,5,wallets,2026-11-21T08:58Z,"select count(*) from licit.seed_wallets s join illicit.blacklisted_wallets b on s.wallet_address=b.wallet_address","read-only via src.scripts.ETL.get_local_engine()"
+licit_etl_latest_run_completed_shards,6,shards,2026-11-21T08:58Z,"select status,count(*) from licit._etl_progress where run_id=(select run_id from licit._etl_runs order by started_at desc limit 1) group by status","latest licit run; 5 running, 3 pending at snapshot"
