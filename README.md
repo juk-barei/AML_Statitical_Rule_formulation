@@ -2,6 +2,19 @@
 
 - **Hypothesis covered**: 2,4,6
 
+## Current directives
+
+Agent-facing rules are in [`AGENTS.md`](AGENTS.md). Current corrections:
+
+- Analysis data is the **PostgreSQL mirror**. `datasets/*.csv` is a stale, partial export; do not mix the two.
+- **Cohorts:** `illicit` = blacklist ∪ hop-0; `suspicious` = `min(hop) 1–5` and not blacklisted; `licit` = external licit DB (**ingestion pending**); `unlabeled` = provisional, **not licit**.
+- **Priority:** any blacklist record at hop 1–5 makes the wallet illicit, not suspicious — not just hop 3.
+- **Inference:** non-parametric tests relax normality/variance, not dependence. `suspicious` is nested; use seed-cluster inference or report it as descriptive. Illicit vs licit is the clean independent contrast once licit is ingested.
+- **Workflow:** EDA follows Lecture 02; inference follows the Lecture 05 eight-step ANOVA workflow. `src/scripts/ETL.py` is the only writer; notebooks are read-only.
+- Drop `hex_address` from analysis views unless a task explicitly needs it.
+
+See [`docs/context/step_1_profiling_samples.md`](docs/context/step_1_profiling_samples.md) for the step-1 record.
+
 ## Prerequisites
 You can adopt the project to your development workflow. As of mine, I use `uv` as the package manager. Here is the list of prerequisites:
 - `uv`: [install here only if you want](https://docs.astral.sh/uv/getting-started/installation/)
@@ -60,7 +73,8 @@ In the root directory (`data_analysis`):
 6. Add database credentials to `src/.env`:
 
    ```dotenv
-   ONLINE_DATABASE_LINK=postgresql://user:password@host:port/database
+   ILLICIT_ONLINE_DATABASE_LINK=postgresql://user:password@host:port/database
+   LICIT_ONLINE_DATABASE_LINK=postgresql://user:password@host:port/database
    LOCAL_DB_NAME=capstone_1
    LOCAL_DB_USER=your_user
    LOCAL_DB_HOST=localhost
@@ -129,6 +143,7 @@ the project `.venv` kernel, not a system Python.
 - `docs`: look at the hypothesis and resources
 - `datasets`: datasets for doing the statistical analysis
 - `outputs`: the output from the analysis(figures, documentation, files...).
+- `tasks`: live 8-step tracker; start at [tasks/README.md](tasks/README.md).
 
 ### How to use the `src` directory
 - `.ipynb` files are for temporary inspection or intro.
@@ -140,8 +155,18 @@ the project `.venv` kernel, not a system Python.
 ### ETL options
 
 ```bash
-# Ingest every discovered table (default: all tables)
+# Ingest every discovered table from the illicit DB into public
 python3 src/scripts/ETL.py
+
+# Ingest the licit DB into a separate schema
+python3 src/scripts/ETL.py --source licit --schema licit --source-schema public
+
+# Cap rows per table (useful for a fixed phase-1 sample)
+python3 src/scripts/ETL.py --source illicit --schema illicit \
+  --row-limits accounts=100000,transactions=500000,wallet_hops=200000
+
+# Read a specific source/table
+python3 src/scripts/ETL.py --source illicit --schema illicit --tables accounts
 
 # Resume the latest failed/interrupted run; completed shards are skipped
 python3 src/scripts/ETL.py --resume

@@ -1,5 +1,7 @@
 # Rules for AML
 
+**IDs:** `S1`–`S6` name the rules below; `H1`–`H6` name the matching research question; `H0`/`Ha` name the statistical null/alternative. Canonical terms: `docs/context/glossary.md`.
+
 ## Rules
 Each rule should have its ratio of contribution to the overall score since some rules don't represent the specific fraudulent group as well as the others.
 

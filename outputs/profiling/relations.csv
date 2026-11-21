@@ -1,0 +1,17 @@
+source,schema,table,column,references,referred_columns
+illicit,public,transactions,from_address,public.accounts,address
+illicit,public,transactions,to_address,public.accounts,address
+illicit,public,wallet_hops,parent_address,public.accounts,address
+illicit,public,wallet_hops,seed_address,public.blacklisted_wallets,wallet_address
+illicit,public,wallet_hops,via_tx_hash,public.transactions,tx_hash
+illicit,public,wallet_hops,wallet_address,public.accounts,address
+licit,public,seed_wallets,wallet_address,public.accounts,address
+licit,public,blacklisted_wallets,wallet_address,public.accounts,address
+licit,public,transactions,from_address,public.accounts,address
+licit,public,transactions,to_address,public.accounts,address
+licit,public,wallet_hops,parent_address,public.accounts,address
+licit,public,wallet_hops,seed_address,public.accounts,address
+licit,public,wallet_hops,via_tx_hash,public.transactions,tx_hash
+licit,public,wallet_hops,wallet_address,public.accounts,address
+licit,public,pipeline_crawl_state,address,public.accounts,address
+licit,public,pipeline_crawl_state,seed_address,public.accounts,address
