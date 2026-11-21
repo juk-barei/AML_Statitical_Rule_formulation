@@ -3,7 +3,7 @@
 - **Status:** in_progress
 - **Blocked by:** licit cleaning (H0_L)
 - **Blocks:** [Step 3](../03_explore/main.md)
-- **Updated:** 2026-11-20
+- **Updated:** 2026-11-22
 
 ## Objective
 
@@ -29,23 +29,24 @@ Write the null and alternative hypotheses, the alpha level, and the multiplicity
 - Fix alpha and multiplicity.
 - Name the licit/unlabeled substitution.
 
-## Hypothesis folders
+## Hypothesis trackers
 
-| Hypothesis | Folder | Status | Focus |
+| Hypothesis | Tracker | Status | Focus |
 | --- | --- | --- | --- |
-| H1 | `H1/main.md` | blocked | deferred; not in phase-1 scope |
-| H2 | `H2/main.md` | in_progress | lifetime + burst |
-| H3 | `H3/main.md` | blocked | deferred; not in phase-1 scope |
-| H4 | `H4/main.md` | blocked | Jaccard + coverage |
-| H5 | `H5/main.md` | blocked | deferred; not in phase-1 scope |
-| H6 | `H6/main.md` | in_progress | CV + direction |
+| H2 | [`H2.md`](../H2.md) | in_progress | lifetime + burst |
+| H4 | [`H4.md`](../H4.md) | blocked | Jaccard + coverage |
+| H6 | [`H6.md`](../H6.md) | in_progress | CV + direction |
+
+`H1`, `H3`, `H5` are deferred and have no tracker; see [`../DEFERRED.md`](../DEFERRED.md).
 
 ## Shared tasks
 
+Done tasks are archived under `tasks/_archive/`; their links point there.
+
 | File | Status | Blocked by | Output |
 | --- | --- | --- | --- |
-| `01_primary_hypotheses.md` | done | Step 1 cohort + response | H0/Ha text |
-| `02_secondary_hypotheses.md` | done | `01_primary_hypotheses.md` | H0/Ha text |
-| `03_alpha_multiplicity.md` | done | — | alpha/Holm policy |
-| `04_licit_substitution_policy.md` | done | — | naming rule |
+| [`01_primary_hypotheses.md`](../../_archive/hypothesis_testing/02_hypotheses_alpha/01_primary_hypotheses.md) | done | Step 1 cohort + response | H0/Ha text |
+| [`02_secondary_hypotheses.md`](../../_archive/hypothesis_testing/02_hypotheses_alpha/02_secondary_hypotheses.md) | done | `01_primary_hypotheses.md` | H0/Ha text |
+| [`03_alpha_multiplicity.md`](../../_archive/hypothesis_testing/02_hypotheses_alpha/03_alpha_multiplicity.md) | done | — | alpha/Holm policy |
+| [`04_licit_substitution_policy.md`](../../_archive/hypothesis_testing/02_hypotheses_alpha/04_licit_substitution_policy.md) | done | — | naming rule |
 | `05_licit_hypotheses.md` | blocked | licit cleaning | H0_L/Ha_L |

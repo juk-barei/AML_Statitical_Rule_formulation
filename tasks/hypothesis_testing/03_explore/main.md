@@ -3,7 +3,7 @@
 - **Status:** in_progress
 - **Blocked by:** [Step 1](../01_response_factor_groups/main.md), [Step 2](../02_hypotheses_alpha/main.md)
 - **Blocks:** [Step 4](../04_assumptions/main.md)
-- **Updated:** 2026-11-20
+- **Updated:** 2026-11-22
 
 ## Objective
 
@@ -29,16 +29,15 @@ Explore each response by group and restructure the EDA notebook to follow Lectur
 - Keep the three-group four-view panels.
 - Report n and shape before inference.
 
-## Hypothesis folders
+## Hypothesis trackers
 
-| Hypothesis | Folder | Status | Focus |
+| Hypothesis | Tracker | Status | Focus |
 | --- | --- | --- | --- |
-| H1 | `H1/main.md` | blocked | deferred; not in phase-1 scope |
-| H2 | `H2/main.md` | todo | lifetime + burst |
-| H3 | `H3/main.md` | blocked | deferred; not in phase-1 scope |
-| H4 | `H4/main.md` | blocked | Jaccard + coverage |
-| H5 | `H5/main.md` | blocked | deferred; not in phase-1 scope |
-| H6 | `H6/main.md` | todo | CV + direction |
+| H2 | [`H2.md`](../H2.md) | todo | lifetime + burst |
+| H4 | [`H4.md`](../H4.md) | blocked | Jaccard + coverage |
+| H6 | [`H6.md`](../H6.md) | todo | CV + direction |
+
+`H1`, `H3`, `H5` are deferred and have no tracker; see [`../DEFERRED.md`](../DEFERRED.md).
 
 ## Shared tasks
 

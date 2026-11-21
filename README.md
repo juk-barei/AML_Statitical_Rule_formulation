@@ -1,11 +1,7 @@
 # Data and Statistical Analysis for Rule formulation for AML in Crypto
-
 - **Hypothesis covered**: 2,4,6
-
 ## Current directives
-
 Agent-facing rules are in [`AGENTS.md`](AGENTS.md). Current corrections:
-
 - Analysis data is the **PostgreSQL mirror**. `datasets/*.csv` is a stale, partial export; do not mix the two.
 - **Cohorts:** `illicit` = blacklist ∪ hop-0; `suspicious` = `min(hop) 1–5` and not blacklisted; `licit` = external licit DB (**ingestion pending**); `unlabeled` = provisional, **not licit**.
 - **Priority:** any blacklist record at hop 1–5 makes the wallet illicit, not suspicious — not just hop 3.
@@ -21,27 +17,14 @@ You can adopt the project to your development workflow. As of mine, I use `uv` a
 - minimum `python-version`: 3.14
 
 ## QuickStart
-As the dataset files are too big, I don't include in here. Run the following commands
-In the root directory (`data_analysis`):
-1. Create the datasets directory:
-
-   ```bash
-   mkdir -p datasets
-   ```
-
-2. Clean up downloaded zip files:
-
-   ```bash
-   rm -f datasets/*.zip
-   ```
-
-3. Sync the packages:
+As the dataset files are too big, I don't include in here. You can use the database I provided for phase 1 and set it in .env file. Further instruction is in step 6. Run the following commands In the root directory (`data_analysis`):
+1. Sync the packages:
 
    ```bash
    uv sync
    ```
 
-4. Install the project in editable mode:
+2. Install the project in editable mode:
 
    ```bash
    uv pip install -e .
@@ -83,22 +66,23 @@ In the root directory (`data_analysis`):
 
 7. Ingest the cloud tables into the local PostgreSQL mirror in batches. The
    script uses up to five worker processes:
-
    ```bash
    python3 src/scripts/ETL.py --workers 5 --batch-size 50000
    ```
-
 8. Use `--status` from another terminal to watch progress while rows are still
    being written:
 
    ```bash
    python3 src/scripts/ETL.py --status
    ```
-
+   Alternatively, you can also use command named `ingest`. cuz I have built it as command in build file. I recommend this usage than the other one for ease of usage.
+   ```bash
+   ingest --status
+   ```
    The final per-table source/local row-count report is written to
    `outputs/ETL/ingestion_report.csv`.
 
-9. Open `src/notebooks/1.1_ILLICIT_EDA.ipynb`. It is read-only against the local mirror
+9. Open `src/notebooks/1.1_ILLICIT_EDA.ipynb`. It is read-only against the local db mirror
    and imports `load_analysis_tables()` from `src/scripts/ETL.py`. Its artifacts
    are written to `outputs/EDA_ILLICIT/`; the external licit series has a
    separate notebook and output directory:
@@ -106,104 +90,57 @@ In the root directory (`data_analysis`):
    ```python
    from src.scripts.ETL import load_analysis_tables, print_ingestion_status
    ```
-
    Restart the Jupyter kernel after re-running `uv pip install -e .` so the
    new import path is picked up.
-
-10. **NOT WORKING YET**: Run the whole workflow:
-
-   ```bash
-   python3 main.py
-   ```
-
-   Result will be stored in the `outputs` directory.
-   For now run in each file. Eg:
-
-   ```bash
-   python3 src/scripts/processing.py --debug 1
-   ```
-
-### Troubleshooting imports
-
-`ModuleNotFoundError: No module named 'ETL'` means a notebook or script is
-importing a bare module name. The analysis code is a package, so import it
-through its package path instead:
-
-```python
-from src.scripts.ETL import load_analysis_tables, print_ingestion_status
-```
-
-If that still fails, run `uv pip install -e .` from the repository root (the
-directory containing `pyproject.toml`) and restart the Jupyter kernel. Confirm
-the install with `pip show data_analysis` and make sure the notebook is using
-the project `.venv` kernel, not a system Python.
 
 ## How to use this directory
 - `src`: source code for analytical task.
 - `docs`: look at the hypothesis and resources
 - `datasets`: datasets for doing the statistical analysis
 - `outputs`: the output from the analysis(figures, documentation, files...).
-- `tasks`: live 8-step tracker; start at [tasks/README.md](tasks/README.md).
+- `tasks`:  Keep track of all tasks in sequence. Feel free to draft ideas in ther. start at [tasks/README.md](tasks/README.md).
+- `tasks/hypothesis_testing`: 8-step tracker for hypothesis testing for agents and humans.
 
 ### How to use the `src` directory
-- `.ipynb` files are for temporary inspection or intro.
-- `.py` files are the real deal. They are the content.
-
-**Note**: I am doing a personal experiment to see if using `.py` files will make the data/ML coding more smooth than using `.ipynb` files. And `.py` is a text file that could be opened in terminal-based text editor with no need for plugin. `.ipynb` files requires me to install plugin, pushing me to use either jupyterlab or vscode with plugins.
-**NOTE**: ETL is in `src/scripts/ETL.py`. It is the only code that writes to the database. The notebook only reads the local mirror, so ingestion can continue while analysis cells are running.
+- `scripts` / `.py` files are for temporary inspection or intro.
+- `notebooks` / `.ipynb` files are the real deal. They are the content.
 
 ### ETL options
-
 ```bash
+# See all options and help messages
+ingest --help
 # Ingest every discovered table from the illicit DB into public
-python3 src/scripts/ETL.py
+ingest
 
 # Ingest the licit DB into a separate schema
-python3 src/scripts/ETL.py --source licit --schema licit --source-schema public
+ingest --source licit --schema licit --source-schema public
 
 # Cap rows per table (useful for a fixed phase-1 sample)
-python3 src/scripts/ETL.py --source illicit --schema illicit \
+ingest --source illicit --schema illicit \
   --row-limits accounts=100000,transactions=500000,wallet_hops=200000
 
 # Read a specific source/table
-python3 src/scripts/ETL.py --source illicit --schema illicit --tables accounts
+ingest --source illicit --schema illicit --tables accounts
 
 # Resume the latest failed/interrupted run; completed shards are skipped
-python3 src/scripts/ETL.py --resume
+ingest --resume
 
 # Plan and count source rows without writing
-python3 src/scripts/ETL.py --dry-run
+ingest --dry-run
 
 # Ingest selected tables, or skip index creation
-python3 src/scripts/ETL.py --tables accounts,transactions
-python3 src/scripts/ETL.py --skip-indexes
+ingest --tables accounts,transactions
+ingest --skip-indexes
 
 # Print the latest run progress
-python3 src/scripts/ETL.py --status
+ingest --status
 ```
-
 Progress is stored in the local `_etl_progress` table (one row per shard) and
 `_etl_runs` (one row per run). The notebook's `print_ingestion_status()` reads
 the same tables.
 
 See [outputs/eval_columns.md](outputs/eval_columns.md) for the H2/H4/H6 column
 contract and the columns that are intentionally dropped from the analysis view.
-## Checklists
-**Note**: This is just draft. For the whole flow breakdown, look at [flow.md](docs/flow.md)
-### Main:
-- [Done] Loading:Implement the file ingestion with command line options.
-- [ ] Processing: Implement EDA with report of insights and main decision to `outputs/`
-- [ ] Aggregate data for missing columns.
-- [ ] Data visualization: Implement Q-Q plot with Sharpio-Wiki Test for non normalized value to assume normal distribution for all rules when $n$ grows.
-- [ ] Implement the t-test for Hypothesis testing on $H_0$ of each distribution.
-- [ ] Formalize the rules based pattern and Hypothesis testing.
-- [ ] Implement Evaluation on the rule formalization.
-
-### Optional:
-- [ ] Implement the visualization for main insights.
-
-## Questions
-- Should the study on assumption of normal distribution be further studied for if pattern in real-life doesn't represent normal distribution then we also study the Box Cox transformation?
 
 ## LICENSE
 The Repository is under the MIT LICENSE.

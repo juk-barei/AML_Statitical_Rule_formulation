@@ -3,7 +3,7 @@
 - **Status:** in_progress
 - **Blocked by:** Steps [1](../01_response_factor_groups/main.md)–[7](../07_effect_size/main.md)
 - **Blocks:** phase-2 weight calibration
-- **Updated:** 2026-11-20
+- **Updated:** 2026-11-22
 
 ## Objective
 
@@ -29,16 +29,15 @@ Turn the results into a rule-level verdict in context: supported, not supported,
 - Name licit substitution.
 - State limitations explicitly.
 
-## Hypothesis folders
+## Hypothesis trackers
 
-| Hypothesis | Folder | Status | Focus |
+| Hypothesis | Tracker | Status | Focus |
 | --- | --- | --- | --- |
-| H1 | `H1/main.md` | blocked | deferred; not in phase-1 scope |
-| H2 | `H2/main.md` | in_progress | lifetime + burst |
-| H3 | `H3/main.md` | blocked | deferred; not in phase-1 scope |
-| H4 | `H4/main.md` | blocked | Jaccard + coverage |
-| H5 | `H5/main.md` | blocked | deferred; not in phase-1 scope |
-| H6 | `H6/main.md` | in_progress | CV + direction |
+| H2 | [`H2.md`](../H2.md) | in_progress | lifetime + burst |
+| H4 | [`H4.md`](../H4.md) | blocked | Jaccard + coverage |
+| H6 | [`H6.md`](../H6.md) | in_progress | CV + direction |
+
+`H1`, `H3`, `H5` are deferred and have no tracker; see [`../DEFERRED.md`](../DEFERRED.md).
 
 ## Shared tasks
 

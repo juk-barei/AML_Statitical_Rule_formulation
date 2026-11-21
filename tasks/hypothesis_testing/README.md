@@ -3,9 +3,11 @@
 Live tracker for the 8-step ANOVA workflow.
 
 - **Status:** `todo` / `in_progress` / `blocked` / `done`
-- Each step directory has `main.md` (objective + shared task table), `H1`–`H6/main.md`, and shared task files.
-- Phase-1 active hypotheses are **H2, H4, H6**; **H1, H3, H5 are deferred**.
+- Each step directory has `main.md` (objective + shared task table) and shared task files.
+- Active hypotheses have one tracker each: `H2.md`, `H4.md`, `H6.md`. Do not create per-step `H2/H4/H6` folders.
+- Phase-1 active hypotheses are **H2, H4, H6**; **H1, H3, H5 are deferred** and have no tracker — see `DEFERRED.md`.
 - Every other `.md` file at the step root is one shared subtask or helper task.
+- `done` task files move to `tasks/_archive/hypothesis_testing/<step>/`; the step `main.md` table keeps the archived link. Do not delete done tasks.
 - Update after every run: status, blocked by, blocks, output, updated.
 - Keep entries concise; link to docs/scripts instead of duplicating them.
 
