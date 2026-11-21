@@ -3,7 +3,7 @@
 - **Status:** todo
 - **Blocked by:** [Step 5](../05_omnibus_test/main.md)
 - **Blocks:** [Step 7](../07_effect_size/main.md), [Step 8](../08_conclusion/main.md)
-- **Updated:** 2026-11-20
+- **Updated:** 2026-11-22
 
 ## Objective
 
@@ -28,16 +28,15 @@ Identify which group means or distributions differ, with family-wise error contr
 - Report each pair with CI.
 - Separate Welch and KW paths.
 
-## Hypothesis folders
+## Hypothesis trackers
 
-| Hypothesis | Folder | Status | Focus |
+| Hypothesis | Tracker | Status | Focus |
 | --- | --- | --- | --- |
-| H1 | `H1/main.md` | blocked | deferred; not in phase-1 scope |
-| H2 | `H2/main.md` | todo | lifetime + burst |
-| H3 | `H3/main.md` | blocked | deferred; not in phase-1 scope |
-| H4 | `H4/main.md` | blocked | Jaccard + coverage |
-| H5 | `H5/main.md` | blocked | deferred; not in phase-1 scope |
-| H6 | `H6/main.md` | todo | CV + direction |
+| H2 | [`H2.md`](../H2.md) | todo | lifetime + burst |
+| H4 | [`H4.md`](../H4.md) | blocked | Jaccard + coverage |
+| H6 | [`H6.md`](../H6.md) | todo | CV + direction |
+
+`H1`, `H3`, `H5` are deferred and have no tracker; see [`../DEFERRED.md`](../DEFERRED.md).
 
 ## Shared tasks
 

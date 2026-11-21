@@ -37,26 +37,27 @@ Detailed evidence and decisions live in `docs/context/step_1_profiling_samples.m
 
 - EDA follows the Lecture 02 structure: data types/chart map → univariate numerical → univariate categorical → numerical–numerical → numerical–categorical → categorical–categorical → multivariate.
 - Keep the three-group comparison inside the numerical–categorical section (side-by-side boxplots, overlaid densities, mean ± SD).
-- `src/scripts/` is for helper functions and small agent/people profiling; create it if absent. Code there must be reproducible and print the numbers it supports.
+- `src/scripts/` is for helper functions and small agent/people profiling; create it if absent. Code there must be reproducible and print the numbers it supports. But make sure to call module in this to `src/notebooks/` when possible.
 - `src/notebooks/` is for official analysis code. Notebooks are read-only against the mirror.
 - Cite the script path and line number for every number or insight taken from code.
 - Put durable decisions in `docs/context/`; keep docs under 200 words unless the detail is absolutely necessary.
 
 ## Subtask execution
-
 - One subtask is one Markdown file or one update to existing files.
 - Delegate subtasks to subagents and activate the matching skill for each agent.
 - Fact-check current facts after each insight; report contradictions, gaps, or conflicting evidence instead of smoothing them over.
 
 ## Task tracking
 
-- `tasks/` is the live tracker for the 8-step workflow; start at `tasks/README.md`.
-- Each step directory has `main.md` (objective + shared task table), `H1`–`H6/main.md`, and shared task files.
-- Phase-1 active hypotheses are **H2, H4, H6**; **H1, H3, H5 are deferred**.
+- `tasks/` is the live tracker for the 8-step workflow; start at `tasks/hypothesis_testing/README.md`.
+- Each step directory has `main.md` (objective + shared task table) and shared task files. Active hypotheses have one tracker each: `tasks/hypothesis_testing/H2.md`, `H4.md`, `H6.md`.
+- Phase-1 active hypotheses are **H2, H4, H6**; **H1, H3, H5 are deferred** and have no tracker.
+- Do not create per-step `H2/H4/H6` folders; update the hypothesis tracker instead.
 - Every other `.md` file at the step root is one shared subtask or helper task.
-- After every run, update the touched step `main.md`, hypothesis `main.md`, and task files: status, blocked by, blocks, output, updated.
+- After every run, update the touched step `main.md`, hypothesis tracker (`H2.md`, `H4.md`, or `H6.md`), and task files: status, blocked by, blocks, output, updated.
 - Each task records resources/context, file actions (`create` / `update` / `delete` / `rename`), and implementation points.
 - Status vocabulary: `todo` / `in_progress` / `blocked` / `done`.
+- Move `done` task files to `tasks/_archive/hypothesis_testing/<step>/`; keep the step `main.md` table pointing to the archived file. Do not delete done tasks.
 - Keep entries concise; link to docs/scripts instead of duplicating them.
 
 ## Data hygiene
