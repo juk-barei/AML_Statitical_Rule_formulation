@@ -1,11 +1,6 @@
 """Put all the configuration in here"""
 from pathlib import Path
 from varname import argname
-import warnings 
-import seaborn as sns
-import pandas as pd
-import matplotlib.pyplot as plt
-warnings.filterwarnings("ignore")
 # == File ==
 ROOT = Path().cwd().resolve()
 SRC = ROOT / "datasets"
@@ -33,19 +28,6 @@ ARG_HELP_F_MESSAGE = f"""
     - 1, 2, 4: acccess the dataframe in the coreesponding index.
 {bold_text("NOTE: ")} You can't enter keywoard {bold_text("all")} as a part of index chaining. Ex: 1, all, 4. """
 
-# Markdown file
-# markdown_syntax = {
-#                     "TITLE": "# ", 
-#                     "BODY" :markdown_body_syntax
-#
-# }
-# markdown_body_syntax = {
-#                     "SECTION": ("## ", "### ", "#### ")
-#                     "LIST": {"- "},
-#                     "NUM_LIST": 1,
-# }
-# Another way is to build atomic element and multiply the # by a factor for better adaptability.
-    
 def main():
     print_path(ROOT)
     print_path(SRC)

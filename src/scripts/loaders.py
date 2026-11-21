@@ -1,7 +1,6 @@
 """To load files, database, query,etc"""
 import pandas as pd
 import numpy as np
-import os
 import argparse
 from pandas.errors import EmptyDataError
 from config import OUTPUT, ROOT, SRC, DEFAULT_FILE_EXTENSION, Path, ARG_HELP_F_MESSAGE, DEFAULT_DEBUG_MODE, bold_text
@@ -9,8 +8,6 @@ from config import OUTPUT, ROOT, SRC, DEFAULT_FILE_EXTENSION, Path, ARG_HELP_F_M
 def load_csv_files(src:str | Path, file_extension: str)-> dict[str: pd.DataFrame]:
     """load csv files from a directory"""
     target_dir = Path(src)  
-    # if (not isinstance(target_dir, Path)):
-    #     raise TypeError(f"Not the right datatype. Expected Path or os.path argument. Recieved: {type(target_dir)}")
     if (not target_dir.exists()):
         raise FileNotFoundError(f"Directory Not Found: {target_dir} ")
     if( not target_dir.is_dir()):
@@ -36,7 +33,7 @@ def get_df_by_index(df_dict:dict[str: pd.DataFrame], indices_str:list[str] | str
     """faciliate result based on a list of indices from the user argument """
     # if they want all elements
     if(indices_str.strip()=="all"):
-        return [map(lambda key, val: (key,val), list(df_dict.keys()), list(df_dict.values()))]
+        return [(key, val) for key, val in df_dict.items()]
     #in case they specify more than one element
     indices = indices_str.split(",")
     try: 

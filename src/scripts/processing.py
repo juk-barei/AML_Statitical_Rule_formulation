@@ -1,8 +1,6 @@
-    """ This file is for EDA. """
-from pandas.core.indexes import extension
+"""This file is for EDA."""
 import time
-from config import DEFAULT_FILE_EXTENSION, DEFAULT_OUTPUT_REPORT_EXTENSION, OUTPUT, argname
-import numpy as np
+from config import DEFAULT_FILE_EXTENSION, DEFAULT_OUTPUT_REPORT_EXTENSION, OUTPUT
 import pandas as pd
 from loaders import args_handling, cmd_args, load_csv_files, get_df_by_index, print_df_info
 
@@ -76,24 +74,12 @@ def write_report_file(text: str, filename: str, mode= 'a+', extension: str = DEF
     except FileExistsError as e:
         raise e("File doesn't exist.")
 
-def create_na_report(description:str, value:str, parent: str):
-    """Create a report on na count of each column inside all dataframes.
-    This will provide more flexibility of how and where to write into."""
-    pass 
-
 def main():
     args = cmd_args()
     args_handling(args)
     df_dict = load_csv_files(args.d, args.e)
     all_df_names = list(df_dict.keys())
     all_df = list(df_dict.values())
-    # for index, df in enumerate(all_df):
-    #     assert hasattr(df.columns,'__iter__')
-    #     col0 = df.columns[0]
-    #     df_na_row = get_null_values_in_columns(df,col0)
-    #     # print(f"type of the df_na_row: {type(df_na_row)}")
-    #     # print(f"df {all_df_names[index]} has {len(df_na_row)} NA rows.")
     report_text = get_null_values_in_df_lst(all_df, all_df_names)
-    # write_report_file(report_text, "NA_report")
 if __name__ == "__main__":
     main()
