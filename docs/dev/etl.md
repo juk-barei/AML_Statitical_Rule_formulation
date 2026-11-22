@@ -1,4 +1,8 @@
- 1. What each process actually opens
+# ETL process notes
+
+> Historical note: this analysis was written against the pre-refactor `src/scripts/ETL.py`. The current writer is `src/scripts/etl/ingest.py`; line numbers below may be stale.
+
+1. What each process actually opens
 
  ETL.py is not one process. It is a parent + up to 5 worker processes (MAX_WORKERS = 5, DEFAULT_WORKERS = 5 —
  src/scripts/ETL.py:63-64).
