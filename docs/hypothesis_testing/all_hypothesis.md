@@ -1,5 +1,5 @@
-# Rules for AML
-
+# Draft Rules for AML
+## Note that this is the business rule or logic for application but not a statistical hypothesis. We need to create that ourselves for that.
 **IDs:** `S1`–`S6` name the rules below; `H1`–`H6` name the matching research question; `H0`/`Ha` name the statistical null/alternative. Canonical terms: `docs/context/glossary.md`.
 
 ## Rules
@@ -72,16 +72,16 @@ Then do Jaccard Index calculation.
 
 **Variables needed after having the addresses**: transaction_id, direction (IN/OUT), timestamp of each in-transaction, timestamp of each out-transaction, total transaction count.
 
-**REASONING:** Human behavior on-chain is naturally stochastic (irregular). Humans open wallets, copy addresses, sign transactions, and pause to read screens. Consequently, human inter-arrival times (Delta t) follow heavy-tailed or Poisson distributions with high variance. For ppl that do the ML they will set a fixed interval that they find safe to evade the bot while trying to maximize their process to do more hopping. Hence, the process will be deterministic or randomly deterministic(try to make some random time interval for doing transaction while also trying to maintain efficiency).  
+**REASONING:** Human behavior on-chain is naturally stochastic (irregular). Humans open wallets, copy addresses, sign transactions, and pause to read screens. Consequently, human inter-arrival times (Delta t) follow heavy-tailed or Poisson distributions with high variance. For ppl that do the ML they will set a fixed interval that they find safe to evade the bot while trying to maximize their process to do more hopping. Hence, the process will be deterministic or randomly deterministic(try to make some random time interval for doing transaction while also trying to maintain efficiency).
 
-**Note**: 
+**Note**:
 - This rule actually complements the rule 1. If the criminal figures out rule number 1 that we try to evade the 3 minutes rule for bot detection, then they can program the bot to wait a fixed interval like 6 minutes between hops.
 - The rule has not covered the randomly deterministic case yet.
 
-### Overall: 
+### Overall:
 - Rule 1 Checks transaction velocity and holding time.
 - Rule 2 Checks wallet lifetime and volume concentration.
-- Rule 3 Checks structural fan-in / fan-out degrees && transfer amount dispersion 
+- Rule 3 Checks structural fan-in / fan-out degrees && transfer amount dispersion
 - Rule 4 Checks TRX gas funder overlap (Jaccard Index).
 - Rule 5 Checks topological hop distance to blacklisted seeds.
 - Rule 6 checks the consistency of how address send or receive transaction.
@@ -89,7 +89,7 @@ Then do Jaccard Index calculation.
 ## Risk score
 each rule works independently but they are combined at the end to form a risk score.
 If A is the input address,and 1<={w1,w2,w3,w4,w5,w6}<=3 are weight of each rule (priority of each rule)
-Weight sum of all rule scores: S(A) =  w1*S1 + w2*S2 + w3*S3+ w4*S4 + w5*S5 + w6*s6. 
+Weight sum of all rule scores: S(A) =  w1*S1 + w2*S2 + w3*S3+ w4*S4 + w5*S5 + w6*s6.
 **Risk score formula**: R(A) = min(10,S(A)).
 **Note**: 0<=S(A)<=15.
 

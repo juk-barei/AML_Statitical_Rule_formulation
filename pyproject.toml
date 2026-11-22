@@ -26,7 +26,7 @@ dependencies = [
 check_var = ["varname>=1.0.0"]
 inspect_variable = ["einspect>=0.5.16"]
 [project.scripts]
-ingest = "src.scripts.ETL:main"
+ingest = "src.scripts.etl.ingest:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src", "src.*"]

@@ -6,11 +6,36 @@ Detailed evidence and decisions live in `docs/context/step_1_profiling_samples.m
 ## Data authority
 
 - Terminology is canonical in `docs/context/glossary.md`: rules are `S1`–`S6`, research questions `H1`–`H6`, null/alternative `H0`/`Ha` (never `H1`), and the third implemented level is `unlabeled` (never `background`).
-- **PostgreSQL mirror** is the analysis dataset. `src/scripts/ETL.py` is the only writer.
+- **PostgreSQL mirror** is the analysis dataset. `src/scripts/etl/ingest.py` is the only writer of the local mirror; `src/scripts/etl/load.py` is the designated writer for shared exports.
 - `datasets/*.csv` is a **stale, partial export**. Never mix CSV and mirror counts in one table or conclusion.
 - State the snapshot and row counts beside any quantitative claim.
-- Use `src/.env.example` as the variable contract. Never read or print `src/.env`; `ETL.py` loads it internally.
+- Use `src/.env.example` as the variable contract. Never read or print `src/.env`; the ETL modules load it internally.
 - Never print connection strings or credentials.
+
+## Data access, memory, and export
+
+- **PostgreSQL computes; pandas displays.** Push filters, joins, cohort priority, eligibility, deduplication, and feature aggregation into SQL. Never load `accounts`, `transactions`, or `wallet_hops` wholesale into pandas.
+- **Return small results.** Select only needed columns; return wallet-level aggregates or a bounded sample (`50k–100k` rows). `LIMIT` is for exploration only; reported counts must come from full-frame SQL.
+- **Stream row-level work.** Use `engine.connect().execution_options(stream_results=True)` with `pd.read_sql_query(..., chunksize=50_000)` and process one chunk or wallet group at a time.
+- **The mirror is read-only outside the ETL writers.** Notebooks and ad-hoc scripts must not `INSERT`, `UPDATE`, `DELETE`, or run DDL against the mirror.
+- **Cleaning is a documented rule, not an eyeball edit.** Express it as a read-only CTE/view, apply it identically to every arm, and report the n-flow. Never silently drop zero-event or undefined rows.
+- **Export contract:** Parquet is the analysis handoff; CSV only for small manifests/data dictionaries; managed PostgreSQL only for the wallet-level serving table. DuckDB queries Parquet; it does not replace the mirror or the serving database.
+- **Freeze before export.** Record snapshot time, source, per-table row counts, exclusions, and a manifest/hash. Never mix mirror, sample, and CSV counts.
+- **Sampling:** sample wallets, never transaction rows. Census small/rare arms; keep all events for selected wallets. Record seed, strata, cluster, and weights.
+
+Details and code patterns: `src/scripts/etl/README.md`.
+
+## Repository layout
+
+- Code areas are `src/scripts/{etl,eda,hypothesis_testing,statistical_learning}`.
+- `outputs/` mirrors those areas: every artifact goes under the area that produces it.
+  - ETL: `outputs/etl/{profile,tests,transform,export}`; handoff snapshots live in `outputs/etl/export/<snapshot>/`.
+  - EDA: `outputs/eda/{univariate,bivariate,multivariate,profile,additional}`.
+  - Hypothesis testing: `outputs/hypothesis_testing/{shared,h2,h4,h6}`.
+  - Statistical learning: `outputs/statistical_learning/`.
+- Trackers mirror the same split: `tasks/etl/`, `tasks/eda/`, `tasks/statistical_learning/`; the 8-step workflow stays in `tasks/hypothesis_testing/`.
+- Do not create a new top-level output or task folder without updating this contract and `src/scripts/README.md`.
+- `src/scripts/etl/ingest.py` writes ETL outputs; `src/scripts/etl/load.py` writes handoff exports. Notebooks write only under their producer area.
 
 ## Cohort contract
 
@@ -37,8 +62,8 @@ Detailed evidence and decisions live in `docs/context/step_1_profiling_samples.m
 
 - EDA follows the Lecture 02 structure: data types/chart map → univariate numerical → univariate categorical → numerical–numerical → numerical–categorical → categorical–categorical → multivariate.
 - Keep the three-group comparison inside the numerical–categorical section (side-by-side boxplots, overlaid densities, mean ± SD).
-- `src/scripts/` is for helper functions and small agent/people profiling; create it if absent. Code there must be reproducible and print the numbers it supports. But make sure to call module in this to `src/notebooks/` when possible.
-- `src/notebooks/` is for official analysis code. Notebooks are read-only against the mirror.
+- `src/scripts/` holds reusable analysis code; `src/notebooks/` holds official analysis code. Scripts must be reproducible and print the numbers they support; notebooks import them.
+- Notebooks are read-only against the mirror.
 - Cite the script path and line number for every number or insight taken from code.
 - Put durable decisions in `docs/context/`; keep docs under 200 words unless the detail is absolutely necessary.
 

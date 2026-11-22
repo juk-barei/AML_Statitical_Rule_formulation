@@ -4,4 +4,8 @@ __pycache__/
 .env
 .*
 !.env.example
+!**/.gitkeep
 docs/external_resources
+.ipynb_checkpoints/
+docs/context
+tasks/

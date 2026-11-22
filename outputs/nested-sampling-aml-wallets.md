@@ -186,16 +186,16 @@ The phase-2 evaluation should be out-of-sample. If the phase-2 labels are added 
 
 ### Project artifacts and local data
 
-1. `outputs/profiling/cohort_counts.csv` — cohort counts, snapshot 2026-11-20T11:12:46Z (illicit blacklist 15,185; suspicious 3,598,120; licit accounts 6,614,681; licit seed_wallets 721).
-2. `outputs/profiling/db_overview.csv` — table row counts, snapshot 2026-11-21T03:53:36Z (illicit accounts 4,754,230; blacklisted_wallets 16,507; licit accounts 6,614,681).
-3. `outputs/profiling/group_overlap.csv` — overlap counts, snapshot 2026-11-20T11:12:46Z (blacklist ∩ licit 2,977; blacklist ∩ licit seeds 6/721; 2,485/5,000 suspicious sample in licit).
+1. `outputs/etl/profile/cohort_counts.csv` — cohort counts, snapshot 2026-11-20T11:12:46Z (illicit blacklist 15,185; suspicious 3,598,120; licit accounts 6,614,681; licit seed_wallets 721).
+2. `outputs/etl/profile/db_overview.csv` — table row counts, snapshot 2026-11-21T03:53:36Z (illicit accounts 4,754,230; blacklisted_wallets 16,507; licit accounts 6,614,681).
+3. `outputs/etl/profile/group_overlap.csv` — overlap counts, snapshot 2026-11-20T11:12:46Z (blacklist ∩ licit 2,977; blacklist ∩ licit seeds 6/721; 2,485/5,000 suspicious sample in licit).
 4. `docs/context/step_1_profiling_samples.md` — local mirror counts (accounts 2,125,343; blacklisted wallets 11,418; suspicious 1,338,468); eligibility counts (6,324 ≥2 events; 5,695 ≥5 events and CV defined); H4 13/4,938 and H6 0/5,709; n-flow requirement; selection warning; 216,776 multi-seed wallets.
 5. `docs/context/test_plan.md` — responses and eligibility gates; 50,000 per comparison arm; seed-cluster bootstrap; H2/H6 caveats; 5,931 distinct seeds.
 6. `docs/context/cohort_contract.md` — unit = wallet; priority illicit > suspicious > licit > unlabeled; arm definitions and counts.
 7. `docs/context/statistical_info.md` — online profile snapshot 2026-11-20T10:57Z (illicit accounts 4,540,183; blacklist 15,165–15,185); overlap 2,977 / 6 of 721 / 49.7%.
 8. `docs/context/sampling_evaluation.md` — licit frame not clean; freeze a timestamp; 50,000 per comparison arm.
 9. `outputs/.drafts/nested-sampling-aml-wallets-research-direct.md` — direct cross-check notes and local SQL checks, 2026-11-21.
-9a. `outputs/profiling/local_cohort_check.csv` — local read-only SQL counts at 2026-11-21T08:58Z (illicit 2,125,343; blacklist 11,418; suspicious 1,338,468; licit 3,149,914; licit seeds 721; 843 blacklist overlap; 5/721 seed overlap; latest licit run 6 completed / 5 running / 3 pending shards). PostgreSQL TCP `localhost:5432`; the Unix socket was absent.
+9a. `outputs/etl/profile/local_cohort_check.csv` — local read-only SQL counts at 2026-11-21T08:58Z (illicit 2,125,343; blacklist 11,418; suspicious 1,338,468; licit 3,149,914; licit seeds 721; 843 blacklist overlap; 5/721 seed overlap; latest licit run 6 completed / 5 running / 3 pending shards). PostgreSQL TCP `localhost:5432`; the Unix socket was absent.
 
 ### Literature
 
