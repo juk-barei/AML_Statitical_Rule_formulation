@@ -6,8 +6,7 @@ CSV directly. No table is loaded into pandas.
 
 Run from the repo root:
 
-    python -m src.scripts.etl.load --schema illicit --tables all \
-        --out-dir outputs/etl/export/illicit_20261123 --name illicit_raw
+    python -m src.scripts.etl.load --schema illicit --tables all
 
     python -m src.scripts.etl.load --schema licit --tables transactions \
         --out-dir /shared/handoff/h1_h3 --name licit_transactions \

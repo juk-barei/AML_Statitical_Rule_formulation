@@ -12,3 +12,4 @@ docs/dev/software_concepts
 docs/dev
 tasks/
 outputs/etl/export
+**/tests/

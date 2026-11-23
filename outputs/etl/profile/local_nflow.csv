@@ -1,5 +1,6 @@
 stage,filter,n_in,n_out,n_dropped,reason,snapshot_at,is_partial
-universe,cross_schema_dedupe,11484681,9849850,1634831,address present in both schemas,2026-11-23T03:10:00Z,False
+account_union,cross_schema_dedupe,11484681,9849850,1634831,address present in both schemas,2026-11-23T03:10:00Z,False
+universe,accounts_plus_blacklist_plus_hop,9849850,9849850,0,frozen account universe; hop-only wallets are excluded from feature profiles,2026-11-23T03:10:00Z,False
 illicit,blacklist_label_1,17046,17046,0,priority group,2026-11-23T03:10:00Z,False
 suspicious,min_hop_1_5_and_not_blacklisted,3967831,3959525,8306,blacklist wins at every hop,2026-11-23T03:10:00Z,False
 licit,external_minus_illicit_minus_suspicious,6614681,5180495,1434186,illicit/suspicious overlap,2026-11-23T03:10:00Z,False
