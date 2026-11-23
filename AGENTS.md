@@ -3,8 +3,12 @@
 This file is the short, enforceable contract for agents working in this repo.
 Detailed evidence and decisions live in `docs/context/step_1_profiling_samples.md`.
 
-## Data authority
+## Task execution
+- Look into the `docs/dev/github_convention.md` and evaluate the tasks provided from the prompt of the user. If the task will violate the scope of how they should do and commit their change, stall the tasks and don't do it yet. Provide answer that Alert the user about committing changes or create new branches. Then tell them the plan of action to be taken based on their prompted alongside location of making change in the project directory. For alerting provide recommendation  of commit message and new branch name recommendation if fits.
 
+- If the local change is already big enough for a commit before doing the tasks, stall the task and ask the user to do so first with recommendation of commit message and new branch name recommendation if fits. Provide answer that Alert the user about committing changes or create new branches. Then tell them the plan of action to be taken based on their prompted alongside location of making change in the project directory. 
+
+## Data authority
 - Terminology is canonical in `docs/context/glossary.md`: rules are `S1`–`S6`, research questions `H1`–`H6`, null/alternative `H0`/`Ha` (never `H1`), and the third implemented level is `unlabeled` (never `background`).
 - **PostgreSQL mirror** is the analysis dataset. `src/scripts/etl/ingest.py` is the only writer of the local mirror; `src/scripts/etl/load.py` is the designated writer for shared exports.
 - `datasets/*.csv` is a **stale, partial export**. Never mix CSV and mirror counts in one table or conclusion.
