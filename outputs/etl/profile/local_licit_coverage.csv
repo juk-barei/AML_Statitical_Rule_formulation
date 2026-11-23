@@ -1,0 +1,7 @@
+schema,table,run_id,source_rows,ingested_rows,local_rows,shard_count,completed_shards,failed_shards,coverage_status,is_partial,snapshot_at
+licit,accounts,etl_20261122T034716_677817Z,6614681,6614681,6614681,5,5,0,complete,False,2026-11-23T03:10:00Z
+licit,blacklisted_wallets,etl_20261121T021829_714794Z,0,0,0,1,1,0,complete,False,2026-11-23T03:10:00Z
+licit,pipeline_crawl_state,etl_20261121T021829_714794Z,74337,74337,74337,1,1,0,complete,False,2026-11-23T03:10:00Z
+licit,seed_wallets,etl_20261121T021829_714794Z,721,721,721,1,1,0,complete,False,2026-11-23T03:10:00Z
+licit,transactions,etl_20261122T034716_677817Z,11326298,11326298,11326298,5,5,0,complete,False,2026-11-23T03:10:00Z
+licit,wallet_hops,etl_20261121T021829_714794Z,80756,80756,80756,1,1,0,complete,False,2026-11-23T03:10:00Z

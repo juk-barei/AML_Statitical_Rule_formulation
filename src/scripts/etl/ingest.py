@@ -1737,6 +1737,10 @@ def run_etl(args: argparse.Namespace) -> int:
                     local_engine, run_id, task.table_name
                 )
                 if task.shard_index in finished:
+                    print(
+                        f"  {task.table_name}[{task.shard_index}]: "
+                        "completed, skipping"
+                    )
                     continue
                 resume_key, resume_rows = local_shard_tail(
                     local_engine, task
@@ -1744,12 +1748,20 @@ def run_etl(args: argparse.Namespace) -> int:
                 if resume_key is not None and resume_rows > 0:
                     # Continue a keyset shard where the committed rows stop
                     # instead of re-reading them.
+                    print(
+                        f"  {task.table_name}[{task.shard_index}]: "
+                        f"resuming after {resume_rows:,} local rows"
+                    )
                     task = replace(
                         task,
                         resume_key=resume_key,
                         resume_rows=resume_rows,
                     )
                 else:
+                    print(
+                        f"  {task.table_name}[{task.shard_index}]: "
+                        "restarting from scratch"
+                    )
                     clear_task_rows(local_engine, task)
                     reset_task_progress(local_engine, task)
             tasks_to_run.append(task)

@@ -1,0 +1,45 @@
+schema,table,column,data_type,nullable,rows,sample_rows,non_null,nulls,null_share,distinct,min,max,method,snapshot_at,is_partial
+illicit,accounts,address,VARCHAR(40),True,4870000,98242,98980,-738,-0.007512062050854014,98980,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,accounts,hex_address,VARCHAR(50),True,4870000,98242,198,98044,0.9979845687180635,198,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,accounts,first_seen_timestamp,TIMESTAMP,True,4870000,98242,3909,94333,0.9602105006005578,3889,2021-03-10 14:33:21.000000+00:00,2026-11-15 12:40:00.000000+00:00,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,accounts,last_seen_timestamp,TIMESTAMP,True,4870000,98242,3272,94970,0.9666944891187068,3252,2021-05-08 04:49:12.000000+00:00,2026-10-29 04:39:57.000000+00:00,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,accounts,created_date,TIMESTAMP,True,4870000,98242,3909,94333,0.9602105006005578,3889,2021-03-10 14:33:21.000000+00:00,2026-11-15 12:40:00.000000+00:00,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,accounts,created_at,TIMESTAMP,True,4870000,98242,98980,-738,-0.007512062050854014,61362,2026-10-28 14:15:20.965029+00:00,2026-11-21 14:45:46.680521+00:00,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,blacklisted_wallets,wallet_address,VARCHAR(40),True,17046,17046,17046,0,0.0,17046,,,exact,2026-11-23T03:10:00Z,False
+illicit,blacklisted_wallets,hex_address,VARCHAR(50),True,17046,17046,8946,8100,0.4751847940865892,8946,,,exact,2026-11-23T03:10:00Z,False
+illicit,blacklisted_wallets,blacklisted_timestamp,BIGINT,True,17046,17046,8946,8100,0.4751847940865892,7050,,,exact,2026-11-23T03:10:00Z,False
+illicit,blacklisted_wallets,blacklisted_utc,TIMESTAMP,True,17046,17046,8946,8100,0.4751847940865892,7050,2020-06-26 15:22:39.000000+00:00,2026-10-20 01:18:12.000000+00:00,exact,2026-11-23T03:10:00Z,False
+illicit,blacklisted_wallets,transaction_id,VARCHAR(66),True,17046,17046,8946,8100,0.4751847940865892,8946,,,exact,2026-11-23T03:10:00Z,False
+illicit,blacklisted_wallets,source_name,VARCHAR(100),True,17046,17046,17046,0,0.0,1,,,exact,2026-11-23T03:10:00Z,False
+illicit,blacklisted_wallets,label,INTEGER,True,17046,17046,17046,0,0.0,1,,,exact,2026-11-23T03:10:00Z,False
+illicit,blacklisted_wallets,created_at,TIMESTAMP,True,17046,17046,17046,0,0.0,8101,2026-10-28 14:16:13.287964+00:00,2026-11-22 01:07:12.398599+00:00,exact,2026-11-23T03:10:00Z,False
+illicit,pipeline_crawl_state,address,VARCHAR(40),True,3891889,78091,79847,-1756,-0.02248658616229783,79847,,,sample_system_2pct,2026-11-23T03:10:00Z,True
+illicit,pipeline_crawl_state,hop_level,SMALLINT,True,3891889,78091,79847,-1756,-0.02248658616229783,6,,,sample_system_2pct,2026-11-23T03:10:00Z,True
+illicit,pipeline_crawl_state,seed_address,VARCHAR(40),True,3891889,78091,79619,-1528,-0.019566915521635017,8071,,,sample_system_2pct,2026-11-23T03:10:00Z,True
+illicit,pipeline_crawl_state,parent_address,VARCHAR(40),True,3891889,78091,79422,-1331,-0.017044217643518458,45354,,,sample_system_2pct,2026-11-23T03:10:00Z,True
+illicit,pipeline_crawl_state,profile_enriched,BOOLEAN,True,3891889,78091,79847,-1756,-0.02248658616229783,2,,,sample_system_2pct,2026-11-23T03:10:00Z,True
+illicit,pipeline_crawl_state,usdt_synced,BOOLEAN,True,3891889,78091,79847,-1756,-0.02248658616229783,1,,,sample_system_2pct,2026-11-23T03:10:00Z,True
+illicit,pipeline_crawl_state,trx_synced,BOOLEAN,True,3891889,78091,79847,-1756,-0.02248658616229783,2,,,sample_system_2pct,2026-11-23T03:10:00Z,True
+illicit,pipeline_crawl_state,hops_expanded,BOOLEAN,True,3891889,78091,79847,-1756,-0.02248658616229783,2,,,sample_system_2pct,2026-11-23T03:10:00Z,True
+illicit,pipeline_crawl_state,is_supernode,BOOLEAN,True,3891889,78091,79847,-1756,-0.02248658616229783,1,,,sample_system_2pct,2026-11-23T03:10:00Z,True
+illicit,pipeline_crawl_state,retry_count,INTEGER,True,3891889,78091,79847,-1756,-0.02248658616229783,1,,,sample_system_2pct,2026-11-23T03:10:00Z,True
+illicit,pipeline_crawl_state,last_error,TEXT,True,3891889,78091,0,78091,1.0,0,,,sample_system_2pct,2026-11-23T03:10:00Z,True
+illicit,pipeline_crawl_state,updated_at,TIMESTAMP,True,3891889,78091,79847,-1756,-0.02248658616229783,47360,2026-11-04 14:54:28.621447+00:00,2026-11-21 16:50:36.425580+00:00,sample_system_2pct,2026-11-23T03:10:00Z,True
+illicit,transactions,tx_hash,VARCHAR(66),True,15017691,301800,300951,849,0.0028131212723658053,300951,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,transactions,block_number,BIGINT,True,15017691,301800,300951,849,0.0028131212723658053,94307,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,transactions,block_timestamp,TIMESTAMP,True,15017691,301800,300951,849,0.0028131212723658053,298187,1990-03-19 15:50:06.868464+00:00,2026-11-21 10:01:15.000000+00:00,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,transactions,from_address,VARCHAR(40),True,15017691,301800,300951,849,0.0028131212723658053,191405,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,transactions,to_address,VARCHAR(40),True,15017691,301800,300951,849,0.0028131212723658053,174980,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,transactions,token_symbol,VARCHAR(12),True,15017691,301800,300951,849,0.0028131212723658053,2,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,transactions,contract_address,VARCHAR(40),True,15017691,301800,93750,208050,0.6893638170974155,1,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,transactions,amount,NUMERIC,True,15017691,301800,300951,849,0.0028131212723658053,42101,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,transactions,fee_trx,"NUMERIC(18, 6)",True,15017691,301800,300951,849,0.0028131212723658053,50,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,transactions,created_at,TIMESTAMP,True,15017691,301800,300951,849,0.0028131212723658053,105631,2026-10-28 14:18:02.003079+00:00,2026-11-21 14:45:39.679243+00:00,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,wallet_hops,hop_id,BIGINT,True,6965210,138882,143011,-4129,-0.02973027462162123,143011,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,wallet_hops,wallet_address,VARCHAR(40),True,6965210,138882,143011,-4129,-0.02973027462162123,138444,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,wallet_hops,seed_address,VARCHAR(40),True,6965210,138882,143011,-4129,-0.02973027462162123,1443,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,wallet_hops,parent_address,VARCHAR(40),True,6965210,138882,143010,-4128,-0.029723074264483517,5856,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,wallet_hops,via_tx_hash,VARCHAR(66),True,6965210,138882,143010,-4128,-0.029723074264483517,142922,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,wallet_hops,hop_level,SMALLINT,True,6965210,138882,143011,-4129,-0.02973027462162123,6,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,wallet_hops,direction,VARCHAR(10),True,6965210,138882,143011,-4129,-0.02973027462162123,2,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+illicit,wallet_hops,discovered_at,TIMESTAMP,True,6965210,138882,143011,-4129,-0.02973027462162123,5857,2026-10-28 15:24:37.486361+00:00,2026-11-22 01:08:53.614554+00:00,sample_system_2pct,2026-11-23T03:10:00Z,False

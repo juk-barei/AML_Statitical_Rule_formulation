@@ -1,0 +1,7 @@
+schema,table,rows,source_rows,run_id,coverage_status,columns,sample_rows,null_cells,null_share,time_min,time_max,key_columns,method,snapshot_at,is_partial
+licit,accounts,6614681,6614681,etl_20261122T034716_677817Z,complete,6,136708,540105,0.658465488486409,2018-08-29 08:56:09.000000+00:00,2026-11-11 23:52:24.468454+00:00,address,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,blacklisted_wallets,0,0,etl_20261121T021829_714794Z,complete,8,0,0,0.0,,,"wallet_address, source_name, label",exact,2026-11-23T03:10:00Z,False
+licit,pipeline_crawl_state,74337,74337,etl_20261121T021829_714794Z,complete,8,74337,0,0.0,2026-11-11 10:22:27.872856+00:00,2026-11-11 23:52:25.038358+00:00,"address, seed_address, hop_level",exact,2026-11-23T03:10:00Z,False
+licit,seed_wallets,721,721,etl_20261121T021829_714794Z,complete,8,721,2163,0.375,2026-11-11 10:22:27.872856+00:00,2026-11-11 17:07:52.143398+00:00,"wallet_address, source_name, label",exact,2026-11-23T03:10:00Z,False
+licit,transactions,11326298,11326298,etl_20261122T034716_677817Z,complete,10,224434,126713,0.05645891442473065,1990-03-19 14:42:59.822814+00:00,2026-11-11 23:52:24.451434+00:00,"token_symbol, from_address, to_address",sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,wallet_hops,80756,80756,etl_20261121T021829_714794Z,complete,8,80756,0,0.0,2026-11-11 10:27:26.963908+00:00,2026-11-11 19:19:35.029000+00:00,"wallet_address, seed_address, hop_level, direction",exact,2026-11-23T03:10:00Z,False

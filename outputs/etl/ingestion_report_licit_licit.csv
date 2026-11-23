@@ -1,3 +1,2 @@
 table_name,source_rows,ingested_rows,local_rows,delta_rows,coverage_percent,status,failed_shards,elapsed_seconds,rows_per_second
-accounts,6614681,6614681,6614681,0,100.0,complete,0,3100.182173,2133.642679971633
-transactions,11326298,6184163,6184163,-5142135,54.600037894111566,failed,3,19551.579588,316.2999169537994
+transactions,11326298,11326298,11326298,0,100.0,complete,0,79319.778676,142.7928593480434
