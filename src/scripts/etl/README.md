@@ -65,7 +65,7 @@ Run `--dry-run` first. It prints per-table coverage and row counts without writi
 # Full raw illicit snapshot, default phase/stage path
 python -m src.scripts.etl.load --schema illicit --tables all --dry-run
 
-# Full licit snapshot, explicit phase-2 transformed stage
+# Full licit snapshot, explicit transformed stage
 python -m src.scripts.etl.load --schema licit --tables all --stage transformed
 
 # H1/H3 transactions only, gzip CSV (explicit large-CSV opt-in)
@@ -104,7 +104,7 @@ outputs/etl/export/<snapshot>/
   demo/                          # optional clearly-labelled sample
 ```
 
-Raw exports use `<name>__<table>.<ext>`; transformed handoffs may use the fixed names above. Drop `hex_address`, `_etl_*`, and `pipeline_crawl_state` unless a task needs them. Keep `tx_hash`, `block_timestamp`, `from_address`, `to_address`, `token_symbol`, `amount`, and `fee_trx` for H1/H3.
+Raw exports use `<snapshot>__<table>.<ext>`; transformed handoffs may use the fixed names above. Drop `hex_address`, `_etl_*`, and `pipeline_crawl_state` unless a task needs them. Keep `tx_hash`, `block_timestamp`, `from_address`, `to_address`, `token_symbol`, `amount`, and `fee_trx` for H1/H3.
 
 ### Format decision
 

@@ -62,15 +62,7 @@ def _build_counts(illicit: PostgresDataset, licit: PostgresDataset) -> dict[str,
         .union(select(l_accounts.c.address))
         .subquery("account_universe")
     )
-    universe = (
-        select(account_universe.c.address)
-        .union(
-            select(blacklisted.c.wallet_address),
-            select(hop_agg.c.wallet_address),
-        )
-        .subquery("universe")
-    )
-
+    universe = account_universe
     blacklist_exists = exists(
         select(1).select_from(blacklisted).where(
             blacklisted.c.wallet_address == hop_agg.c.wallet_address
@@ -205,7 +197,7 @@ def build_nflow(counts: dict[str, int], snapshot_id: str, is_partial: bool) -> l
             "n_in": counts["universe"],
             "n_out": counts["universe"],
             "n_dropped": 0,
-            "reason": "all blacklisted and hop wallets are in the universe",
+            "reason": "frozen account universe; hop-only wallets are excluded from feature profiles",
             "snapshot_at": snapshot_id,
             "is_partial": is_partial,
         },

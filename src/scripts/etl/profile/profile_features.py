@@ -251,7 +251,7 @@ def build_cohort(
     *,
     limit_wallets: int | None = None,
 ) -> Select:
-    """One row per address with the priority group and home schema."""
+    """One row per account address with the priority group and home schema."""
     accounts = source.table("accounts")
     source_query = (
         select(accounts.c.address.label("address"))

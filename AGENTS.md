@@ -21,6 +21,7 @@ Detailed evidence and decisions live in `docs/context/step_1_profiling_samples.m
 - **Cleaning is a documented rule, not an eyeball edit.** Express it as a read-only CTE/view, apply it identically to every arm, and report the n-flow. Never silently drop zero-event or undefined rows.
 - **Export contract:** Parquet is the analysis handoff; CSV only for small manifests/data dictionaries; managed PostgreSQL only for the wallet-level serving table. DuckDB queries Parquet; it does not replace the mirror or the serving database.
 - **Freeze before export.** Record snapshot time, source, per-table row counts, exclusions, and a manifest/hash. Never mix mirror, sample, and CSV counts.
+- **Export naming:** the default snapshot id is `phase<N>_<stage>_<schema>_<UTC>`. `N` is the positive integer in `[tool.capstone].phase` in `pyproject.toml`; `stage` is `raw` or `transformed`. `manifest.json` records `snapshot`, `directory`, `phase`, `stage`, and `schema`. Do not hardcode the phase or publish a snapshot without those fields.
 - **Sampling:** sample wallets, never transaction rows. Census small/rare arms; keep all events for selected wallets. Record seed, strata, cluster, and weights.
 
 Details and code patterns: `src/scripts/etl/README.md`.
@@ -29,7 +30,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
 
 - Code areas are `src/scripts/{etl,eda,hypothesis_testing,statistical_learning}`.
 - `outputs/` mirrors those areas: every artifact goes under the area that produces it.
-  - ETL: `outputs/etl/{profile,tests,transform,export}`; handoff snapshots live in `outputs/etl/export/<snapshot>/`.
+  - ETL: `outputs/etl/{profile,tests,transform,export}`; handoff snapshots live in `outputs/etl/export/phase<N>_<stage>_<schema>_<UTC>/`.
   - EDA: `outputs/eda/{univariate,bivariate,multivariate,profile,additional}`.
   - Hypothesis testing: `outputs/hypothesis_testing/{shared,h2,h4,h6}`.
   - Statistical learning: `outputs/statistical_learning/`.
@@ -75,8 +76,29 @@ Details and code patterns: `src/scripts/etl/README.md`.
 - **Documentation ships with the change.** No technical concept is `done` until its `docs/dev/` note or module `README.md` explains how it works, why it was chosen, its limits, and the commands that operate it.
 - **Write for a technical reader.** State the process model, data path, types, concurrency, memory/disk behavior, failure modes, trade-offs, versions, paths, flags, and verification. Do not substitute marketing language, unexplained analogies, or a command list for mechanism.
 - **Depth follows the concept.** A routine note stays short; a technical reference gets enough depth to implement or audit the decision without re-deriving it.
+- **Write in term of analogy or scenario or example**: Try to make it clear with the way you emphasize a concept via direct scenario and code. Let the reader read it shortly and think longer. Don't simplify, be direct and clear, the user can't understand is the user's skill issue. 
 - **One source of truth.** `docs/dev/` holds architecture and tooling; module `README.md` files hold pipeline behavior; `docs/context/` holds durable decisions; `tasks/` holds status. Link instead of duplicating.
 - **Mark history as history.** Do not present stale line numbers or pre-refactor behavior as current.
+- Have date of edit and write. Has edit count on it as well. Write a new files has edit counts of 1 next time it is 2, and so on.
+
+## `docs/dev/` notes
+
+`docs/dev/` holds post-implementation technical notes: the mechanism, the reason it was chosen, and its limits. It is not an API reference, a usage guide, or a copy of the code.
+
+- **Area mirrors production.** The top level mirrors the `src/scripts/` areas: `etl/`, `eda/`, `hypothesis_testing/`, `statistical_learning/`.
+- **Unit names the owner.** The next level is the script or module that owns the mechanism (`etl/ingest/`, `etl/load/`, `etl/profile/`, `hypothesis_testing/shared/`). When no script owns it, use the analysis or output stage (`eda/univariate/`, `etl/transform/`). When both exist, the script wins: export notes live in `etl/load/`, not `etl/export/`. Do not create one directory per source file.
+- **File names the concept.** Name the file for the mechanism, not for the folder: `etl/load/duckdb-and-reproducible-exports.md`, not `etl/load/load.md`.
+- **Two deliberate exceptions.** `software_concepts/` is the only pre-implementation space; it holds user-approved design blueprints. `hypothesis_testing/general/` holds concepts shared across H2/H4/H6; per-hypothesis notes go in `h2/`, `h4/`, `h6/`.
+- **Ship with the code.** Write the note after the implementation settles. A note that only restates the implementation is not a note.
+- **Empty units are placeholders.** A directory may exist before its first note; do not create a file only to fill it.
+
+**Boundary with code.** The split is scope and lifetime, not topic.
+
+- A comment states only what must be true at that line: why the obvious edit is wrong, an invariant at the point it is enforced, a constant's provenance, or a shortcut. Edit it with the code; a stale comment is a bug.
+- A docstring states the call contract: args, returns, raises, units, snapshot.
+- `docs/dev/` states the mechanism, rejected alternatives, limits, and how to verify — anything that survives a rewrite of the function.
+- If a comment needs a table, a diagram, or more than about three lines, it is a doc: move it and leave a one-line anchor.
+- One fact has one home: docs own the mechanism, the comment owns only the local consequence, and the other side links.
 
 ## Subtask execution
 

@@ -16,7 +16,9 @@ alters, or inserts into the mirror.
 | `profile_local.py` | local schema/column/relation profile; quick mode samples large tables | `local_<schema>_{db_overview,columns,relations}.csv` |
 | `profile_quality.py` | duplicates, nulls, orphans, amounts, timestamps, token/contract, hops | `local_quality.csv` |
 | `profile_overlap_local.py` | local cohort counts, overlap, n-flow, hop/seed multiplicity | `local_{cohort_counts,group_overlap,nflow,hop_seed}.csv` |
-| `run_profile.py` | run `local`, `quality`, and `overlap` together | all of the above |
+| `profile_features.py` | H2/H4/H6 feature/eligibility profile | `local_feature_profile.csv`, `local_feature_nflow.csv` |
+| `benchmark_queries.py` | `EXPLAIN (ANALYZE, BUFFERS)` benchmarks | `query_benchmarks.csv`, `query_plans/` |
+| `run_profile.py` | run `local`, `quality`, `overlap`, `features`, `benchmarks` | all of the above |
 | `schema.py` | `DatasetRef`, `ProfileRecord`, `StageManifest`, `ComparisonRecord` | — |
 | `adapters.py` | read-only `PostgresDataset`, partial-run detection | — |
 | `metrics.py` | small SQL aggregate helpers | — |
@@ -25,8 +27,23 @@ alters, or inserts into the mirror.
 
 ```bash
 python -m src.scripts.etl.profile.run_profile --parts local,quality,overlap \
-  --schemas illicit,licit --mode quick --snapshot-id 2026-11-22T16:30:00Z
+  --schemas illicit,licit --mode quick --snapshot-id 2026-11-23T03:10:00Z
 ```
+
+Feature and benchmark runs are heavier:
+
+```bash
+python -m src.scripts.etl.profile.run_profile --parts features \
+  --schemas illicit,licit --limit-wallets 5000 \
+  --snapshot-id 2026-11-23T03:10:00Z
+python -m src.scripts.etl.profile.run_profile --parts benchmarks \
+  --schemas illicit,licit --benchmark-queries all --benchmark-limit 1000 \
+  --snapshot-id 2026-11-23T03:10:00Z
+```
+
+**Feature profile status:** the module and tests exist, but the full-frame run is
+blocked by the slow cohort/transaction join and a reconciliation mismatch with the
+overlap profile. Treat any bounded feature CSV as a smoke sample, not a full profile.
 
 Standalone:
 
