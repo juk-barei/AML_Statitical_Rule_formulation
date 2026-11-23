@@ -9,8 +9,8 @@ Data authority, cohort rules, and inference rules are in [`AGENTS.md`](../../../
 | `ingest.py` | Extract online PostgreSQL → local PostgreSQL mirror. **Only writer of the mirror.** | Mirror database |
 | `profile/` | Read-only schema, row, and overlap profiling. See [`profile/README.md`](profile/README.md). | `outputs/etl/profile/` |
 | `transform/` | Reusable SQL for cleaning, cohort priority, eligibility, and features. See [`transform/README.md`](transform/README.md). | `outputs/etl/transform/` |
-| `load.py` | Designated writer for shared exports. Currently a stub; implement exports here, not in notebooks. | `outputs/etl/export/<snapshot>/` |
-| `tests/` | Assert-based checks: `python -m src.scripts.etl.tests.test_etl_args`. | `outputs/etl/tests/` |
+| `load.py` | Frozen snapshot exporter: schema/table selection, Parquet or CSV, manifest, hashes. | `outputs/etl/export/<snapshot>/` |
+| `tests/` | Assert-based checks: `python -m src.scripts.etl.tests.test_etl_args` and `...test_load_export`. | `outputs/etl/tests/` |
 
 Notebooks are **read-only** against the mirror: no `INSERT`, `UPDATE`, `DELETE`, or DDL. A cleaned or aggregated table that must persist is written by `ingest.py`, `load.py`, or a dedicated writer script under `src/scripts/etl/` — never created by hand in a notebook.
 
@@ -23,9 +23,23 @@ python -m src.scripts.etl.ingest --source illicit --schema illicit
 python -m src.scripts.etl.ingest --source licit --schema licit
 ```
 
+### Licit recovery
+
+Run these in order from the repo root:
+
+```bash
+python -m src.scripts.etl.ingest_licit
+python -m src.scripts.etl.verify_ingestion --schema licit
+```
+
+`ingest_licit` resumes the latest licit run, then prints status and coverage.
+`verify_ingestion` is read-only and exits non-zero until every table is 100%.
+Always pass `--schema licit`; `--status` without it targets `public` and fails
+with `permission denied for schema public`.
+
 Requires the variables in `src/.env.example`. Never read or print `src/.env`.
 
-Before any export, confirm the latest run is complete. Local and online counts drift; never quote a moving partial as a frozen `N`.
+Before any export, confirm per-table coverage. `load.py` reads the newest run that includes each table; a table is complete only when all shards completed and local rows equal ingested rows. Local and online counts drift; never quote a moving partial as a frozen `N`.
 
 ## Transform
 
@@ -43,9 +57,38 @@ An export is a **frozen snapshot**, not a live database dump. Record:
 - export format and compression;
 - SHA-256 of each file.
 
+### Export commands
+
+Run `--dry-run` first. It prints per-table coverage and row counts without writing.
+
+```bash
+# Full raw illicit snapshot, default phase/stage path
+python -m src.scripts.etl.load --schema illicit --tables all --dry-run
+
+# Full licit snapshot, explicit phase-2 transformed stage
+python -m src.scripts.etl.load --schema licit --tables all --stage transformed
+
+# H1/H3 transactions only, gzip CSV (explicit large-CSV opt-in)
+python -m src.scripts.etl.load \
+  --schema illicit --tables transactions \
+  --out-dir /shared/handoff/h1_h3 --name illicit_transactions \
+  --format csv --compression gzip --allow-large-csv
+
+# H5 graph handoff
+python -m src.scripts.etl.load \
+  --schema illicit --tables wallet_hops,blacklisted_wallets \
+  --out-dir /shared/handoff/h5 --name illicit_h5
+```
+
+The default snapshot id is `phase<N>_<stage>_<schema>_<UTC>`, where `N` comes from `[tool.capstone].phase` in `pyproject.toml` and `stage` is `raw` (default) or `transformed`. The default directory is `outputs/etl/export/<snapshot>/`; default table files are `<snapshot>__<table>.<ext>`.
+
+`--out-dir` overrides the directory; `--name` is one exact basename for a single table or a prefix for several (`<name>__<table>.<ext>`). Existing snapshots are refused unless `--force` is passed. `--allow-partial` is required when any selected table's latest bookkeeping is incomplete.
+
+Default export is Parquet + zstd. CSV defaults to gzip and refuses more than 1,000,000 rows unless `--allow-large-csv`. `hex_address` is dropped unless `--keep-hex` is passed. PostgreSQL `numeric` without precision is exported as `DOUBLE` plus `<column>_exact` VARCHAR, because DuckDB has no arbitrary-precision decimal type.
+
 ### Handoff layout
 
-One directory per snapshot: `outputs/etl/export/<snapshot>/`.
+One directory per snapshot: `outputs/etl/export/phase<N>_<stage>_<schema>_<UTC>/`.
 
 ```text
 outputs/etl/export/<snapshot>/
@@ -61,7 +104,7 @@ outputs/etl/export/<snapshot>/
   demo/                          # optional clearly-labelled sample
 ```
 
-Drop `hex_address`, `_etl_*`, and `pipeline_crawl_state` unless a task needs them. Keep `tx_hash`, `block_timestamp`, `from_address`, `to_address`, `token_symbol`, `amount`, and `fee_trx` for H1/H3.
+Raw exports use `<name>__<table>.<ext>`; transformed handoffs may use the fixed names above. Drop `hex_address`, `_etl_*`, and `pipeline_crawl_state` unless a task needs them. Keep `tx_hash`, `block_timestamp`, `from_address`, `to_address`, `token_symbol`, `amount`, and `fee_trx` for H1/H3.
 
 ### Format decision
 
@@ -214,6 +257,8 @@ Keep `shared_buffers` modest on an 8 GB laptop. A small swap file is a safety ne
 - [ ] No `hex_address`, `_etl_*`, or credentials in the export.
 - [ ] Files are written under `outputs/etl/export/<snapshot>/`.
 - [ ] Parquet opens in DuckDB.
-- [ ] `manifest.json` has row counts and SHA-256 hashes.
+- [ ] `manifest.json` has `phase`, `stage`, `schema`, row counts, and SHA-256 hashes.
+- [ ] `nflow.csv` exported counts equal local counts and the manifest.
+- [ ] `amount_exact` is present whenever an unconstrained `numeric` column was exported.
 - [ ] Sampling design is documented, if a sample was drawn.
 - [ ] Demo data is labelled and excluded from inference.

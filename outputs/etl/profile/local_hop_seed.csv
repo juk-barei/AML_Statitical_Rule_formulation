@@ -1,0 +1,6 @@
+metric,value,snapshot_at,is_partial
+hop0_wallets,478,2026-11-23T03:10:00Z,False
+hop_ge1_wallets,3967831,2026-11-23T03:10:00Z,False
+multi_hop_wallets,1211441,2026-11-23T03:10:00Z,False
+multi_seed_wallets,1249966,2026-11-23T03:10:00Z,False
+distinct_seeds,16409,2026-11-23T03:10:00Z,False

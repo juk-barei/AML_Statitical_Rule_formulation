@@ -1,0 +1,49 @@
+schema,table,column,data_type,nullable,rows,sample_rows,non_null,nulls,null_share,distinct,min,max,method,snapshot_at,is_partial
+licit,accounts,address,VARCHAR(64),True,6614681,136708,138510,-1802,-0.013181379290165902,138510,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,accounts,hex_address,VARCHAR(64),True,6614681,136708,7,136701,0.9999487959739006,7,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,accounts,first_seen_timestamp,TIMESTAMP,True,6614681,136708,0,136708,1.0,0,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,accounts,last_seen_timestamp,TIMESTAMP,True,6614681,136708,1557,135151,0.988610761623314,1547,2021-05-20 14:12:33.000000+00:00,2026-11-11 23:23:15.000000+00:00,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,accounts,created_date,TIMESTAMP,True,6614681,136708,1559,135149,0.9885961319015713,1555,2018-08-29 08:56:09.000000+00:00,2026-11-11 18:08:45.000000+00:00,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,accounts,created_at,TIMESTAMP,True,6614681,136708,138510,-1802,-0.013181379290165902,14273,2026-11-11 10:22:28.182856+00:00,2026-11-11 23:52:24.468454+00:00,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,blacklisted_wallets,wallet_address,VARCHAR(64),True,0,0,0,0,0.0,0,,,exact,2026-11-23T03:10:00Z,False
+licit,blacklisted_wallets,hex_address,VARCHAR(64),True,0,0,0,0,0.0,0,,,exact,2026-11-23T03:10:00Z,False
+licit,blacklisted_wallets,blacklisted_timestamp,BIGINT,True,0,0,0,0,0.0,0,,,exact,2026-11-23T03:10:00Z,False
+licit,blacklisted_wallets,blacklisted_utc,TIMESTAMP,True,0,0,0,0,0.0,0,,,exact,2026-11-23T03:10:00Z,False
+licit,blacklisted_wallets,transaction_id,VARCHAR(66),True,0,0,0,0,0.0,0,,,exact,2026-11-23T03:10:00Z,False
+licit,blacklisted_wallets,source_name,VARCHAR(100),True,0,0,0,0,0.0,0,,,exact,2026-11-23T03:10:00Z,False
+licit,blacklisted_wallets,label,INTEGER,True,0,0,0,0,0.0,0,,,exact,2026-11-23T03:10:00Z,False
+licit,blacklisted_wallets,created_at,TIMESTAMP,True,0,0,0,0,0.0,0,,,exact,2026-11-23T03:10:00Z,False
+licit,pipeline_crawl_state,address,VARCHAR(64),True,74337,74337,74337,0,0.0,74337,,,exact,2026-11-23T03:10:00Z,False
+licit,pipeline_crawl_state,seed_address,VARCHAR(64),True,74337,74337,74337,0,0.0,678,,,exact,2026-11-23T03:10:00Z,False
+licit,pipeline_crawl_state,hop_level,SMALLINT,True,74337,74337,74337,0,0.0,6,,,exact,2026-11-23T03:10:00Z,False
+licit,pipeline_crawl_state,synced,BOOLEAN,True,74337,74337,74337,0,0.0,1,,,exact,2026-11-23T03:10:00Z,False
+licit,pipeline_crawl_state,expanded,BOOLEAN,True,74337,74337,74337,0,0.0,1,,,exact,2026-11-23T03:10:00Z,False
+licit,pipeline_crawl_state,is_supernode,BOOLEAN,True,74337,74337,74337,0,0.0,2,,,exact,2026-11-23T03:10:00Z,False
+licit,pipeline_crawl_state,created_at,TIMESTAMP,True,74337,74337,74337,0,0.0,3667,2026-11-11 10:22:27.872856+00:00,2026-11-11 19:19:35.029000+00:00,exact,2026-11-23T03:10:00Z,False
+licit,pipeline_crawl_state,updated_at,TIMESTAMP,True,74337,74337,74337,0,0.0,14944,2026-11-11 10:27:23.234288+00:00,2026-11-11 23:52:25.038358+00:00,exact,2026-11-23T03:10:00Z,False
+licit,seed_wallets,wallet_address,VARCHAR(64),True,721,721,721,0,0.0,721,,,exact,2026-11-23T03:10:00Z,False
+licit,seed_wallets,hex_address,VARCHAR(64),True,721,721,721,0,0.0,721,,,exact,2026-11-23T03:10:00Z,False
+licit,seed_wallets,blacklisted_timestamp,BIGINT,True,721,721,0,721,1.0,0,,,exact,2026-11-23T03:10:00Z,False
+licit,seed_wallets,blacklisted_utc,TIMESTAMP,True,721,721,0,721,1.0,0,,,exact,2026-11-23T03:10:00Z,False
+licit,seed_wallets,transaction_id,VARCHAR(66),True,721,721,0,721,1.0,0,,,exact,2026-11-23T03:10:00Z,False
+licit,seed_wallets,source_name,VARCHAR(100),True,721,721,721,0,0.0,2,,,exact,2026-11-23T03:10:00Z,False
+licit,seed_wallets,label,INTEGER,True,721,721,721,0,0.0,1,,,exact,2026-11-23T03:10:00Z,False
+licit,seed_wallets,created_at,TIMESTAMP,True,721,721,721,0,0.0,721,2026-11-11 10:22:27.872856+00:00,2026-11-11 17:07:52.143398+00:00,exact,2026-11-23T03:10:00Z,False
+licit,transactions,tx_hash,VARCHAR(66),True,11326298,224434,230206,-5772,-0.02571802846271064,230206,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,transactions,block_number,BIGINT,True,11326298,224434,230206,-5772,-0.02571802846271064,180149,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,transactions,block_timestamp,TIMESTAMP,True,11326298,224434,230206,-5772,-0.02571802846271064,229316,1990-03-19 14:42:59.822814+00:00,2026-11-11 23:34:10.349000+00:00,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,transactions,from_address,VARCHAR(64),True,11326298,224434,230206,-5772,-0.02571802846271064,94861,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,transactions,to_address,VARCHAR(64),True,11326298,224434,230206,-5772,-0.02571802846271064,178528,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,transactions,token_symbol,VARCHAR(64),True,11326298,224434,230206,-5772,-0.02571802846271064,2,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,transactions,contract_address,VARCHAR(64),True,11326298,224434,45773,178661,0.7960514004117023,1,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,transactions,amount,NUMERIC,True,11326298,224434,230206,-5772,-0.02571802846271064,31028,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,transactions,fee_trx,"NUMERIC(18, 6)",True,11326298,224434,230206,-5772,-0.02571802846271064,1,,,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,transactions,created_at,TIMESTAMP,True,11326298,224434,230206,-5772,-0.02571802846271064,14627,2026-11-11 10:27:22.913644+00:00,2026-11-11 23:52:24.451434+00:00,sample_system_2pct,2026-11-23T03:10:00Z,False
+licit,wallet_hops,hop_id,BIGINT,True,80756,80756,80756,0,0.0,80756,,,exact,2026-11-23T03:10:00Z,False
+licit,wallet_hops,wallet_address,VARCHAR(64),True,80756,80756,80756,0,0.0,73810,,,exact,2026-11-23T03:10:00Z,False
+licit,wallet_hops,seed_address,VARCHAR(64),True,80756,80756,80756,0,0.0,153,,,exact,2026-11-23T03:10:00Z,False
+licit,wallet_hops,parent_address,VARCHAR(64),True,80756,80756,80756,0,0.0,6691,,,exact,2026-11-23T03:10:00Z,False
+licit,wallet_hops,via_tx_hash,VARCHAR(66),True,80756,80756,80756,0,0.0,79411,,,exact,2026-11-23T03:10:00Z,False
+licit,wallet_hops,hop_level,SMALLINT,True,80756,80756,80756,0,0.0,5,,,exact,2026-11-23T03:10:00Z,False
+licit,wallet_hops,direction,VARCHAR(10),True,80756,80756,80756,0,0.0,2,,,exact,2026-11-23T03:10:00Z,False
+licit,wallet_hops,discovered_at,TIMESTAMP,True,80756,80756,80756,0,0.0,3021,2026-11-11 10:27:26.963908+00:00,2026-11-11 19:19:35.029000+00:00,exact,2026-11-23T03:10:00Z,False

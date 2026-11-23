@@ -36,6 +36,8 @@ Details and code patterns: `src/scripts/etl/README.md`.
 - Trackers mirror the same split: `tasks/etl/`, `tasks/eda/`, `tasks/statistical_learning/`; the 8-step workflow stays in `tasks/hypothesis_testing/`.
 - Do not create a new top-level output or task folder without updating this contract and `src/scripts/README.md`.
 - `src/scripts/etl/ingest.py` writes ETL outputs; `src/scripts/etl/load.py` writes handoff exports. Notebooks write only under their producer area.
+- Software-design baseline: start at `docs/dev/software_concepts/README.md`. Files with user-set `Status: Accept`, `accepted`, `Accepted`, or `approved` are normative; `proposed`/`draft` are reference only. Current accepted baseline: `01`, `02`, `05`, `07`, `09`, `10`. Agents must not change a status; only the user approves. `docs/dev/software_concepts/research/` is evidence, not policy.
+- Variable/function names are provisional. Renaming is allowed when a name becomes ambiguous or the project grows; update Python, SQL, tests, docs, and output columns in one change, and do not keep aliases.
 
 ## Cohort contract
 
@@ -55,7 +57,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
 - Non-parametric tests (Mann–Whitney, Kruskal–Wallis, Dunn) relax normality and equal-variance assumptions. They **do not** fix dependence.
 - `suspicious` is graph-derived from blacklisted seeds and is not an independent sample. Use seed-cluster permutation/bootstrap, a mixed model, or report it as a nested/descriptive arm.
 - Once licit is ingested, the clean independent contrast is **illicit vs licit**. Check overlap and sampling-frame compatibility before pooling.
-- Follow the Lecture 05 eight-step ANOVA workflow: response/factor/groups → H0/H1/α → explore → assumptions → test → post-hoc → effect size → conclusion.
+- Follow the Lecture 05 eight-step ANOVA workflow: response/factor/groups → H0/Ha/α → explore → assumptions → test → post-hoc → effect size → conclusion.
 - Report effect sizes and exact denominators, not only p-values.
 
 ## Workflow and outputs
@@ -64,10 +66,20 @@ Details and code patterns: `src/scripts/etl/README.md`.
 - Keep the three-group comparison inside the numerical–categorical section (side-by-side boxplots, overlaid densities, mean ± SD).
 - `src/scripts/` holds reusable analysis code; `src/notebooks/` holds official analysis code. Scripts must be reproducible and print the numbers they support; notebooks import them.
 - Notebooks are read-only against the mirror.
+- Every new rule, transform, or feature ships with a test: a pure-rule test, a SQL fixture test, and an n-flow assertion where applicable. A transform without those is not `done`.
 - Cite the script path and line number for every number or insight taken from code.
-- Put durable decisions in `docs/context/`; keep docs under 200 words unless the detail is absolutely necessary.
+- Put durable decisions in `docs/context/`; put mechanism, tooling, and architecture notes in `docs/dev/`. Routine notes stay under 200 words; a technical reference may exceed that when the mechanism or trade-off requires depth.
+
+## Documentation standard
+
+- **Documentation ships with the change.** No technical concept is `done` until its `docs/dev/` note or module `README.md` explains how it works, why it was chosen, its limits, and the commands that operate it.
+- **Write for a technical reader.** State the process model, data path, types, concurrency, memory/disk behavior, failure modes, trade-offs, versions, paths, flags, and verification. Do not substitute marketing language, unexplained analogies, or a command list for mechanism.
+- **Depth follows the concept.** A routine note stays short; a technical reference gets enough depth to implement or audit the decision without re-deriving it.
+- **One source of truth.** `docs/dev/` holds architecture and tooling; module `README.md` files hold pipeline behavior; `docs/context/` holds durable decisions; `tasks/` holds status. Link instead of duplicating.
+- **Mark history as history.** Do not present stale line numbers or pre-refactor behavior as current.
 
 ## Subtask execution
+
 - One subtask is one Markdown file or one update to existing files.
 - Delegate subtasks to subagents and activate the matching skill for each agent.
 - Fact-check current facts after each insight; report contradictions, gaps, or conflicting evidence instead of smoothing them over.

@@ -1,0 +1,17 @@
+group,feature,filter,n_in,n_out,n_dropped,reason,snapshot_at,is_partial
+illicit,burst_ratio,usdt_event_count_gte_5,16,0,16,burst undefined below 5 USDT events,2026-11-23T03:10:00Z,False
+illicit,cv_delta_t,event_count_gte_5_and_mean_gap_gt_0,16,0,16,CV undefined below 5 events or with zero mean gap,2026-11-23T03:10:00Z,False
+illicit,event_count,all_wallets,16,16,0,event count defined for every wallet,2026-11-23T03:10:00Z,False
+illicit,h2_pass,event_count_gte_2_and_usdt_event_count_gte_5,16,0,16,H2 needs lifetime and burst eligibility,2026-11-23T03:10:00Z,False
+illicit,h4_pass,both_sets_non_empty,16,0,16,H4 needs both counterparty sets,2026-11-23T03:10:00Z,False
+illicit,h6_pass,event_count_gte_5_and_mean_gap_gt_0,16,0,16,H6 needs the activity gate and a positive mean gap,2026-11-23T03:10:00Z,False
+illicit,jaccard_index,both_sets_non_empty,16,0,16,Jaccard undefined when either side is empty,2026-11-23T03:10:00Z,False
+illicit,tx_lifetime_days,event_count_gte_2,16,0,16,lifetime undefined below 2 events,2026-11-23T03:10:00Z,False
+unlabeled,burst_ratio,usdt_event_count_gte_5,9982,0,9982,burst undefined below 5 USDT events,2026-11-23T03:10:00Z,False
+unlabeled,cv_delta_t,event_count_gte_5_and_mean_gap_gt_0,9982,0,9982,CV undefined below 5 events or with zero mean gap,2026-11-23T03:10:00Z,False
+unlabeled,event_count,all_wallets,9982,9982,0,event count defined for every wallet,2026-11-23T03:10:00Z,False
+unlabeled,h2_pass,event_count_gte_2_and_usdt_event_count_gte_5,9982,0,9982,H2 needs lifetime and burst eligibility,2026-11-23T03:10:00Z,False
+unlabeled,h4_pass,both_sets_non_empty,9982,0,9982,H4 needs both counterparty sets,2026-11-23T03:10:00Z,False
+unlabeled,h6_pass,event_count_gte_5_and_mean_gap_gt_0,9982,0,9982,H6 needs the activity gate and a positive mean gap,2026-11-23T03:10:00Z,False
+unlabeled,jaccard_index,both_sets_non_empty,9982,0,9982,Jaccard undefined when either side is empty,2026-11-23T03:10:00Z,False
+unlabeled,tx_lifetime_days,event_count_gte_2,9982,0,9982,lifetime undefined below 2 events,2026-11-23T03:10:00Z,False

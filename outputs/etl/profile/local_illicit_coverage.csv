@@ -1,0 +1,6 @@
+schema,table,run_id,source_rows,ingested_rows,local_rows,shard_count,completed_shards,failed_shards,coverage_status,is_partial,snapshot_at
+illicit,accounts,etl_20261108T143910_258985Z,4870000,4870000,4870000,5,5,0,complete,False,2026-11-23T03:10:00Z
+illicit,blacklisted_wallets,etl_20261122T034743_836208Z,17046,17046,17046,1,1,0,complete,False,2026-11-23T03:10:00Z
+illicit,pipeline_crawl_state,etl_20261108T143910_258985Z,3891887,3891889,3891889,5,5,0,stale,True,2026-11-23T03:10:00Z
+illicit,transactions,etl_20261108T143910_258985Z,15017691,15017691,15017691,5,5,0,complete,False,2026-11-23T03:10:00Z
+illicit,wallet_hops,etl_20261122T034743_836208Z,6965210,6965210,6965210,5,5,0,complete,False,2026-11-23T03:10:00Z
