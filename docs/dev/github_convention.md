@@ -14,7 +14,7 @@ In each they have their own sub categories:
 **Note**: that they are matched to how the directories and files are structured. It is intuitive to work with. I spent hours to figure that simple things out, I won't list everything, but you get the idea.
 ### Based on Labels
 There are these 11 labels:
-- BUG: fix bugs.
+- BUG: fix bugs, do cleanup on stuff like old files or dependencies fix.
 - FEAT: create new features.
 - DOC: wrote new documentation. This is when you commit changes with not new code writing only. if you build new features and also documented it then commit, then use other labels.
 
