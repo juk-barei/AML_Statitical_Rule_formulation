@@ -1,7 +1,7 @@
 # ruff: noqa: S608, RUF100
 """Load one frozen Parquet snapshot into the local PostgreSQL mirror.
 
-This module is the Parquet source adapter for :mod:`src.scripts.etl.ingest`.
+This module is the Parquet source adapter for :mod:`src.scripts.etl.extract.main`.
 It hides four decisions behind a small interface:
 
 1. Which tables a snapshot declares, and whether its manifest is trustworthy.
@@ -17,9 +17,9 @@ it carries the row counts, columns, and SHA-256 values this module verifies.
 
 Run from the repo root::
 
-    python -m src.scripts.etl.ingest \\
+    python -m src.scripts.etl.extract.main \\
         --source parquet \\
-        --source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \\
+        --parq-source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \\
         --schema illicit --dry-run
 
 The local PostgreSQL credentials come from ``src/.env`` exactly as they do for
@@ -44,7 +44,7 @@ import duckdb
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
-from src.scripts.etl.ingest import (
+from src.scripts.etl.extract.main import (
     NULL_SENTINEL,
     ShardTask,
     build_ingestion_report,
@@ -220,7 +220,7 @@ def load_parquet_snapshot(
     """
     path = Path(source_path).expanduser()
     if not path.is_absolute():
-        raise ValueError("--source-path must be an absolute path.")
+        raise ValueError("--parq-source-path must be an absolute path.")
     root = path.resolve()
     if not root.is_dir():
         raise ValueError(f"Parquet snapshot directory does not exist: {root}")
@@ -236,14 +236,14 @@ def load_parquet_snapshot(
     if manifest_schema != target_schema and not allow_schema_mismatch:
         raise ValueError(
             f"Snapshot schema {manifest_schema!r} does not match --schema "
-            f"{target_schema!r}. Pass --allow-schema-mismatch only for a test load."
+            f"{target_schema!r}. Pass --parq-allow-schema-mismatch only for a test load."
         )
 
     manifest_is_partial = bool(manifest.get("partial"))
     if manifest_is_partial and not allow_partial:
         raise ValueError(
             "The snapshot manifest is marked partial. Finish ingestion or pass "
-            "--allow-partial explicitly."
+            "--parq-allow-partial explicitly."
         )
 
     records = manifest.get("tables")
@@ -274,7 +274,7 @@ def load_parquet_snapshot(
         if status != "complete" and not allow_partial:
             raise ValueError(
                 f"{table_name!r} is {status!r} in the manifest. Pass "
-                "--allow-partial to load it anyway."
+                "--parq-allow-partial to load it anyway."
             )
 
         file_name = str(record.get("file", ""))
@@ -530,18 +530,20 @@ def run_parquet_ingest(args: Any) -> int:
     """Import an absolute Parquet snapshot into the local mirror."""
     load_environment()
     target_schema = validate_schema_name(args.schema)
-    if not args.source_path:
-        raise ValueError("--source-path is required when --source parquet is used.")
+    if not args.parq_source_path:
+        raise ValueError(
+            "--parq-source-path is required when --source parquet is used."
+        )
 
     row_limits = parse_row_limits(args.row_limits)
     snapshot = load_parquet_snapshot(
-        args.source_path,
+        args.parq_source_path,
         target_schema=target_schema,
         tables_spec=args.tables,
         row_limits=row_limits,
-        verify_hashes=not args.skip_hash,
-        allow_partial=args.allow_partial,
-        allow_schema_mismatch=args.allow_schema_mismatch,
+        verify_hashes=not args.parq_skip_hash,
+        allow_partial=args.parq_allow_partial,
+        allow_schema_mismatch=args.parq_allow_schema_mismatch,
     )
 
     if args.dry_run:

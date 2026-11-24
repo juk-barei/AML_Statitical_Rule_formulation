@@ -1,7 +1,7 @@
 # Parquet source adapter for `extract/main.py`
 
 - **Date:** 2026-11-24
-- **Edits:** 2
+- **Edits:** 3
 - **Code:** `src/scripts/etl/extract/parquet_source.py`, `src/scripts/etl/extract/main.py`
 - **Contract:** `src/scripts/etl/README.md` § Extract → Parquet source
 
@@ -28,11 +28,11 @@ does not construct DuckDB SQL, map types, or write progress rows.
    `format: parquet`, a schema, a snapshot id, and one record per table. Each
    record supplies the relative file name, row count, column order, SHA-256, and
    status.
-2. **Absolute path only.** `--source-path` is rejected if relative. A relative
+2. **Absolute path only.** `--parq-source-path` is rejected if relative. A relative
    path changes meaning when the working directory changes, which breaks a
    reproducible handoff.
 3. **Three gates before writing.**
-   - file SHA-256 equals the manifest value (default; `--skip-hash` skips only
+   - file SHA-256 equals the manifest value (default; `--parq-skip-hash` skips only
      this hash);
    - DuckDB `DESCRIBE` columns equal the manifest column list and order;
    - manifest row count and table status are recorded.
@@ -70,7 +70,7 @@ table-at-a-time on purpose.
   string `\N` would be read as NULL; the source snapshot does not contain one.
 - The adapter cannot reconstruct `hex_address`, `_etl_*`, or
   `pipeline_crawl_state`; a raw export intentionally excludes them.
-- `--allow-schema-mismatch` is a test escape hatch. It keeps the manifest
+- `--parq-allow-schema-mismatch` is a test escape hatch. It keeps the manifest
   schema in the report, but it lets a licit snapshot land in another schema.
   Never use it for a handoff.
 - Parquet tables are truncated and reloaded; there is no row-level upsert.
@@ -81,15 +81,15 @@ table-at-a-time on purpose.
 # No writes, but hashes/columns/rows are checked.
 python -m src.scripts.etl.extract.main \
   --source parquet \
-  --source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
+  --parq-source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
   --schema illicit --dry-run
 
 # Unit checks.
-python -m src.scripts.etl.load.tests.parquet_source
+python -m src.scripts.etl.extract.tests.validate_parquet_source
 python -m src.scripts.etl.extract.tests.validate_ingest_args
 
 # After a real load.
-python -m src.scripts.etl.extract.tests.verify_ingestion --schema illicit
+python -m src.scripts.etl.extract.verify_ingestion --schema illicit
 ```
 
 A successful load reconciles three numbers per table: manifest rows, rows

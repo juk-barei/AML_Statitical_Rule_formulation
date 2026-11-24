@@ -11,16 +11,16 @@ import argparse
 from pathlib import Path
 
 from src.scripts.config import PROFILING_OUTPUT_DIR
-from src.scripts.etl.ingest import get_local_engine, validate_schema_name
-from src.scripts.etl.profile import (
+from src.scripts.etl.extract.main import get_local_engine, validate_schema_name
+from src.scripts.etl.transform.profile import (
     benchmark_queries,
     profile_features,
     profile_local,
     profile_quality,
 )
-from src.scripts.etl.profile.adapters import PostgresDataset
-from src.scripts.etl.profile.profile_overlap_local import profile_overlap
-from src.scripts.etl.profile.schema import utc_snapshot_id
+from src.scripts.etl.transform.profile.adapters import PostgresDataset
+from src.scripts.etl.transform.profile.profile_overlap_local import profile_overlap
+from src.scripts.etl.transform.profile.schema import utc_snapshot_id
 
 AVAILABLE_PARTS = ("local", "quality", "overlap", "features", "benchmarks")
 

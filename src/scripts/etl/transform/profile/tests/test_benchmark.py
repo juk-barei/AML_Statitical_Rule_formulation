@@ -9,8 +9,8 @@ from tempfile import TemporaryDirectory
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.scripts.etl.ingest import get_local_engine
-from src.scripts.etl.profile.benchmark_queries import (
+from src.scripts.etl.extract.main import get_local_engine
+from src.scripts.etl.transform.profile.benchmark_queries import (
     BENCHMARK_FIELDS,
     QUERIES,
     PlanStats,

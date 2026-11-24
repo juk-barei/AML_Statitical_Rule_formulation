@@ -18,11 +18,17 @@ Notebooks are **read-only** against the mirror: no `INSERT`, `UPDATE`, `DELETE`,
 
 ## Extract
 
+The CLI has three groups: general options, online-PostgreSQL options (`--pos*`),
+and Parquet options (`--parq*`). `--source` is only `online_db` or `parquet`.
+
 ```bash
-python -m src.scripts.etl.extract.main --status
-python -m src.scripts.etl.extract.main --dry-run
-python -m src.scripts.etl.extract.main --source illicit --schema illicit
-python -m src.scripts.etl.extract.main --source licit --schema licit
+# General
+python -m src.scripts.etl.extract.main --status --schema illicit
+python -m src.scripts.etl.extract.main --source online_db --pos-db-type illicit --schema illicit --dry-run
+
+# Online PostgreSQL
+python -m src.scripts.etl.extract.main --source online_db --pos-db-type illicit --schema illicit
+python -m src.scripts.etl.extract.main --source online_db --pos-db-type licit --schema licit
 ```
 
 ### Parquet source
@@ -30,29 +36,29 @@ python -m src.scripts.etl.extract.main --source licit --schema licit
 A frozen export snapshot can rebuild the mirror without the online database:
 
 ```bash
-# Validate the manifest, hashes, columns, and row counts. No writes.
+# Validate the manifest, hashes, columns, and rows. No writes.
 python -m src.scripts.etl.extract.main \
   --source parquet \
-  --source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
+  --parq-source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
   --schema illicit --dry-run
 
 # Load every table into the local mirror.
 python -m src.scripts.etl.extract.main \
   --source parquet \
-  --source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
+  --parq-source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
   --schema illicit
 ```
 
 Rules:
 
-- `--source-path` must be **absolute** and must contain `manifest.json`.
-- The manifest schema must match `--schema`. `--allow-schema-mismatch` is for a
-  test load only; it records the mismatch in the report.
-- SHA-256 and row counts are verified by default. `--skip-hash` skips only the
-  file hash, not the manifest row/column checks.
-- `--allow-partial` is required for a snapshot or table marked `partial`.
-- The Parquet adapter is single-process. `--workers` and `--shards-per-table`
-  do not apply; `--batch-size` is the COPY batch size.
+- `--parq-source-path` must be **absolute** and must contain `manifest.json`.
+- The manifest schema must match `--schema`. `--parq-allow-schema-mismatch` is
+  for a test load only; it records the mismatch in the report.
+- SHA-256 and row counts are verified by default. `--parq-skip-hash` skips only
+  the file hash, not the manifest row/column checks.
+- `--parq-allow-partial` is required for a snapshot or table marked `partial`.
+- The Parquet adapter is single-process. `--pos-workers` and
+  `--pos-shards-per-table` do not apply; `--batch-size` is the COPY batch size.
 - `--resume` skips completed tables and reloads incomplete tables from scratch.
 - `amount` is rebuilt as PostgreSQL `NUMERIC` from the exported `amount_exact`
   text; `amount_exact` is not recreated in the mirror.
@@ -69,7 +75,7 @@ Run these in order from the repo root:
 
 ```bash
 python -m src.scripts.etl.extract.ingest_licit
-python -m src.scripts.etl.extract.tests.verify_ingestion --schema licit
+python -m src.scripts.etl.extract.verify_ingestion --schema licit
 ```
 
 `ingest_licit` resumes the latest licit run, then prints status and coverage.

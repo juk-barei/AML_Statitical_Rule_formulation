@@ -1,5 +1,8 @@
 """Fast checks for the ETL CLI argument helpers."""
-from src.scripts.etl.ingest import (
+import contextlib
+import io
+
+from src.scripts.etl.extract.main import (
     ShardTask,
     build_batch_query,
     parse_args,
@@ -34,21 +37,63 @@ def rejects_schema(value: str) -> bool:
 for bad in ["bad-name", "1schema", "schema;drop"]:
     check(rejects_schema(bad), f"schema should fail: {bad}")
 
+default_args = parse_args([])
+check(default_args.source == "online_db", "online_db source default")
+check(default_args.pos_db_type is None, "pos db type has no default")
+
+online_args = parse_args(
+    [
+        "--source",
+        "online_db",
+        "--pos-db-type",
+        "licit",
+        "--pos-workers",
+        "3",
+        "--pos-shards-per-table",
+        "2",
+        "--pos-source-schema",
+        "public",
+    ]
+)
+check(online_args.source == "online_db", "online source")
+check(online_args.pos_db_type == "licit", "online db type")
+check(online_args.pos_workers == 3, "online workers")
+check(online_args.pos_shards_per_table == 2, "online shards")
+
 parquet_args = parse_args(
     [
         "--source",
         "parquet",
-        "--source-path",
+        "--parq-source-path",
         "/absolute/snapshot",
+        "--parq-skip-hash",
         "--schema",
         "illicit",
     ]
 )
 check(parquet_args.source == "parquet", "parquet source")
-check(parquet_args.source_path == "/absolute/snapshot", "parquet path")
+check(
+    parquet_args.parq_source_path == "/absolute/snapshot",
+    "parquet path",
+)
+check(parquet_args.parq_skip_hash is True, "parquet hash switch")
 check(parquet_args.schema == "illicit", "parquet target schema")
-check(parquet_args.skip_hash is False, "hash verification defaults on")
-check(parse_args([]).source == "illicit", "online source default")
+
+
+def rejects_cli(argv: list[str]) -> bool:
+    try:
+        with contextlib.redirect_stderr(io.StringIO()):
+            parse_args(argv)
+    except SystemExit:
+        return True
+    return False
+
+
+check(rejects_cli(["--source", "illicit"]), "source must be online_db/parquet")
+check(
+    rejects_cli(["--source", "parquet", "--source-path", "/old/flag"]),
+    "old source-path flag must fail",
+)
 
 keyset_task = ShardTask(
     run_id="r",

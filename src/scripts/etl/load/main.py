@@ -38,7 +38,7 @@ from sqlalchemy import Engine, MetaData, Table, case, func, inspect, select
 from sqlalchemy.sql.sqltypes import DateTime, Numeric
 
 from src.scripts.config import ROOT
-from src.scripts.etl.ingest import (
+from src.scripts.etl.extract.main import (
     get_local_engine,
     load_environment,
     safe_error_message,

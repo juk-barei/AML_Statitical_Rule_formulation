@@ -20,8 +20,8 @@ from typing import Any
 from sqlalchemy import Connection, bindparam, text
 
 from src.scripts.config import PROFILING_OUTPUT_DIR
-from src.scripts.etl.ingest import get_local_engine, validate_schema_name
-from src.scripts.etl.profile.schema import utc_snapshot_id
+from src.scripts.etl.extract.main import get_local_engine, validate_schema_name
+from src.scripts.etl.transform.profile.schema import utc_snapshot_id
 
 
 @dataclass(frozen=True)

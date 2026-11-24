@@ -6,16 +6,22 @@ read the local PostgreSQL mirror through :func:`load_analysis_tables` while this
 script is free to keep ingesting in the background.
 
 Typical usage
-------------- Ingest every table from the cloud PostgreSQL database into the local one. python3 -m src.scripts.etl.ingest --workers 5 --batch-size 50000
-    # Watch the current run without touching the ingestion process.
-    python3 -m src.scripts.etl.ingest --status
+-------------
+    # Ingest the illicit online database into the local mirror.
+    python3 -m src.scripts.etl.extract.main \
+        --source online_db --pos-db-type illicit --schema illicit
 
-    # Resume the latest failed/interrupted run.
-    python3 -m src.scripts.etl.ingest --resume
+    # Watch the current run without touching the ingestion process.
+    python3 -m src.scripts.etl.extract.main --status --schema illicit
+
+    # Resume the latest failed/interrupted online run.
+    python3 -m src.scripts.etl.extract.main \
+        --source online_db --pos-db-type illicit --schema illicit --resume
 
     # Load a frozen Parquet snapshot into the local mirror.
-    python3 -m src.scripts.etl.ingest --source parquet \
-        --source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
+    python3 -m src.scripts.etl.extract.main \
+        --source parquet \
+        --parq-source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
         --schema illicit --dry-run
 
 Environment
@@ -76,9 +82,9 @@ DEFAULT_DEBUG_MODE = 0
 # ---------------------------------------------------------------------------
 # Project paths
 # ---------------------------------------------------------------------------
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
 ENV_PATH = PROJECT_ROOT / "src" / ".env"
-OUTPUT_DIR = PROJECT_ROOT / "outputs" / "etl"
+OUTPUT_DIR = PROJECT_ROOT / "outputs" / "etl" / "extract"
 
 # PostgreSQL COPY uses this marker for NULL values.  The Python string is
 # "\\N" so the SQL literal is NULL '\N'.
@@ -1641,19 +1647,19 @@ def run_etl(args: argparse.Namespace) -> int:
     load_environment()
     if args.source == "parquet":
         # Local import keeps the online path independent of DuckDB.
-        from src.scripts.etl.parquet_source import run_parquet_ingest
+        from src.scripts.etl.extract.parquet_source import run_parquet_ingest
 
         return run_parquet_ingest(args)
-    source_link = get_source_link(args.source)
+    source_link = get_source_link(args.pos_db_type)
     local_link = get_local_db_link()
-    source_schema = validate_schema_name(args.source_schema)
+    source_schema = validate_schema_name(args.pos_source_schema)
     target_schema = validate_schema_name(args.schema)
     row_limits = parse_row_limits(args.row_limits)
-    workers = max(1, min(args.workers, MAX_WORKERS))
-    if args.workers > MAX_WORKERS:
+    workers = max(1, min(args.pos_workers, MAX_WORKERS))
+    if args.pos_workers > MAX_WORKERS:
         print(f"Capping workers at MAX_WORKERS={MAX_WORKERS}.")
     batch_size = max(1, args.batch_size)
-    shards_per_table = max(1, args.shards_per_table)
+    shards_per_table = max(1, args.pos_shards_per_table)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     source_engine = create_database_engine(
@@ -1686,7 +1692,10 @@ def run_etl(args: argparse.Namespace) -> int:
             print(f"Resuming run {run_id}")
 
         print(f"Run id: {run_id}")
-        print(f"Source: {args.source} | source schema: {source_schema} | target schema: {target_schema}")
+        print(
+            f"Source: online_db ({args.pos_db_type}) | "
+            f"source schema: {source_schema} | target schema: {target_schema}"
+        )
         print(f"Source tables: {', '.join(table_names)}")
         print(f"Workers: {workers} | batch size: {batch_size:,}")
         if row_limits:
@@ -1788,7 +1797,7 @@ def run_etl(args: argparse.Namespace) -> int:
             write_report(
                 report,
                 run_id,
-                label=f"{args.source}_{target_schema}",
+                label=f"{args.pos_db_type}_{target_schema}",
             )
             finish_run(
                 local_engine,
@@ -1860,7 +1869,7 @@ def run_etl(args: argparse.Namespace) -> int:
             report_path = write_report(
                 report,
                 run_id,
-                label=f"{args.source}_{target_schema}",
+                label=f"{args.pos_db_type}_{target_schema}",
             )
             failed = report["status"].isin(["failed", "partial", "pending"])
             run_status = "failed" if failed.any() else "completed"
@@ -1977,79 +1986,37 @@ def load_analysis_tables(
 # ---------------------------------------------------------------------------
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Batch-ingest cloud PostgreSQL tables into the local mirror.",
+        description="Batch-ingest PostgreSQL or Parquet into the local mirror.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    parser.add_argument(
-        "--workers",
-        type=int,
-        default=DEFAULT_WORKERS,
-        help=f"Parallel worker processes, capped at {MAX_WORKERS}. Default: {DEFAULT_WORKERS}",
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=DEFAULT_BATCH_SIZE,
-        help=f"Rows read/written per batch. Default: {DEFAULT_BATCH_SIZE:,}",
-    )
-    parser.add_argument(
-        "--shards-per-table",
-        type=int,
-        default=DEFAULT_SHARDS_PER_TABLE,
-        help=f"Maximum shards per table. Default: {DEFAULT_SHARDS_PER_TABLE}",
-    )
-    parser.add_argument(
-        "--tables",
-        type=str,
-        default="all",
-        help="Comma-separated table names, or 'all' (default).",
-    )
-    parser.add_argument(
+
+    general = parser.add_argument_group("general options (online_db or parquet)")
+    general.add_argument(
         "--source",
-        choices=("illicit", "licit", "parquet"),
-        default="illicit",
+        choices=("online_db", "parquet"),
+        default="online_db",
         help=(
-            "Source: illicit/licit online PostgreSQL (default illicit), or "
-            "parquet for a frozen export snapshot."
+            "Source kind: online_db for the remote PostgreSQL source "
+            "(default), parquet for a frozen export snapshot."
         ),
     )
-    parser.add_argument(
-        "--source-path",
-        default=None,
-        help=(
-            "Absolute path to a Parquet snapshot directory containing "
-            "manifest.json. Required with --source parquet."
-        ),
-    )
-    parser.add_argument(
-        "--skip-hash",
-        action="store_true",
-        help="Skip SHA-256 verification of Parquet files. Default: verify.",
-    )
-    parser.add_argument(
-        "--allow-partial",
-        action="store_true",
-        help="Load a snapshot or table marked partial in its manifest.",
-    )
-    parser.add_argument(
-        "--allow-schema-mismatch",
-        action="store_true",
-        help=(
-            "Allow a Parquet snapshot schema to differ from --schema. "
-            "Use only for a test load, never for a handoff."
-        ),
-    )
-    parser.add_argument(
+    general.add_argument(
         "--schema",
         default="public",
         help="Target schema in the local mirror. Default: public.",
     )
-    parser.add_argument(
-        "--source-schema",
-        default="public",
-        help="Schema to read in the online database. Default: public.",
+    general.add_argument(
+        "--tables",
+        default="all",
+        help="Comma-separated table names, or 'all' (default).",
     )
-    parser.add_argument(
+    general.add_argument(
+        "--batch-size",
+        type=int,
+        default=DEFAULT_BATCH_SIZE,
+        help=f"Rows per read/write batch. Default: {DEFAULT_BATCH_SIZE:,}",
+    )
+    general.add_argument(
         "--row-limits",
         default="",
         help=(
@@ -2057,34 +2024,93 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
             "Use all=1000 as a fallback. Applies to each source table."
         ),
     )
-    parser.add_argument(
+    general.add_argument(
         "--resume",
         action="store_true",
-        help="Resume the latest unfinished run; completed shards are skipped.",
+        help="Resume the latest unfinished run; completed units are skipped.",
     )
-    parser.add_argument(
+    general.add_argument(
         "--dry-run",
         action="store_true",
-        help="Count and plan shards without writing to the local database.",
+        help="Plan and count without writing to the local database.",
     )
-    parser.add_argument(
+    general.add_argument(
         "--status",
         action="store_true",
         help="Print the latest run progress and exit.",
     )
-    parser.add_argument(
+    general.add_argument(
         "--skip-indexes",
         action="store_true",
         help="Skip post-ingestion index creation.",
     )
-    parser.add_argument(
+    general.add_argument(
         "--debug",
         type=int,
         default=DEFAULT_DEBUG_MODE,
         help=f"Print extra planning information. Default: {DEFAULT_DEBUG_MODE}",
     )
-    return parser.parse_args(argv)
 
+    postgres = parser.add_argument_group(
+        "online_db source options (--pos*)"
+    )
+    postgres.add_argument(
+        "--pos-db-type",
+        choices=("illicit", "licit"),
+        default=None,
+        help="Online source database type. Required with --source online_db.",
+    )
+    postgres.add_argument(
+        "--pos-source-schema",
+        default="public",
+        help="Schema to read in the online database. Default: public.",
+    )
+    postgres.add_argument(
+        "--pos-workers",
+        type=int,
+        default=DEFAULT_WORKERS,
+        help=(
+            f"Parallel worker processes, capped at {MAX_WORKERS}. "
+            f"Default: {DEFAULT_WORKERS}"
+        ),
+    )
+    postgres.add_argument(
+        "--pos-shards-per-table",
+        type=int,
+        default=DEFAULT_SHARDS_PER_TABLE,
+        help=f"Maximum shards per table. Default: {DEFAULT_SHARDS_PER_TABLE}",
+    )
+
+    parquet = parser.add_argument_group(
+        "parquet source options (--parq*)"
+    )
+    parquet.add_argument(
+        "--parq-source-path",
+        default=None,
+        help=(
+            "Absolute path to a Parquet snapshot directory containing "
+            "manifest.json. Required with --source parquet."
+        ),
+    )
+    parquet.add_argument(
+        "--parq-skip-hash",
+        action="store_true",
+        help="Skip SHA-256 verification of Parquet files. Default: verify.",
+    )
+    parquet.add_argument(
+        "--parq-allow-partial",
+        action="store_true",
+        help="Load a snapshot or table marked partial in its manifest.",
+    )
+    parquet.add_argument(
+        "--parq-allow-schema-mismatch",
+        action="store_true",
+        help=(
+            "Allow a Parquet snapshot schema to differ from --schema. "
+            "Use only for a test load, never for a handoff."
+        ),
+    )
+    return parser.parse_args(argv)
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
@@ -2093,16 +2119,43 @@ def main(argv: Sequence[str] | None = None) -> int:
             load_environment()
             print_ingestion_status(schema=args.schema)
             return 0
-        if args.workers < 1:
-            raise ValueError("--workers must be at least 1.")
         if args.batch_size < 1:
             raise ValueError("--batch-size must be at least 1.")
-        if args.shards_per_table < 1:
-            raise ValueError("--shards-per-table must be at least 1.")
-        if args.source == "parquet" and not args.source_path:
-            raise ValueError("--source-path is required with --source parquet.")
-        if args.source != "parquet" and args.source_path:
-            raise ValueError("--source-path is only valid with --source parquet.")
+        if args.source == "online_db":
+            if not args.pos_db_type:
+                raise ValueError(
+                    "--pos-db-type is required with --source online_db."
+                )
+            if args.pos_workers < 1:
+                raise ValueError("--pos-workers must be at least 1.")
+            if args.pos_shards_per_table < 1:
+                raise ValueError("--pos-shards-per-table must be at least 1.")
+            if (
+                args.parq_source_path
+                or args.parq_skip_hash
+                or args.parq_allow_partial
+                or args.parq_allow_schema_mismatch
+            ):
+                raise ValueError(
+                    "--parq-* options require --source parquet."
+                )
+        else:
+            if not args.parq_source_path:
+                raise ValueError(
+                    "--parq-source-path is required with --source parquet."
+                )
+            if args.pos_db_type is not None:
+                raise ValueError(
+                    "--pos-db-type is only valid with --source online_db."
+                )
+            if (
+                args.pos_source_schema != "public"
+                or args.pos_workers != DEFAULT_WORKERS
+                or args.pos_shards_per_table != DEFAULT_SHARDS_PER_TABLE
+            ):
+                raise ValueError(
+                    "--pos-* options require --source online_db."
+                )
         return run_etl(args)
     except Exception as error:
         print(f"ETL failed: {safe_error_message(error)}")

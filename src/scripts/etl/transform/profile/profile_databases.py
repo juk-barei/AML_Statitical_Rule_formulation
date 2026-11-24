@@ -9,7 +9,7 @@ import pandas as pd
 from sqlalchemy import MetaData, Table, distinct, func, select
 
 from src.scripts.config import PROFILING_OUTPUT_DIR
-from src.scripts.etl.ingest import (
+from src.scripts.etl.extract.main import (
     create_database_engine,
     get_illicit_online_db_link,
     get_licit_online_db_link,

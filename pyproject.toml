@@ -11,7 +11,6 @@ requires-python = ">=3.14"
 dependencies = [
     "duckdb>=2.0.1",
     "jupyterlab>=4.6.5",
-    "jupyterlab-vim>=4.1.4",
     "matplotlib>=3.11.2",
     "mypy>=2.4.1",
     "numpy>=2.5.4",
@@ -26,9 +25,11 @@ dependencies = [
 [project.optional-dependencies]
 check_var = ["varname>=1.0.0"]
 inspect_variable = ["einspect>=0.5.16"]
+jupyter_vim = ["jupyterlab-vim>=4.1.4"]
+
 [project.scripts]
-ingest = "src.scripts.etl.ingest:main"
-load = "src.scripts.etl.load:main"
+extract = "src.scripts.etl.extract.main:main"
+load = "src.scripts.etl.laod.main:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src", "src.*"]

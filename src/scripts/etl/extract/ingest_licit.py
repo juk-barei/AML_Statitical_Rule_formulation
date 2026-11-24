@@ -1,16 +1,17 @@
 """Resume licit ingestion, print status, and verify coverage.
 
-This is a thin wrapper around the existing ingest CLI. It always uses
-``--source licit --schema licit`` so the ETL role never targets ``public``.
+This is a thin wrapper around the extract CLI. It always uses
+``--source online_db --pos-db-type licit --schema licit`` so the ETL role
+never targets ``public``.
 
 Run from the repo root:
 
-    python -m src.scripts.etl.ingest_licit
+    python -m src.scripts.etl.extract.ingest_licit
 
 If the source connection times out again, retry with fewer workers or a
 smaller batch:
 
-    python -m src.scripts.etl.ingest_licit --workers 3 --batch-size 25000
+    python -m src.scripts.etl.extract.ingest_licit --workers 3 --batch-size 25000
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ import subprocess
 import sys
 
 from src.scripts.config import ROOT
-from src.scripts.etl.verify_ingestion import verify_schema
+from src.scripts.etl.extract.verify_ingestion import verify_schema
 
 SOURCE = "licit"
 SCHEMA = "licit"
@@ -51,8 +52,10 @@ def main(argv: list[str] | None = None) -> int:
     base = [
         sys.executable,
         "-m",
-        "src.scripts.etl.ingest",
+        "src.scripts.etl.extract.main",
         "--source",
+        "online_db",
+        "--pos-db-type",
         SOURCE,
         "--schema",
         SCHEMA,
@@ -61,11 +64,11 @@ def main(argv: list[str] | None = None) -> int:
     if not args.status_only:
         resume = [*base, "--resume"]
         if args.workers is not None:
-            resume.extend(["--workers", str(args.workers)])
+            resume.extend(["--pos-workers", str(args.workers)])
         if args.batch_size is not None:
             resume.extend(["--batch-size", str(args.batch_size)])
         if args.shards_per_table is not None:
-            resume.extend(["--shards-per-table", str(args.shards_per_table)])
+            resume.extend(["--pos-shards-per-table", str(args.shards_per_table)])
         if args.tables:
             resume.extend(["--tables", args.tables])
         code = _run(resume)
