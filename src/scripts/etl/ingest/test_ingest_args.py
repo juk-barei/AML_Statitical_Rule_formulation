@@ -2,6 +2,7 @@
 from src.scripts.etl.ingest import (
     ShardTask,
     build_batch_query,
+    parse_args,
     parse_row_limits,
     validate_schema_name,
 )
@@ -32,6 +33,22 @@ def rejects_schema(value: str) -> bool:
 
 for bad in ["bad-name", "1schema", "schema;drop"]:
     check(rejects_schema(bad), f"schema should fail: {bad}")
+
+parquet_args = parse_args(
+    [
+        "--source",
+        "parquet",
+        "--source-path",
+        "/absolute/snapshot",
+        "--schema",
+        "illicit",
+    ]
+)
+check(parquet_args.source == "parquet", "parquet source")
+check(parquet_args.source_path == "/absolute/snapshot", "parquet path")
+check(parquet_args.schema == "illicit", "parquet target schema")
+check(parquet_args.skip_hash is False, "hash verification defaults on")
+check(parse_args([]).source == "illicit", "online source default")
 
 keyset_task = ShardTask(
     run_id="r",
