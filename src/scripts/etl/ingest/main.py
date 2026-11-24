@@ -1,4 +1,4 @@
-# ruff: noqa: S608
+# ruff: noqa: S608, RUF100
 """Batch ETL for the capstone database.
 This is equivilant of extract in etl/ folder here.
 This module is intentionally the only place that writes data.  The notebooks
@@ -12,6 +12,11 @@ Typical usage
 
     # Resume the latest failed/interrupted run.
     python3 -m src.scripts.etl.ingest --resume
+
+    # Load a frozen Parquet snapshot into the local mirror.
+    python3 -m src.scripts.etl.ingest --source parquet \
+        --source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
+        --schema illicit --dry-run
 
 Environment
 -----------
@@ -470,7 +475,7 @@ def choose_order_columns(
         raw_primary_key = inspect(engine).get_pk_constraint(
             table_name, schema=engine_schema(engine)
         ).get("constrained_columns", [])
-    except Exception:
+    except Exception:  # noqa: BLE001 - defensive fallback
         raw_primary_key = []
     primary_key = tuple(column for column in raw_primary_key if column in columns)
     if primary_key:
@@ -495,7 +500,7 @@ def choose_shard_column(
         primary_key = inspect(engine).get_pk_constraint(
             table_name, schema=engine_schema(engine)
         ).get("constrained_columns", [])
-    except Exception:
+    except Exception:  # noqa: BLE001 - defensive fallback
         primary_key = []
     if len(primary_key) == 1 and primary_key[0] in columns:
         return primary_key[0], "hash"
@@ -667,7 +672,7 @@ def source_type_to_local_sql(column: Any, local_engine: Engine) -> str:
         return "TEXT"
     try:
         type_sql = str(compile_type(dialect=local_engine.dialect))
-    except Exception:
+    except Exception:  # noqa: BLE001 - defensive fallback
         return "TEXT"
     if not type_sql or type_sql.upper().startswith("NULL"):
         return "TEXT"
@@ -1268,7 +1273,7 @@ def ingest_shard(task: ShardTask) -> ShardResult:
             status="completed",
         )
 
-    except Exception as error:
+    except Exception as error:  # noqa: BLE001 - report and continue
         if local_raw_connection is not None:
             local_raw_connection.rollback()
         error_message = safe_error_message(error)
@@ -1578,7 +1583,7 @@ def create_post_ingest_indexes(
                 with local_engine.begin() as connection:
                     # pi-lens-ignore: python-sql-injection -- identifiers are quoted; values use bind params
                     connection.execute(text(index_sql))
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001 - report and continue
                 print(
                     f"Index {index_name} failed: {safe_error_message(error)}"
                 )
@@ -1606,7 +1611,7 @@ def wait_for_workers(
         for future in done:
             try:
                 result = future.result()
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001 - report and continue
                 print(f"Worker crashed: {safe_error_message(error)}")
                 continue
             results.append(result)
@@ -1634,6 +1639,11 @@ def wait_for_workers(
 
 def run_etl(args: argparse.Namespace) -> int:
     load_environment()
+    if args.source == "parquet":
+        # Local import keeps the online path independent of DuckDB.
+        from src.scripts.etl.parquet_source import run_parquet_ingest
+
+        return run_parquet_ingest(args)
     source_link = get_source_link(args.source)
     local_link = get_local_db_link()
     source_schema = validate_schema_name(args.source_schema)
@@ -1824,7 +1834,7 @@ def run_etl(args: argparse.Namespace) -> int:
                 error_message="Interrupted by user.",
             )
             return 130
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - report and continue
             message = safe_error_message(error)
             print(f"Ingestion loop failed: {message}")
             executor.shutdown(wait=False, cancel_futures=True)
@@ -1996,9 +2006,38 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--source",
-        choices=("illicit", "licit"),
+        choices=("illicit", "licit", "parquet"),
         default="illicit",
-        help="Online database to ingest: illicit (default) or licit.",
+        help=(
+            "Source: illicit/licit online PostgreSQL (default illicit), or "
+            "parquet for a frozen export snapshot."
+        ),
+    )
+    parser.add_argument(
+        "--source-path",
+        default=None,
+        help=(
+            "Absolute path to a Parquet snapshot directory containing "
+            "manifest.json. Required with --source parquet."
+        ),
+    )
+    parser.add_argument(
+        "--skip-hash",
+        action="store_true",
+        help="Skip SHA-256 verification of Parquet files. Default: verify.",
+    )
+    parser.add_argument(
+        "--allow-partial",
+        action="store_true",
+        help="Load a snapshot or table marked partial in its manifest.",
+    )
+    parser.add_argument(
+        "--allow-schema-mismatch",
+        action="store_true",
+        help=(
+            "Allow a Parquet snapshot schema to differ from --schema. "
+            "Use only for a test load, never for a handoff."
+        ),
     )
     parser.add_argument(
         "--schema",
@@ -2060,6 +2099,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise ValueError("--batch-size must be at least 1.")
         if args.shards_per_table < 1:
             raise ValueError("--shards-per-table must be at least 1.")
+        if args.source == "parquet" and not args.source_path:
+            raise ValueError("--source-path is required with --source parquet.")
+        if args.source != "parquet" and args.source_path:
+            raise ValueError("--source-path is only valid with --source parquet.")
         return run_etl(args)
     except Exception as error:
         print(f"ETL failed: {safe_error_message(error)}")

@@ -25,6 +25,7 @@ Hypothesis-specific work stays in [`tasks/hypothesis_testing/`](../hypothesis_te
 | [`05_local_profiling.md`](05_local_profiling.md) | in_progress | — | cohort builder, licit EDA | local profile/quality/overlap CSVs + contracts |
 | [`06_feature_profile.md`](06_feature_profile.md) | blocked | full-frame cohort/transaction join | feature/cohort comparison | feature profile + n-flow CSVs |
 | [`07_query_benchmarks.md`](07_query_benchmarks.md) | done | — | export/cohort design | benchmark CSV + query plans |
+| [`08_parquet_source.md`](08_parquet_source.md) | done | — | offline setup | Parquet → PostgreSQL loader |
 
 Status vocabulary: `todo` / `in_progress` / `blocked` / `done`. `done` files are
 archived per [`AGENTS.md`](../../AGENTS.md); do not delete them.

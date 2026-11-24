@@ -6,7 +6,8 @@ Data authority, cohort rules, and inference rules are in [`AGENTS.md`](../../../
 
 | Module | Role | Output |
 | --- | --- | --- |
-| `ingest.py` | Extract online PostgreSQL → local PostgreSQL mirror. **Only writer of the mirror.** | Mirror database |
+| `ingest.py` | Extract online PostgreSQL or a frozen Parquet snapshot → local PostgreSQL mirror. **Only writer of the mirror.** | Mirror database |
+| `parquet_source.py` | Parquet snapshot adapter behind `ingest.py --source parquet`: manifest, hash, type mapping, DuckDB → COPY. | Mirror database |
 | `profile/` | Read-only schema, row, and overlap profiling. See [`profile/README.md`](profile/README.md). | `outputs/etl/profile/` |
 | `transform/` | Reusable SQL for cleaning, cohort priority, eligibility, and features. See [`transform/README.md`](transform/README.md). | `outputs/etl/transform/` |
 | `load.py` | Frozen snapshot exporter: schema/table selection, Parquet or CSV, manifest, hashes. | `outputs/etl/export/<snapshot>/` |
@@ -22,6 +23,44 @@ python -m src.scripts.etl.ingest --dry-run
 python -m src.scripts.etl.ingest --source illicit --schema illicit
 python -m src.scripts.etl.ingest --source licit --schema licit
 ```
+
+### Parquet source
+
+A frozen export snapshot can rebuild the mirror without the online database:
+
+```bash
+# Validate the manifest, hashes, columns, and row counts. No writes.
+python -m src.scripts.etl.ingest \
+  --source parquet \
+  --source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
+  --schema illicit --dry-run
+
+# Load every table into the local mirror.
+python -m src.scripts.etl.ingest \
+  --source parquet \
+  --source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
+  --schema illicit
+```
+
+Rules:
+
+- `--source-path` must be **absolute** and must contain `manifest.json`.
+- The manifest schema must match `--schema`. `--allow-schema-mismatch` is for a
+  test load only; it records the mismatch in the report.
+- SHA-256 and row counts are verified by default. `--skip-hash` skips only the
+  file hash, not the manifest row/column checks.
+- `--allow-partial` is required for a snapshot or table marked `partial`.
+- The Parquet adapter is single-process. `--workers` and `--shards-per-table`
+  do not apply; `--batch-size` is the COPY batch size.
+- `--resume` skips completed tables and reloads incomplete tables from scratch.
+- `amount` is rebuilt as PostgreSQL `NUMERIC` from the exported `amount_exact`
+  text; `amount_exact` is not recreated in the mirror.
+- `hex_address`, `_etl_*`, and `pipeline_crawl_state` are not in a raw export and
+  are not reconstructed. The adapter writes synthetic `_etl_runs` /
+  `_etl_progress` provenance from the manifest.
+
+The mechanism and limits are in
+[`docs/dev/etl/ingest/parquet-source.md`](../../../docs/dev/etl/ingest/parquet-source.md).
 
 ### Licit recovery
 
