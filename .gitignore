@@ -8,4 +8,5 @@ __pycache__/
 docs/external_resources
 .ipynb_checkpoints/
 docs/dev/software_concepts
-outputs/etl/export
+outputs/etl/load
+**/archive/

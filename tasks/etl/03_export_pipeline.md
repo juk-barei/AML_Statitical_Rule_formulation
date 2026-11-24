@@ -2,24 +2,24 @@
 
 - **Status:** done
 - **Blocked by:** [`01_export_contract.md`](01_export_contract.md); complete ingestion run
-  (`python -m src.scripts.etl.ingest --status`)
+  (`python -m src.scripts.etl.extract.main --status`)
 - **Blocks:** [`04_web_serving.md`](04_web_serving.md); every hypothesis step after EDA
 - **Owner:** worker
-- **Output:** `src/scripts/etl/load.py`; `outputs/etl/export/phase1_raw_{illicit,licit}_<UTC>/`
+- **Output:** `src/scripts/etl/load/load.py`; `outputs/etl/load/phase1_raw_{illicit,licit}_<UTC>/`
 - **Updated:** 2026-11-23
 
 ## Objective
 
 Implement the designated export writer. It reads the mirror read-only, writes one frozen
-snapshot under `outputs/etl/export/<snapshot>/`, and records the manifest the contract
-requires. `src/scripts/etl/load.py` is currently a stub (`parse_args` only).
+snapshot under `outputs/etl/load/<snapshot>/`, and records the manifest the contract
+requires. At the time of this task, `src/scripts/etl/load/load.py` was a stub (`parse_args` only); it is implemented now.
 
 ## Resources / context
 
 - `docs/context/export_contract.md` — the contract this implements
 - [`src/scripts/etl/README.md`](../../src/scripts/etl/README.md) — handoff layout, format
   decision, sampling rule, export checklist
-- `src/scripts/etl/ingest.py` — engine/environment helpers and the CLI style to match
+- `src/scripts/etl/extract/main.py` — engine/environment helpers and the CLI style to match
 - [`src/scripts/etl/transform/README.md`](../../src/scripts/etl/transform/README.md) —
   cleaning, cohort priority, eligibility, features
 - `AGENTS.md` — freeze-before-export, sampling, and data-hygiene rules
@@ -28,9 +28,9 @@ requires. `src/scripts/etl/load.py` is currently a stub (`parse_args` only).
 
 | Action | Path | Purpose |
 | --- | --- | --- |
-| update | `src/scripts/etl/load.py` | CLI + export implementation |
+| update | `src/scripts/etl/load/load.py` | CLI + export implementation |
 | create | `src/scripts/etl/tests/test_load_export.py` | contract checks |
-| create | `outputs/etl/export/<snapshot>/` | the snapshot itself |
+| create | `outputs/etl/load/<snapshot>/` | the snapshot itself |
 
 ## Implementation points
 
@@ -64,6 +64,6 @@ requires. `src/scripts/etl/load.py` is currently a stub (`parse_args` only).
 ## Done when
 
 - `--dry-run` prints the plan and exact per-table row counts without writing.
-- Snapshots are written under `outputs/etl/export/<snapshot>/` with complete manifests.
+- Snapshots are written under `outputs/etl/load/<snapshot>/` with complete manifests.
 - `python -m src.scripts.etl.tests.test_load_export` passes.
 - The export checklist in `src/scripts/etl/README.md` is satisfied item by item.

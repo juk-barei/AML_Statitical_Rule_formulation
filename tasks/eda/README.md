@@ -10,5 +10,5 @@ workflow, not beside it.
 - **Code:** [`src/scripts/eda/README.md`](../../src/scripts/eda/README.md) — module rule,
   Lecture 02 order, and the output folder per section.
 - **Outputs:** `outputs/eda/{univariate,bivariate,multivariate,profile,additional}`.
-- **Input:** the data-engineering profile in `outputs/etl/profile/`; shared data work is
+- **Input:** the data-engineering profile in `outputs/etl/transform/profile/`; shared data work is
   tracked in [`tasks/etl/README.md`](../etl/README.md).

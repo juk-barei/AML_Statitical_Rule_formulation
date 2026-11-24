@@ -16,18 +16,18 @@ row counts, and hashes.
 ## Resources / context
 
 - `src/scripts/etl/README.md` § Extract → Parquet source
-- `docs/dev/etl/ingest/parquet-source.md` — mechanism and limits
+- `docs/dev/etl/extract/parquet-source.md` — mechanism and limits
 - accepted concepts `01`, `02`, `05`, `07`, `09`, `10`
-- `src/scripts/etl/load.py` — the manifest producer
+- `src/scripts/etl/load/load.py` — the manifest producer
 
 ## Files
 
 | Action | Path | Purpose |
 | --- | --- | --- |
 | create | `src/scripts/etl/parquet_source.py` | manifest validation, DuckDB → COPY, progress |
-| update | `src/scripts/etl/ingest.py` | `--source parquet`, `--source-path`, dispatch |
+| update | `src/scripts/etl/extract/main.py` | `--source parquet`, `--source-path`, dispatch |
 | create | `src/scripts/etl/tests/test_parquet_source.py` | mapping, manifest, hash, partial checks |
-| create | `docs/dev/etl/ingest/parquet-source.md` | technical note |
+| create | `docs/dev/etl/extract/parquet-source.md` | technical note |
 | update | `src/scripts/etl/README.md` | commands and rules |
 
 ## Implementation points

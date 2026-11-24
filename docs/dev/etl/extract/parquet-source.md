@@ -1,8 +1,8 @@
-# Parquet source adapter for `ingest.py`
+# Parquet source adapter for `extract/main.py`
 
-- **Date:** 2026-11-23
-- **Edits:** 1
-- **Code:** `src/scripts/etl/parquet_source.py`, `src/scripts/etl/ingest.py`
+- **Date:** 2026-11-24
+- **Edits:** 2
+- **Code:** `src/scripts/etl/extract/parquet_source.py`, `src/scripts/etl/extract/main.py`
 - **Contract:** `src/scripts/etl/README.md` § Extract → Parquet source
 
 ## The decision
@@ -13,7 +13,7 @@ remote server through `pandas` and a sharded worker pool. The Parquet path has
 no server, no shards, and no reason to use pandas; rows already sit in a local
 columnar file.
 
-`parquet_source.py` is therefore a deep module behind one call:
+`extract/parquet_source.py` is therefore a deep module behind one call:
 
 ```python
 run_parquet_ingest(args) -> int
@@ -79,17 +79,17 @@ table-at-a-time on purpose.
 
 ```bash
 # No writes, but hashes/columns/rows are checked.
-python -m src.scripts.etl.ingest \
+python -m src.scripts.etl.extract.main \
   --source parquet \
   --source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
   --schema illicit --dry-run
 
 # Unit checks.
-python -m src.scripts.etl.tests.test_parquet_source
-python -m src.scripts.etl.tests.test_etl_args
+python -m src.scripts.etl.load.tests.parquet_source
+python -m src.scripts.etl.extract.tests.validate_ingest_args
 
 # After a real load.
-python -m src.scripts.etl.verify_ingestion --schema illicit
+python -m src.scripts.etl.extract.tests.verify_ingestion --schema illicit
 ```
 
 A successful load reconciles three numbers per table: manifest rows, rows

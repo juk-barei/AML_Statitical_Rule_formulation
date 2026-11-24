@@ -18,7 +18,7 @@ only a pointer, not a second copy of the rules.
 - The **PostgreSQL mirror** is the analysis dataset; `datasets/*.csv` is a stale, partial export and is never mixed with mirror counts.
 - Cohorts are `illicit`, `suspicious`, `licit`, `unlabeled` — see the cohort table in [`AGENTS.md`](AGENTS.md); blacklist priority applies at every hop, and `unlabeled` is never called licit.
 - `suspicious` is graph-derived and nested, so inference needs seed-cluster permutation/bootstrap or a clearly descriptive framing; see the inference rules in [`AGENTS.md`](AGENTS.md).
-- `src/scripts/etl/ingest.py` is the only writer of the mirror and `src/scripts/etl/load.py` the designated writer for exports; notebooks are read-only. Details in [`src/scripts/etl/README.md`](src/scripts/etl/README.md).
+- `src/scripts/etl/extract/main.py` is the only writer of the mirror and `src/scripts/etl/load/load.py` the designated writer for exports; notebooks are read-only. Details in [`src/scripts/etl/README.md`](src/scripts/etl/README.md).
 - EDA follows Lecture 02, inference follows the Lecture 05 eight-step ANOVA workflow; output folders mirror `src/scripts/` — see [`src/scripts/README.md`](src/scripts/README.md).
 
 ## Prerequisites
@@ -55,7 +55,7 @@ Run everything from the repo root (`data_analysis`).
 4. Check where ingestion stands:
 
    ```bash
-   python -m src.scripts.etl.ingest --status
+   python -m src.scripts.etl.extract.main --status
    ```
 
    Ingestion and export rules are in [`src/scripts/etl/README.md`](src/scripts/etl/README.md).
@@ -70,7 +70,7 @@ Run everything from the repo root (`data_analysis`).
 | --- | --- |
 | [`src/`](src) | `scripts/` for analysis code and helpers, `notebooks/` for the official analysis notebooks. Areas and their output folders are indexed in [`src/scripts/README.md`](src/scripts/README.md). |
 | [`docs/`](docs) | Durable decisions in `docs/context/`, hypothesis write-ups in `docs/hypothesis_testing/`, plus external references. |
-| [`outputs/`](outputs) | Artifacts, one folder per producing area: `outputs/etl/{profile,tests,transform,export}`, `outputs/eda/{univariate,bivariate,multivariate,profile,additional}`, `outputs/hypothesis_testing/{shared,h2,h4,h6}`, `outputs/statistical_learning/`. Handoff snapshots live in `outputs/etl/export/<snapshot>/`. |
+| [`outputs/`](outputs) | Artifacts, one folder per producing area: `outputs/etl/{extract,transform,load}`, `outputs/eda/{univariate,bivariate,multivariate,profile,additional}`, `outputs/hypothesis_testing/{shared,h2,h4,h6}`, `outputs/statistical_learning/`. ETL profiling is `outputs/etl/transform/profile/`; handoff snapshots live in `outputs/etl/load/<snapshot>/`. |
 | [`tasks/`](tasks) | Task trackers: `tasks/etl/`, `tasks/eda/`, `tasks/hypothesis_testing/` (the 8-step workflow), `tasks/statistical_learning/`. Start at [`tasks/hypothesis_testing/README.md`](tasks/hypothesis_testing/README.md). |
 
 ## LICENSE

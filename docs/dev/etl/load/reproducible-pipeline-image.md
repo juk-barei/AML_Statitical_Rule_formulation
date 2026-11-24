@@ -35,30 +35,14 @@ Record which one a result used. Never mix them in one table or conclusion.
 | `uv` | `0.11.14` |
 | DuckDB | `2.0.1` resolves for Python 3.14; `uvx duckdb-cli` works |
 | Project `.venv` | `675 MB` |
-| `outputs/` | `3.0 GB`; two Parquet snapshots under `outputs/etl/export/` |
+| `outputs/` | `3.0 GB`; two Parquet snapshots under `outputs/etl/load/` |
 | Tracked files | `109` |
 
 ### Repo gap that blocks onboarding
 
-`.gitignore` currently ignores:
+At review time, `.gitignore` ignored `docs/context`, `docs/dev`, `tasks/`, `**/tests/`, and `outputs/etl/export`, so a clean clone lacked the durable decisions, task trackers, ETL tests, and technical notes that `AGENTS.md` and `README.md` point to.
 
-```text
-docs/context
-docs/dev
-tasks/
-**/tests/
-outputs/etl/export
-```
-
-So a clean clone does **not** contain the durable decisions, the task trackers, the ETL tests, or the technical notes that `AGENTS.md` and `README.md` point to. A Docker image built from that clone cannot include them either.
-
-This is a policy decision, not a Docker problem:
-
-- **Recommended:** track `docs/context`, `docs/dev`, `tasks`, and `src/scripts/**/tests`. These are source, not generated data.
-- **Alternative:** publish them as a separate `handoff/` archive with a SHA-256, and document where to unpack it.
-- Keep `src/.env`, `datasets/`, and large `outputs/etl/export` artifacts untracked.
-
-Until this is resolved, the image gives a teammate the runtime but not the project contract or test suite.
+That has since been narrowed: the durable docs, task trackers, and stage-level tests are tracked. Re-check `.gitignore` before building the image. Keep `src/.env`, `datasets/`, and large snapshot artifacts (`outputs/etl/load/`) untracked.
 
 ## 3. Target structure
 
@@ -220,10 +204,10 @@ The official Postgres image runs this only when the data directory is empty. If 
 
 ```bash
 docker compose --env-file src/.env run --rm app \
-  python -m src.scripts.etl.ingest --source illicit --schema illicit
+  python -m src.scripts.etl.extract.main --source illicit --schema illicit
 
 docker compose --env-file src/.env run --rm app \
-  python -m src.scripts.etl.ingest --source licit --schema licit
+  python -m src.scripts.etl.extract.main --source licit --schema licit
 ```
 
 Requires `ILLICIT_ONLINE_DATABASE_LINK` / `LICIT_ONLINE_DATABASE_LINK` in `src/.env`. This is the cleanest provenance, but it takes hours and depends on the source connection.
@@ -251,7 +235,7 @@ docker compose --env-file src/.env run --rm app \
 
 ### C. Parquet-only analysis
 
-For H1/H3/H5 exploration and the public paper artifact, DuckDB can read `outputs/etl/export/<snapshot>/*.parquet` with no PostgreSQL. This is the cheapest teammate path, but it is read-only and cannot run the ETL or cohort writers.
+For H1/H3/H5 exploration and the public paper artifact, DuckDB can read `outputs/etl/load/<snapshot>/*.parquet` with no PostgreSQL. This is the cheapest teammate path, but it is read-only and cannot run the ETL or cohort writers.
 
 ## 7. Reproducibility controls
 

@@ -4,13 +4,13 @@ These are just draft idea of flow only. No details yet. Further change can be ma
 ## Info:
 Our seed dataset has:
 - 4 tables in the cloud PostgreSQL database, mirrored to local PostgreSQL by
-  `src/scripts/etl/ingest.py`.
+  `src/scripts/etl/extract/main.py`.
 - Not complete all features yet. (needs aggregation and additional ingestion).
   Refer to this doc: [ETL pipeline rules](../src/scripts/etl/README.md)
 
 ## Data boundary
 
-- `src/scripts/etl/ingest.py` is the only program that writes data. It extracts
+- `src/scripts/etl/extract/main.py` is the only program that writes data. It extracts
   from the cloud database in batches, uses up to five worker processes, and
   records per-table/per-shard progress in `_etl_progress`.
 - The notebook (`src/notebooks/1.1_ILLICIT_EDA.ipynb`) calls `load_analysis_tables()` from

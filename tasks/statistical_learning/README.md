@@ -9,7 +9,7 @@ are final. A model fitted on a hypothesis that is still moving is not worth the 
 
 - **Code:** [`src/scripts/statistical_learning/README.md`](../../src/scripts/statistical_learning/README.md)
   — inputs, rules, and expected outputs.
-- **Data:** `outputs/etl/export/<snapshot>/cohort_wallet.parquet`; shared data work is
+- **Data:** `outputs/etl/load/<snapshot>/cohort_wallet.parquet`; shared data work is
   tracked in [`tasks/etl/README.md`](../etl/README.md).
 - **Upstream tracker:** [`tasks/hypothesis_testing/README.md`](../hypothesis_testing/README.md).
 - **Outputs:** `outputs/statistical_learning/`.

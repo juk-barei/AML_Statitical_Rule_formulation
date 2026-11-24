@@ -20,7 +20,7 @@ hypothesis test and verdict work writes below `outputs/hypothesis_testing/`.
 
 | Area | Path |
 | --- | --- |
-| ETL | `outputs/etl/{profile,tests,transform,export}`; snapshots in `outputs/etl/export/<snapshot>/` |
+| ETL | `outputs/etl/{extract,transform,load}`; snapshots in `outputs/etl/load/<snapshot>/` |
 | EDA | `outputs/eda/{univariate,bivariate,multivariate,profile,additional}` |
 | Hypothesis testing | `outputs/hypothesis_testing/shared/` (step-level), `outputs/hypothesis_testing/{h2,h4,h6}/` (per hypothesis), verdict at `outputs/hypothesis_testing/{h2,h4,h6}/verdict.md` |
 | Statistical learning | `outputs/statistical_learning/` |

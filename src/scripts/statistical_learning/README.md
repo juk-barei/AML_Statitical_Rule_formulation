@@ -4,7 +4,7 @@
 
 ## Inputs (when unblocked)
 
-- `outputs/etl/export/<snapshot>/cohort_wallet.parquet` — frozen wallet-level cohort table: group, hop, seed, features.
+- `outputs/etl/load/<snapshot>/cohort_wallet.parquet` — frozen wallet-level cohort table: group, hop, seed, features.
 - `outputs/hypothesis_testing/{shared,h2,h4,h6}/` — the confirmed results, effect sizes, and n-flow that define the response and the features.
 - `outputs/eda/` — group shape and candidate features from exploration.
 
@@ -16,7 +16,7 @@ Models read the frozen snapshot, never the live mirror, so a result can be repro
 
 ## Rules
 
-- No raw mirror reads. Read frozen Parquet from `outputs/etl/export/<snapshot>/` or DuckDB queries over it.
+- No raw mirror reads. Read frozen Parquet from `outputs/etl/load/<snapshot>/` or DuckDB queries over it.
 - `suspicious` is graph-derived from blacklisted seeds: use cluster-aware splits (group by `seed_address`) so the same seed never spans train and test.
 - Keep licit, illicit, suspicious, and unlabeled arms separate; do not pool arms whose sampling frame differs.
 - State the snapshot, row counts, and split design beside every metric.
