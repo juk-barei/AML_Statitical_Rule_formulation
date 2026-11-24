@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 
 from sqlalchemy.sql.sqltypes import BigInteger, Boolean, DateTime, Numeric, String
 
-from src.scripts.etl.load import (
+from src.scripts.etl.load.main import (
     Coverage,
     clear_previous_snapshot,
     completeness,

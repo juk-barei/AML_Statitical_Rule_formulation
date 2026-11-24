@@ -24,7 +24,7 @@
    and committed (:1092-1098).
  - So per worker: 1 remote + 2 local sockets, reused sequentially, not reconnected per batch.
 
- Peak with defaults (--workers 5):
+ Peak with defaults (--pos-workers 5):
 
  ┌──────────────────┬──────────────┬─────────────────────┬───────────────────────────────────────────┬───────────────┐
  │ Endpoint         │ ETL parent   │ ETL workers         │ Profiler                                  │ Total         │
@@ -101,5 +101,5 @@
    psql -c "SELECT usename, state, count(*) FROM pg_stat_activity GROUP BY 1,2"
  ```
 
- If the remote is small or connection-limited, profile first and ingest after, or lower --workers — the profiler's
+ If the remote is small or connection-limited, profile first and ingest after, or lower --pos-workers — the profiler's
  COUNT(DISTINCT) scans are the expensive half, not the connection count.

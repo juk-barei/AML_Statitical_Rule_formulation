@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from sqlalchemy import Engine, MetaData, Table, case, func, inspect, select
 
-from src.scripts.etl.profile.schema import TableCoverage, utc_snapshot_id
+from src.scripts.etl.transform.profile.schema import TableCoverage, utc_snapshot_id
 
 
 def latest_run_status(engine: Engine, schema: str) -> dict | None:

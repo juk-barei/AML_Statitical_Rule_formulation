@@ -5,7 +5,7 @@ Read-only: this script never writes to the mirror. It compares the latest
 
 Run from the repo root:
 
-    python -m src.scripts.etl.verify_ingestion --schema licit
+    python -m src.scripts.etl.extract.verify_ingestion --schema licit
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from sqlalchemy import MetaData, Table, case, func, inspect, select
 from sqlalchemy.exc import NoSuchTableError, ProgrammingError
 
-from src.scripts.etl.ingest import get_local_engine, validate_schema_name
+from src.scripts.etl.extract.main import get_local_engine, validate_schema_name
 
 
 @dataclass(frozen=True)
@@ -163,7 +163,8 @@ def verify_schema(
         if require_complete and not complete:
             print(
                 "Incomplete ingestion. Resume with "
-                "`python -m src.scripts.etl.ingest --source licit --schema licit --resume`.",
+                "`python -m src.scripts.etl.extract.main --source online_db "
+                "--pos-db-type licit --schema licit --resume`.",
                 file=sys.stderr,
             )
             return 1

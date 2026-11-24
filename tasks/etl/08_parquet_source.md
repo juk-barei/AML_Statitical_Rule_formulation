@@ -1,11 +1,11 @@
-# Parquet source adapter — `ingest.py`
+# Parquet source adapter — `extract/main.py`
 
 - **Status:** done
 - **Blocked by:** —
 - **Blocks:** offline teammate setup; full-pipeline reproduction from the public snapshot
 - **Owner:** worker
-- **Output:** `src/scripts/etl/parquet_source.py`; `--source parquet` in `ingest.py`
-- **Updated:** 2026-11-23
+- **Output:** `src/scripts/etl/extract/parquet_source.py`; `--source parquet` in `extract/main.py`
+- **Updated:** 2026-11-24
 
 ## Objective
 
@@ -24,31 +24,31 @@ row counts, and hashes.
 
 | Action | Path | Purpose |
 | --- | --- | --- |
-| create | `src/scripts/etl/parquet_source.py` | manifest validation, DuckDB → COPY, progress |
-| update | `src/scripts/etl/extract/main.py` | `--source parquet`, `--source-path`, dispatch |
-| create | `src/scripts/etl/tests/test_parquet_source.py` | mapping, manifest, hash, partial checks |
+| create | `src/scripts/etl/extract/parquet_source.py` | manifest validation, DuckDB → COPY, progress |
+| update | `src/scripts/etl/extract/main.py` | `--source parquet`, `--parq-source-path`, dispatch |
+| create | `src/scripts/etl/extract/tests/validate_parquet_source.py` | mapping, manifest, hash, partial checks |
 | create | `docs/dev/etl/extract/parquet-source.md` | technical note |
 | update | `src/scripts/etl/README.md` | commands and rules |
 
 ## Implementation points
 
-- Absolute `--source-path`; `manifest.json` required.
-- SHA-256 and manifest column/row checks by default; `--skip-hash` for speed.
+- Absolute `--parq-source-path`; `manifest.json` required.
+- SHA-256 and manifest column/row checks by default; `--parq-skip-hash` for speed.
 - `amount_exact` → PostgreSQL `NUMERIC`; drop the `DOUBLE` helper.
 - Streamed DuckDB `fetchmany` → psycopg `COPY FROM STDIN`; no pandas bulk path.
 - Reuse `_etl_runs` / `_etl_progress`; `verify_ingestion` works after import.
 - `--resume` skips completed tables; failed tables are truncated and retried.
-- `--allow-partial` and `--allow-schema-mismatch` are explicit escape hatches.
+- `--parq-allow-partial` and `--parq-allow-schema-mismatch` are explicit escape hatches.
 
 ## Done when
 
-- `--source parquet --dry-run` prints the snapshot plan with no writes.
+- `--source parquet --parq-source-path ... --dry-run` prints the snapshot plan with no writes.
 - A real import writes the expected rows and `verify_ingestion` passes.
-- `python -m src.scripts.etl.tests.test_parquet_source` passes.
+- `python -m src.scripts.etl.extract.tests.validate_parquet_source` passes.
 
 ## Verification
 
-- `test_parquet_source`, `test_etl_args`, `test_load_export` pass.
+- `validate_parquet_source`, `validate_ingest_args`, and `load_export` pass.
 - Full illicit snapshot dry-run prints 4,870,000 / 17,046 / 15,017,691 / 6,965,210.
 - A 5-row `blacklisted_wallets` load into a throwaway schema reconciled
   manifest, streamed, and local counts, and `verify_ingestion` passed.

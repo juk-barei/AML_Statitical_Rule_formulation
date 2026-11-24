@@ -7,7 +7,7 @@ from pathlib import Path
 
 import duckdb
 
-from src.scripts.etl.parquet_source import (
+from src.scripts.etl.extract.parquet_source import (
     ParquetColumn,
     build_target_columns,
     load_parquet_snapshot,

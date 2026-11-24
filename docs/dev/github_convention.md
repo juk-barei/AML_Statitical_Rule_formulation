@@ -30,7 +30,7 @@ Example 1: `[FEAT-tranform]: cleaned missing values in licit db.`
 Example 2: `[FEAT-univariate]: visualized fan-in&out of licit wallets.` 
 Example 3: `[BUG-univariate]: Fixed plot type and color combination.` 
 Example 4: `[DOC-load]:  Documented flow of modular exporting data`
-Special case: sometimes, it doesn't fit any of the sub category then you can utilize `general`. This is for special case like commit this document, not for exploit for bad practices. Bad practice in local change should suffer manual adding for remote push.
+**Special case**: sometimes, it doesn't fit any of the sub category then you can utilize `general`. This is for special case like commit this document, not for exploit for bad practices. Bad practice in local change should suffer manual adding for remote push.
 ## There is a pattern and scope constraint to this:
 - You now may realize that this will encourage creating new branches for specific sub-folders. This means you have to work on a specific small scope of the project, aka sub folders then commit to comply with this rule.
 - You should not let ai run off modify many folders and files. Else you will have to select some files for different branches.

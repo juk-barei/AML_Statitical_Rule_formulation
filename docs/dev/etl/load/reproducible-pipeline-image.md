@@ -204,10 +204,10 @@ The official Postgres image runs this only when the data directory is empty. If 
 
 ```bash
 docker compose --env-file src/.env run --rm app \
-  python -m src.scripts.etl.extract.main --source illicit --schema illicit
+  python -m src.scripts.etl.extract.main --source online_db --pos-db-type illicit --schema illicit
 
 docker compose --env-file src/.env run --rm app \
-  python -m src.scripts.etl.extract.main --source licit --schema licit
+  python -m src.scripts.etl.extract.main --source online_db --pos-db-type licit --schema licit
 ```
 
 Requires `ILLICIT_ONLINE_DATABASE_LINK` / `LICIT_ONLINE_DATABASE_LINK` in `src/.env`. This is the cleanest provenance, but it takes hours and depends on the source connection.

@@ -482,7 +482,6 @@ source = { editable = "." }
 dependencies = [
     { name = "duckdb" },
     { name = "jupyterlab" },
-    { name = "jupyterlab-vim" },
     { name = "matplotlib" },
     { name = "mypy" },
     { name = "numpy" },
@@ -502,13 +501,16 @@ check-var = [
 inspect-variable = [
     { name = "einspect" },
 ]
+jupyter-vim = [
+    { name = "jupyterlab-vim" },
+]
 
 [package.metadata]
 requires-dist = [
     { name = "duckdb", specifier = ">=2.0.1" },
     { name = "einspect", marker = "extra == 'inspect-variable'", specifier = ">=0.5.16" },
     { name = "jupyterlab", specifier = ">=4.6.5" },
-    { name = "jupyterlab-vim", specifier = ">=4.1.4" },
+    { name = "jupyterlab-vim", marker = "extra == 'jupyter-vim'", specifier = ">=4.1.4" },
     { name = "matplotlib", specifier = ">=3.11.2" },
     { name = "mypy", specifier = ">=2.4.1" },
     { name = "numpy", specifier = ">=2.5.4" },
@@ -521,7 +523,7 @@ requires-dist = [
     { name = "sqlalchemy", specifier = ">=2.1.8" },
     { name = "varname", marker = "extra == 'check-var'", specifier = ">=1.0.0" },
 ]
-provides-extras = ["check-var", "inspect-variable"]
+provides-extras = ["check-var", "inspect-variable", "jupyter-vim"]
 
 [[package]]
 name = "debugpy"
