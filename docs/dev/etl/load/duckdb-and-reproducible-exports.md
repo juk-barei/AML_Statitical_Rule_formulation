@@ -1,8 +1,8 @@
 # DuckDB and reproducible export environments
 
-- **Scope:** why `src/scripts/etl/load.py` uses DuckDB, how the engine is distributed, and when a container image is warranted.
-- **Applies to:** ETL export (`load.py`), Parquet handoff, public raw-data releases, paper reproduction.
-- **Related:** [`src/scripts/etl/README.md`](../../../../src/scripts/etl/README.md), [`etl/ingest/process-model-and-connections.md`](../ingest/process-model-and-connections.md).
+- **Scope:** why `src/scripts/etl/load/load.py` uses DuckDB, how the engine is distributed, and when a container image is warranted.
+- **Applies to:** ETL export (`load/load.py`), Parquet handoff, public raw-data releases, paper reproduction.
+- **Related:** [`src/scripts/etl/README.md`](../../../../src/scripts/etl/README.md), [`etl/extract/process-model-and-connections.md`](../extract/process-model-and-connections.md).
 
 ## 1. What DuckDB is
 
@@ -102,7 +102,7 @@ RUN uv sync --frozen --no-install-project --no-dev
 COPY src ./src
 RUN uv sync --frozen --no-dev
 
-ENTRYPOINT ["python", "-m", "src.scripts.etl.load"]
+ENTRYPOINT ["python", "-m", "src.scripts.etl.load.load"]
 ```
 
 Build-context rules:

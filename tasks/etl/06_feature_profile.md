@@ -4,7 +4,7 @@
 - **Blocked by:** full-frame cohort/transaction join is too slow; group counts do not reconcile with `local_cohort_counts.csv`
 - **Blocks:** H2/H4/H6 profiling, feature/cohort profiling comparison
 - **Owner:** worker subagent + lead review
-- **Output:** `outputs/etl/profile/local_feature_profile.csv`, `local_feature_nflow.csv`
+- **Output:** `outputs/etl/transform/profile/local_feature_profile.csv`, `local_feature_nflow.csv`
 - **Updated:** 2026-11-23
 
 ## Objective
@@ -15,8 +15,8 @@ definition assumptions (H2 token scope, H6 direction/session).
 
 ## Resources / context
 
-- `src/scripts/etl/profile/schema.py`, `adapters.py`, `metrics.py`
-- `src/scripts/etl/profile/profile_overlap_local.py` — cohort priority to mirror
+- `src/scripts/etl/transform/profile/schema.py`, `adapters.py`, `metrics.py`
+- `src/scripts/etl/transform/profile/profile_overlap_local.py` — cohort priority to mirror
 - `docs/hypothesis_testing/variabe_type.md`
 - accepted concepts `02`, `05`, `07`, `10`; testing reference `06`
 
@@ -24,9 +24,9 @@ definition assumptions (H2 token scope, H6 direction/session).
 
 | Action | Path | Purpose |
 | --- | --- | --- |
-| create | `src/scripts/etl/profile/profile_features.py` | feature profile |
-| create | `src/scripts/etl/profile/tests/test_profile_features.py` | tests |
-| create | `outputs/etl/profile/local_feature_*.csv` | outputs |
+| create | `src/scripts/etl/transform/profile/profile_features.py` | feature profile |
+| create | `src/scripts/etl/transform/profile/tests/test_profile_features.py` | tests |
+| create | `outputs/etl/transform/profile/local_feature_*.csv` | outputs |
 
 ## Implementation points
 

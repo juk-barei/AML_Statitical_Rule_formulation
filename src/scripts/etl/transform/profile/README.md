@@ -1,4 +1,4 @@
-# `etl/profile` — data-engineering profiling
+# `etl/transform/profile` — data-engineering profiling
 
 Read-only profiling of the source and local databases: schema, row counts,
 column types, relations, quality checks, and wallet overlap. It answers
@@ -6,6 +6,10 @@ column types, relations, quality checks, and wallet overlap. It answers
 
 No writes: profiling only runs `SELECT` and writes CSV files. It never creates,
 alters, or inserts into the mirror.
+
+It is the first step of the `transform` stage: profile the source and mirror,
+plot the profile with `eda/`, then write the transform rules from what the profile
+showed. It is not a fourth ETL stage and has no top-level `outputs/etl/profile/`.
 
 ## Scripts
 
@@ -26,17 +30,17 @@ alters, or inserts into the mirror.
 ## Run order
 
 ```bash
-python -m src.scripts.etl.profile.run_profile --parts local,quality,overlap \
+python -m src.scripts.etl.transform.profile.run_profile --parts local,quality,overlap \
   --schemas illicit,licit --mode quick --snapshot-id 2026-11-23T03:10:00Z
 ```
 
 Feature and benchmark runs are heavier:
 
 ```bash
-python -m src.scripts.etl.profile.run_profile --parts features \
+python -m src.scripts.etl.transform.profile.run_profile --parts features \
   --schemas illicit,licit --limit-wallets 5000 \
   --snapshot-id 2026-11-23T03:10:00Z
-python -m src.scripts.etl.profile.run_profile --parts benchmarks \
+python -m src.scripts.etl.transform.profile.run_profile --parts benchmarks \
   --schemas illicit,licit --benchmark-queries all --benchmark-limit 1000 \
   --snapshot-id 2026-11-23T03:10:00Z
 ```
@@ -48,9 +52,9 @@ overlap profile. Treat any bounded feature CSV as a smoke sample, not a full pro
 Standalone:
 
 ```bash
-python -m src.scripts.etl.profile.profile_local --schemas illicit,licit
-python -m src.scripts.etl.profile.profile_quality --schemas illicit,licit
-python -m src.scripts.etl.profile.profile_overlap_local
+python -m src.scripts.etl.transform.profile.profile_local --schemas illicit,licit
+python -m src.scripts.etl.transform.profile.profile_quality --schemas illicit,licit
+python -m src.scripts.etl.transform.profile.profile_overlap_local
 ```
 
 Use a fixed `--snapshot-id` when the outputs must be compared. `is_partial` is
@@ -61,6 +65,11 @@ Variables come from `src/.env.example`; never read or print `src/.env`.
 
 ## Output and consumption
 
-All scripts write to `outputs/etl/profile/` (`PROFILING_OUTPUT_DIR`). EDA and the
-cohort builder consume these CSVs; record the snapshot and denominator beside any
-chart or claim. A chart built from a stale profile must say so.
+All scripts write to `outputs/etl/transform/profile/` (`PROFILING_OUTPUT_DIR`).
+EDA and the cohort builder consume these CSVs; record the snapshot and denominator
+beside any chart or claim. A chart built from a stale profile must say so.
+
+Tests live in `tests/` beside the modules (`pytest src/scripts/etl/transform/profile/tests`).
+
+The stage move is in progress: the output constant and imports still point at the
+pre-move paths until the code catches up with this README.

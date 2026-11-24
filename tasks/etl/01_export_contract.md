@@ -4,7 +4,7 @@
 - **Blocked by:** —
 - **Blocks:** `03_export_pipeline.md`
 - **Owner:** worker
-- **Output:** `docs/context/export_contract.md` (implemented by `src/scripts/etl/load.py`)
+- **Output:** `docs/context/export_contract.md` (implemented by `src/scripts/etl/load/load.py`)
 - **Updated:** 2026-11-23
 
 ## Objective
@@ -21,7 +21,7 @@ checklist only — the exporter is `03_export_pipeline.md`.
 - `AGENTS.md` — freeze-before-export, sampling, and data-hygiene rules
 - `docs/context/sampling_evaluation.md` — why the frame must be frozen before pooling
 - `docs/context/etl_incremental_safety.md` — what a rerun replaces vs resumes
-- `outputs/etl/export/` — snapshot root, one directory per snapshot
+- `outputs/etl/load/` — snapshot root, one directory per snapshot
 
 ## Files
 
@@ -43,7 +43,7 @@ checklist only — the exporter is `03_export_pipeline.md`.
   `_etl_*`, `pipeline_crawl_state`) stated once with its row cost.
 - **Format:** Parquet + zstd is the canonical analysis handoff; CSV only for small
   manifests and data dictionaries; DuckDB reads the Parquet.
-- **Layout:** everything under `outputs/etl/export/<snapshot>/`; no ad-hoc top-level
+- **Layout:** everything under `outputs/etl/load/<snapshot>/`; no ad-hoc top-level
   output folder.
 - **Credentials:** no connection string, password, or `src/.env` value in any exported
   file, manifest, log line, or task record.

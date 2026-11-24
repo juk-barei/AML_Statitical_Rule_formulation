@@ -31,7 +31,7 @@ Analytics that do not fit these sections go to `outputs/eda/additional/`.
 
 ## Input
 
-Primary input is the data-engineering profile in `outputs/etl/profile/` (`db_overview.csv`, `columns.csv`, `relations.csv`, `cohort_counts.csv`, `group_overlap.csv`, `local_cohort_check.csv`). Plot and describe those files directly; only query the mirror when a section needs a distribution the profile does not carry.
+Primary input is the data-engineering profile in `outputs/etl/transform/profile/` (`db_overview.csv`, `columns.csv`, `relations.csv`, `cohort_counts.csv`, `group_overlap.csv`, `local_cohort_check.csv`). Plot and describe those files directly; only query the mirror when a section needs a distribution the profile does not carry.
 
 ## Output
 

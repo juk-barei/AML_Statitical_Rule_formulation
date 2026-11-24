@@ -26,14 +26,14 @@ receives credentials.
 
 | Action | Path | Purpose |
 | --- | --- | --- |
-| update | `src/scripts/etl/load.py` | `--target serving` load path from the snapshot |
+| update | `src/scripts/etl/load/load.py` | `--target serving` load path from the snapshot |
 | create | `docs/context/web_serving.md` | table schema, role, and limits |
 
 ## Implementation points
 
 - **Schema:** `wallet_serving(address PK, group, risk_score, rule_flags, min_hop, seed,
   updated_at)` — one row per wallet, no event table, no hex-form duplicate column.
-- **Source:** loaded from `outputs/etl/export/<snapshot>/cohort_wallet.parquet`; the
+- **Source:** loaded from `outputs/etl/load/<snapshot>/cohort_wallet.parquet`; the
   `snapshot` and load time are stored in the table so a stale row is detectable.
 - **Access:** API connects with a read-only role granted `SELECT` on `wallet_serving`
   only; no other table, no DDL, no write grant.

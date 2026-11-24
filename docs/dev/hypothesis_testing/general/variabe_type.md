@@ -8,7 +8,7 @@ Detail is necessary here because variable type, scale, and dependence determine 
 
 | Hypothesis | Rule condition | Required source variables | Derived wallet-level variable | Type / scale | Current implementation / gap |
 | --- | --- | --- | --- | --- | --- |
-| **H2 (S2)** — lifetime | total operational lifetime ≤ 7 days | `wallet_first_seen_date`, `current_date` (rule text); `transactions.block_timestamp` (implementation) | `tx_lifetime_days = max(block_timestamp) − min(block_timestamp)` | Continuous, ratio, days | Rule text says first-seen → current date; implementation uses transaction span. `accounts.first_seen_timestamp` and `created_date` are ~96% null (`outputs/etl/profile/columns.csv`). These are different variables; decide before testing. |
+| **H2 (S2)** — lifetime | total operational lifetime ≤ 7 days | `wallet_first_seen_date`, `current_date` (rule text); `transactions.block_timestamp` (implementation) | `tx_lifetime_days = max(block_timestamp) − min(block_timestamp)` | Continuous, ratio, days | Rule text says first-seen → current date; implementation uses transaction span. `accounts.first_seen_timestamp` and `created_date` are ~96% null (`outputs/etl/transform/profile/columns.csv`). These are different variables; decide before testing. |
 | **H2 (S2)** — burst | max 1-hour transaction volume (in+out) ≥ 75% of lifetime volume | `transactions.amount`, `block_timestamp`, `from_address`, `to_address`, `token_symbol` | `total_volume_usdt`, `max_1h_volume_usdt`, `burst_ratio = max_1h / total` | Continuous, bounded [0,1] | Implemented on **USDT only**; `docs/hypothesis.md` says volume in+out, not token-specific (`docs/context/feature_audit.md`). Token scope unresolved. |
 | **H2** — activity floor | eligibility guard, not a rule condition | `transactions.token_symbol`, `from_address`, `to_address` | `usdt_event_count` | Discrete count | Floor `N ≥ 5` USDT events. H2 pass rates reverse when this floor is applied (`docs/context/feature_audit.md`). Report both. |
 | **H4 (S4)** — Jaccard | Jaccard index of TRX funders vs USDT recipients ≥ 0.50 | `transactions.token_symbol`, `from_address`, `to_address`; `contract_address` to identify USDT | `trx_funder_count`, `usdt_recipient_count`, `jaccard_index` | Continuous, bounded [0,1] | Uses distinct `(wallet, counterparty)` pairs; amounts not needed. Defined only when both sets are non-empty. “TRX funder” is any TRX transfer, not necessarily gas. |
@@ -58,6 +58,6 @@ Detail is necessary here because variable type, scale, and dependence determine 
 
 - Rule definitions: `docs/hypothesis.md`; duplicate rule list: `docs/hypothesis_testing/all_hypothesis.md`.
 - Feature implementation: `src/notebooks/1.1_ILLICIT_EDA.ipynb` cells 85 (H2), 87 (H4), 89 (H6), 91 (pass flags), 226 (data dictionary).
-- Source columns and null shares: `outputs/etl/profile/columns.csv`.
+- Source columns and null shares: `outputs/etl/transform/profile/columns.csv`.
 - Response eligibility and support: `docs/context/step_1_profiling_samples.md:85-104`; `docs/context/test_plan.md`.
 - Test ladder and dependence: `docs/context/test_plan.md`; `AGENTS.md`.

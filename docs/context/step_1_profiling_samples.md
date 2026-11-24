@@ -152,7 +152,7 @@ Classic ANOVA may be reported as a reference, not as the sole test. If the licit
 
 ## 8. Evidence ledger
 
-**Internal:** `docs/context/statistical_info.md` (proposed groups); `docs/hypothesis.md` (H2/H4/H6 and thresholds); `docs/flow.md` (test plan and weights); `src/notebooks/1.1_ILLICIT_EDA.ipynb` §0.2–0.3, §4.2, §5.2–5.4 (executed outputs for H2/H4); `src/scripts/etl/ingest.py` L225–241, L1396, L1659–1672; PostgreSQL mirror tables `accounts`, `transactions`, `blacklisted_wallets`, `wallet_hops` (counts and features recomputed read-only). `outputs/eval_columns.md` is referenced but absent.
+**Internal:** `docs/context/statistical_info.md` (proposed groups); `docs/hypothesis.md` (H2/H4/H6 and thresholds); `docs/flow.md` (test plan and weights); `src/notebooks/1.1_ILLICIT_EDA.ipynb` §0.2–0.3, §4.2, §5.2–5.4 (executed outputs for H2/H4); `src/scripts/etl/extract/main.py` L225–241, L1396, L1659–1672; PostgreSQL mirror tables `accounts`, `transactions`, `blacklisted_wallets`, `wallet_hops` (counts and features recomputed read-only). `outputs/eval_columns.md` is referenced but absent.
 
 **External:** NIST/SEMATECH e-Handbook §7.4.2 [1], [2]; SciPy `f_oneway` [3]; statsmodels `anova_lm` [4]; Larson, *Analysis of Variance*, Circulation 2008 [5]; Elwert & Winship on endogenous selection [6]; Parsons et al. on unit-of-analysis error [7]; FATF Recommendations 20–21 [8]; Weber et al., Elliptic [9]; Elmougy & Liu, Elliptic++ [10]; Meiklejohn et al. on address clustering [11]; Tironsakkul et al. on taint analysis [12]; TRON resource model [13].
 

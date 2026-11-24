@@ -4,13 +4,40 @@ This file is the short, enforceable contract for agents working in this repo.
 Detailed evidence and decisions live in `docs/context/step_1_profiling_samples.md`.
 
 ## Task execution
-- Look into the `docs/dev/github_convention.md` and evaluate the tasks provided from the prompt of the user. If the task will violate the scope of how they should do and commit their change, stall the tasks and don't do it yet. Provide answer that Alert the user about committing changes or create new branches. Then tell them the plan of action to be taken based on their prompted alongside location of making change in the project directory. For alerting provide recommendation  of commit message and new branch name recommendation if fits.
 
-- If the local change is already big enough for a commit before doing the tasks, stall the task and ask the user to do so first with recommendation of commit message and new branch name recommendation if fits. Provide answer that Alert the user about committing changes or create new branches. Then tell them the plan of action to be taken based on their prompted alongside location of making change in the project directory. 
+Branch, label, and scope rules are in `docs/dev/github_convention.md`; this section is the gate an agent runs before touching files.
+
+### 1. Scope gate (before any work)
+
+- Read `docs/dev/github_convention.md` and classify the request: area (`ETL`, `EDA`, `HP_TEST`, `STL`), subcategory (the folder that owns the change), and label (`BUG`, `FEAT`, `DOC`).
+- A phase is committable only when it touches one narrow scope: one subcategory, its matching tests, and the docs that describe it. If the request crosses subcategories, split it into phases.
+- **Stall before editing** when the working tree already holds enough unrelated change for a commit, or when the request would mix scopes. Do not open, create, or modify task files for the new work yet.
+
+### 2. Stall response
+
+Tell the user, in this order:
+
+1. **Alert:** the uncommitted change or cross-scope request, and why `github_convention.md` blocks starting now.
+2. **Recommendation:** branch `author/<area>-<subcategory>` and commit `[LABEL-subcategory]: <short imperative description>`. Use `[DOC-...]` only when the change is documentation-only; otherwise `[FEAT-...]` / `[BUG-...]` even if docs are included.
+3. **Plan to completion:** every phase needed to finish the request, each with its location (project paths), scope, and verification. Each phase must fit one branch/commit scope.
+4. **Approval question:** ask the user to approve the phase plan before adding it to the task list. Do not execute any phase in the same turn as the stall.
+
+The user commits, creates the branch, or approves the plan first.
+
+### 3. Phase loop
+
+- Approved phases become the task list; one phase is one active task.
+- Before phase N, verify the prerequisite is real: correct branch, expected commit present, and no unrelated uncommitted files. If not, stall again with §2.
+- Execute only phase N inside its declared paths. Do not fix neighbouring scopes, rename unrelated files, or expand the phase.
+- Verify phase N (tests, lint, render, or file state) and report the evidence.
+- Stop and ask the user to review. Recommend that phase's commit message. Do not start phase N+1 until the user commits and explicitly asks.
+- A new request while a phase is in progress goes through §1 again; it is not an extension of the current phase.
+
+Every stall and phase report names the location (directories/files), scope (area / subcategory / label), and the exact next action for the user.
 
 ## Data authority
 - Terminology is canonical in `docs/context/glossary.md`: rules are `S1`–`S6`, research questions `H1`–`H6`, null/alternative `H0`/`Ha` (never `H1`), and the third implemented level is `unlabeled` (never `background`).
-- **PostgreSQL mirror** is the analysis dataset. `src/scripts/etl/ingest.py` is the only writer of the local mirror; `src/scripts/etl/load.py` is the designated writer for shared exports.
+- **PostgreSQL mirror** is the analysis dataset. `src/scripts/etl/extract/main.py` is the only writer of the local mirror; `src/scripts/etl/load/load.py` is the designated writer for shared exports.
 - `datasets/*.csv` is a **stale, partial export**. Never mix CSV and mirror counts in one table or conclusion.
 - State the snapshot and row counts beside any quantitative claim.
 - Use `src/.env.example` as the variable contract. Never read or print `src/.env`; the ETL modules load it internally.
@@ -33,14 +60,17 @@ Details and code patterns: `src/scripts/etl/README.md`.
 ## Repository layout
 
 - Code areas are `src/scripts/{etl,eda,hypothesis_testing,statistical_learning}`.
+- **ETL has exactly three stages**, matching its name: `src/scripts/etl/{extract,transform,load}`. `profile/` is not a stage; it is a read-only first step inside `transform/`.
+- **Each stage entry point is `main.py`** inside its stage directory, so the folder supplies the context: `extract/main.py`, not `extract/extract.py`. The export stage still uses `load/load.py`; rename it to `load/main.py` when the stage move is completed. Helper modules keep their own names.
+- **Tests live with the stage they test**, in `<stage>/tests/`: `extract/tests/`, `load/tests/`, and `transform/<module>/tests/`. There is no top-level `etl/tests/`, and no `outputs/etl/tests/`.
 - `outputs/` mirrors those areas: every artifact goes under the area that produces it.
-  - ETL: `outputs/etl/{profile,tests,transform,export}`; handoff snapshots live in `outputs/etl/export/phase<N>_<stage>_<schema>_<UTC>/`.
+  - ETL: `outputs/etl/{extract,transform,load}`. Profiling writes to `outputs/etl/transform/profile/`; handoff snapshots live in `outputs/etl/load/phase<N>_<stage>_<schema>_<UTC>/`.
   - EDA: `outputs/eda/{univariate,bivariate,multivariate,profile,additional}`.
   - Hypothesis testing: `outputs/hypothesis_testing/{shared,h2,h4,h6}`.
   - Statistical learning: `outputs/statistical_learning/`.
 - Trackers mirror the same split: `tasks/etl/`, `tasks/eda/`, `tasks/statistical_learning/`; the 8-step workflow stays in `tasks/hypothesis_testing/`.
 - Do not create a new top-level output or task folder without updating this contract and `src/scripts/README.md`.
-- `src/scripts/etl/ingest.py` writes ETL outputs; `src/scripts/etl/load.py` writes handoff exports. Notebooks write only under their producer area.
+- `src/scripts/etl/extract/main.py` writes ETL outputs; `src/scripts/etl/load/load.py` writes handoff exports. Notebooks write only under their producer area.
 - Software-design baseline: start at `docs/dev/software_concepts/README.md`. Files with user-set `Status: Accept`, `accepted`, `Accepted`, or `approved` are normative; `proposed`/`draft` are reference only. Current accepted baseline: `01`, `02`, `05`, `07`, `09`, `10`. Agents must not change a status; only the user approves. `docs/dev/software_concepts/research/` is evidence, not policy.
 - Variable/function names are provisional. Renaming is allowed when a name becomes ambiguous or the project grows; update Python, SQL, tests, docs, and output columns in one change, and do not keep aliases.
 
@@ -90,7 +120,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
 `docs/dev/` holds post-implementation technical notes: the mechanism, the reason it was chosen, and its limits. It is not an API reference, a usage guide, or a copy of the code.
 
 - **Area mirrors production.** The top level mirrors the `src/scripts/` areas: `etl/`, `eda/`, `hypothesis_testing/`, `statistical_learning/`.
-- **Unit names the owner.** The next level is the script or module that owns the mechanism (`etl/ingest/`, `etl/load/`, `etl/profile/`, `hypothesis_testing/shared/`). When no script owns it, use the analysis or output stage (`eda/univariate/`, `etl/transform/`). When both exist, the script wins: export notes live in `etl/load/`, not `etl/export/`. Do not create one directory per source file.
+- **Unit names the owner.** The next level is the script or module that owns the mechanism (`etl/extract/`, `etl/load/`, `etl/transform/profile/`, `hypothesis_testing/shared/`). When no script owns it, use the analysis or output stage (`eda/univariate/`, `etl/transform/`). When both exist, the script wins: export notes live in `etl/load/`, not `etl/export/`. Do not create one directory per source file.
 - **File names the concept.** Name the file for the mechanism, not for the folder: `etl/load/duckdb-and-reproducible-exports.md`, not `etl/load/load.md`.
 - **Two deliberate exceptions.** `software_concepts/` is the only pre-implementation space; it holds user-approved design blueprints. `hypothesis_testing/general/` holds concepts shared across H2/H4/H6; per-hypothesis notes go in `h2/`, `h4/`, `h6/`.
 - **Ship with the code.** Write the note after the implementation settles. A note that only restates the implementation is not a note.

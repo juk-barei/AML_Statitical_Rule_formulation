@@ -4,7 +4,7 @@
 - **Blocked by:** —
 - **Blocks:** export size/time decisions, cohort/feature query design
 - **Owner:** worker subagent + lead review
-- **Output:** `outputs/etl/profile/query_benchmarks.csv`, `query_plans/`
+- **Output:** `outputs/etl/transform/profile/query_benchmarks.csv`, `query_plans/`
 - **Updated:** 2026-11-23
 
 ## Objective
@@ -15,7 +15,7 @@ and H2/H4/H6 aggregates. Record timing, rows, blocks, and table/index sizes.
 
 ## Resources / context
 
-- `src/scripts/etl/profile/profile_local.py`, `metrics.py`
+- `src/scripts/etl/transform/profile/profile_local.py`, `metrics.py`
 - accepted concepts `02`, `05`, `07`, `10`
 - `docs/dev/software_concepts/07-performance-and-observability.md`
 
@@ -23,10 +23,10 @@ and H2/H4/H6 aggregates. Record timing, rows, blocks, and table/index sizes.
 
 | Action | Path | Purpose |
 | --- | --- | --- |
-| create | `src/scripts/etl/profile/benchmark_queries.py` | benchmark runner |
-| create | `src/scripts/etl/profile/tests/test_benchmark.py` | tests |
-| create | `outputs/etl/profile/query_benchmarks.csv` | results |
-| create | `outputs/etl/profile/query_plans/*.json` | plans |
+| create | `src/scripts/etl/transform/profile/benchmark_queries.py` | benchmark runner |
+| create | `src/scripts/etl/transform/profile/tests/test_benchmark.py` | tests |
+| create | `outputs/etl/transform/profile/query_benchmarks.csv` | results |
+| create | `outputs/etl/transform/profile/query_plans/*.json` | plans |
 
 ## Implementation points
 

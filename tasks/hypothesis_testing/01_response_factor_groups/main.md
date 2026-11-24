@@ -15,7 +15,7 @@ Fix the experimental unit, response, factor, levels, group rules, and nesting be
 - `docs/context/step_1_profiling_samples.md` — cohort/response decisions
 - `docs/context/statistical_info.md` — proposed groups and profiling
 - `docs/hypothesis.md` — H2/H4/H6 definitions and thresholds
-- `src/scripts/etl/ingest.py` — ingestion, loader, and source-link behavior
+- `src/scripts/etl/extract/main.py` — ingestion, loader, and source-link behavior
 - [`tasks/etl/README.md`](../../etl/README.md) — shared ETL/data-gate tracker (export contract, memory-safe access, export pipeline, web serving)
 - `docs/hypothesis_testing/variabe_type.md` — variable types; `docs/hypothesis_testing/hypothesis_prerequsites.md` — H0/test prerequisites
 

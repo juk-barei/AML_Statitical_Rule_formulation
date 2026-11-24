@@ -21,7 +21,7 @@ read stayed small — not the analysis itself.
 - [`src/scripts/etl/transform/README.md`](../../src/scripts/etl/transform/README.md) — which
   rules belong in SQL (cleaning, cohort priority, eligibility, features)
 - `AGENTS.md` — data access, memory, and export rules
-- `src/scripts/etl/ingest.py` — `get_local_engine`, `load_environment`
+- `src/scripts/etl/extract/main.py` — `get_local_engine`, `load_environment`
 - `src/scripts/etl/tests/test_etl_args.py` — existing check style (plain asserts, no test runner)
 
 ## Files

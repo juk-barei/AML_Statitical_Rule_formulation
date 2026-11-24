@@ -1,27 +1,28 @@
 # ETL — extract, transform, load
 
-The data pipeline lives in `src/scripts/etl/`. It writes every file under `outputs/etl/`.
+The data pipeline lives in `src/scripts/etl/`. It has exactly three stages — `extract/`, `transform/`, `load/` — matching the name. Profiling is not a fourth stage; it is a read-only first step inside `transform/`. Every file is written under the matching `outputs/etl/` stage folder.
 
 Data authority, cohort rules, and inference rules are in [`AGENTS.md`](../../../AGENTS.md); this README covers how the pipeline runs and how to export safely.
 
-| Module | Role | Output |
+| Stage | Code | Output |
 | --- | --- | --- |
-| `ingest.py` | Extract online PostgreSQL or a frozen Parquet snapshot → local PostgreSQL mirror. **Only writer of the mirror.** | Mirror database |
-| `parquet_source.py` | Parquet snapshot adapter behind `ingest.py --source parquet`: manifest, hash, type mapping, DuckDB → COPY. | Mirror database |
-| `profile/` | Read-only schema, row, and overlap profiling. See [`profile/README.md`](profile/README.md). | `outputs/etl/profile/` |
-| `transform/` | Reusable SQL for cleaning, cohort priority, eligibility, and features. See [`transform/README.md`](transform/README.md). | `outputs/etl/transform/` |
-| `load.py` | Frozen snapshot exporter: schema/table selection, Parquet or CSV, manifest, hashes. | `outputs/etl/export/<snapshot>/` |
-| `tests/` | Assert-based checks: `python -m src.scripts.etl.tests.test_etl_args` and `...test_load_export`. | `outputs/etl/tests/` |
+| Extract | `extract/main.py` — online PostgreSQL or a frozen Parquet snapshot → local PostgreSQL mirror. **Only writer of the mirror.** `extract/parquet_source.py` is the Parquet adapter behind `--source parquet`; `extract/ingest_licit.py` resumes and verifies the licit load. | Mirror database; `outputs/etl/extract/` reports |
+| Transform | `transform/` — SQL for cleaning, cohort priority, eligibility, and features. `transform/profile/` is the read-only first step. See [`transform/README.md`](transform/README.md). | `outputs/etl/transform/` |
+| Load | `load/load.py` — frozen snapshot exporter: schema/table selection, Parquet or CSV, manifest, hashes. | `outputs/etl/load/<snapshot>/` |
 
-Notebooks are **read-only** against the mirror: no `INSERT`, `UPDATE`, `DELETE`, or DDL. A cleaned or aggregated table that must persist is written by `ingest.py`, `load.py`, or a dedicated writer script under `src/scripts/etl/` — never created by hand in a notebook.
+**Tests live with their stage.** `extract/tests/`, `transform/profile/tests/`, and `load/tests/` hold the assert-based checks for that stage. There is no top-level `etl/tests/`, and no test writes into `outputs/etl/tests/`.
+
+> The stage move is in progress: files are in the new directories, but imports and output constants still point at the old paths. The layout and commands in this README are the target contract. The export stage still uses `load/load.py`; it becomes `load/main.py` when the move completes.
+
+Notebooks are **read-only** against the mirror: no `INSERT`, `UPDATE`, `DELETE`, or DDL. A cleaned or aggregated table that must persist is written by `extract/main.py`, `load/load.py`, or a dedicated writer script under `src/scripts/etl/` — never created by hand in a notebook.
 
 ## Extract
 
 ```bash
-python -m src.scripts.etl.ingest --status
-python -m src.scripts.etl.ingest --dry-run
-python -m src.scripts.etl.ingest --source illicit --schema illicit
-python -m src.scripts.etl.ingest --source licit --schema licit
+python -m src.scripts.etl.extract.main --status
+python -m src.scripts.etl.extract.main --dry-run
+python -m src.scripts.etl.extract.main --source illicit --schema illicit
+python -m src.scripts.etl.extract.main --source licit --schema licit
 ```
 
 ### Parquet source
@@ -30,13 +31,13 @@ A frozen export snapshot can rebuild the mirror without the online database:
 
 ```bash
 # Validate the manifest, hashes, columns, and row counts. No writes.
-python -m src.scripts.etl.ingest \
+python -m src.scripts.etl.extract.main \
   --source parquet \
   --source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
   --schema illicit --dry-run
 
 # Load every table into the local mirror.
-python -m src.scripts.etl.ingest \
+python -m src.scripts.etl.extract.main \
   --source parquet \
   --source-path /absolute/path/to/phase1_raw_illicit_20261123T043155Z \
   --schema illicit
@@ -60,19 +61,20 @@ Rules:
   `_etl_progress` provenance from the manifest.
 
 The mechanism and limits are in
-[`docs/dev/etl/ingest/parquet-source.md`](../../../docs/dev/etl/ingest/parquet-source.md).
+[`docs/dev/etl/extract/parquet-source.md`](../../../docs/dev/etl/extract/parquet-source.md).
 
 ### Licit recovery
 
 Run these in order from the repo root:
 
 ```bash
-python -m src.scripts.etl.ingest_licit
-python -m src.scripts.etl.verify_ingestion --schema licit
+python -m src.scripts.etl.extract.ingest_licit
+python -m src.scripts.etl.extract.tests.verify_ingestion --schema licit
 ```
 
 `ingest_licit` resumes the latest licit run, then prints status and coverage.
 `verify_ingestion` is read-only and exits non-zero until every table is 100%.
+It is a command-line check, not a test fixture, and lives under `extract/tests/`.
 Always pass `--schema licit`; `--status` without it targets `public` and fails
 with `permission denied for schema public`.
 
@@ -83,6 +85,8 @@ Before any export, confirm per-table coverage. `load.py` reads the newest run th
 ## Transform
 
 Transform in SQL, not in pandas. SQL lives in `transform/` and covers cleaning, cohort priority, eligibility, and per-wallet features (CTEs, window functions, `GROUP BY wallet_address`). The rule for each clean is documented once in SQL and applied identically to every arm, with the `group × filter` n-flow recorded — see [`transform/README.md`](transform/README.md).
+
+Profiling is the first transform step: `transform/profile/` reads the source and mirror, writes CSVs to `outputs/etl/transform/profile/`, and EDA plots those results. Profiling never writes to the mirror and is not a separate ETL stage.
 
 Keep results wallet-level or bounded; never return raw event rows to pandas.
 
@@ -102,24 +106,24 @@ Run `--dry-run` first. It prints per-table coverage and row counts without writi
 
 ```bash
 # Full raw illicit snapshot, default phase/stage path
-python -m src.scripts.etl.load --schema illicit --tables all --dry-run
+python -m src.scripts.etl.load.load --schema illicit --tables all --dry-run
 
 # Full licit snapshot, explicit transformed stage
-python -m src.scripts.etl.load --schema licit --tables all --stage transformed
+python -m src.scripts.etl.load.load --schema licit --tables all --stage transformed
 
 # H1/H3 transactions only, gzip CSV (explicit large-CSV opt-in)
-python -m src.scripts.etl.load \
+python -m src.scripts.etl.load.load \
   --schema illicit --tables transactions \
   --out-dir /shared/handoff/h1_h3 --name illicit_transactions \
   --format csv --compression gzip --allow-large-csv
 
 # H5 graph handoff
-python -m src.scripts.etl.load \
+python -m src.scripts.etl.load.load \
   --schema illicit --tables wallet_hops,blacklisted_wallets \
   --out-dir /shared/handoff/h5 --name illicit_h5
 ```
 
-The default snapshot id is `phase<N>_<stage>_<schema>_<UTC>`, where `N` comes from `[tool.capstone].phase` in `pyproject.toml` and `stage` is `raw` (default) or `transformed`. The default directory is `outputs/etl/export/<snapshot>/`; default table files are `<snapshot>__<table>.<ext>`.
+The default snapshot id is `phase<N>_<stage>_<schema>_<UTC>`, where `N` comes from `[tool.capstone].phase` in `pyproject.toml` and `stage` is `raw` (default) or `transformed`. The default directory is `outputs/etl/load/<snapshot>/`; default table files are `<snapshot>__<table>.<ext>`.
 
 `--out-dir` overrides the directory; `--name` is one exact basename for a single table or a prefix for several (`<name>__<table>.<ext>`). Existing snapshots are refused unless `--force` is passed. `--allow-partial` is required when any selected table's latest bookkeeping is incomplete.
 
@@ -127,10 +131,10 @@ Default export is Parquet + zstd. CSV defaults to gzip and refuses more than 1,0
 
 ### Handoff layout
 
-One directory per snapshot: `outputs/etl/export/phase<N>_<stage>_<schema>_<UTC>/`.
+One directory per snapshot: `outputs/etl/load/phase<N>_<stage>_<schema>_<UTC>/`.
 
 ```text
-outputs/etl/export/<snapshot>/
+outputs/etl/load/<snapshot>/
   manifest.json
   DATA_DICTIONARY.md
   nflow.csv
@@ -181,6 +185,21 @@ wallet_serving(address PK, group, risk_score, rule_flags, min_hop, seed, updated
 
 Expose it through an API with a read-only role. Do not expose the raw event table or database credentials. If the app must score arbitrary addresses outside the snapshot, that needs a live feature job, not a static export.
 
+## Tests
+
+Each stage owns its checks under `<stage>/tests/`. Run them from the repo root:
+
+```bash
+python -m src.scripts.etl.extract.tests.validate_ingest_args
+python -m src.scripts.etl.extract.tests.verify_ingestion --schema illicit  # read-only coverage check
+python -m src.scripts.etl.load.tests.load_export
+python -m src.scripts.etl.load.tests.parquet_source
+
+pytest src/scripts/etl/transform/profile/tests
+```
+
+`verify_ingestion` needs a loaded mirror; it is a CLI check, not a fixture. The profile tests are pytest-style. A stage change ships with the test that proves it, in that stage's `tests/` folder — never a shared top-level test directory.
+
 ## Memory-constrained database access (8 GB target)
 
 The failure mode is not the database; it is materializing millions of address strings in pandas. The illicit transaction table is ~15.2M rows and the licit table is ~11.3M at the 2026-11-22 online profile. Two ~40-character addresses per row plus `tx_hash` can exceed 8 GB before any merge.
@@ -200,7 +219,7 @@ The failure mode is not the database; it is materializing millions of address st
 ```python
 from sqlalchemy import text
 
-from src.scripts.etl.ingest import get_local_engine, load_environment
+from src.scripts.etl.extract.main import get_local_engine, load_environment
 
 load_environment()
 engine = get_local_engine()
@@ -255,7 +274,7 @@ psql -h "$LOCAL_DB_HOST" -U "$LOCAL_DB_USER" -d "$LOCAL_DB_NAME" -c "\copy (
 
 ```sql
 COPY (SELECT * FROM read_csv_auto('/tmp/transactions_illicit.csv'))
-TO 'outputs/etl/export/<snapshot>/transactions_illicit.parquet'
+TO 'outputs/etl/load/<snapshot>/transactions_illicit.parquet'
 (FORMAT parquet, COMPRESSION zstd);
 ```
 
@@ -290,11 +309,11 @@ Keep `shared_buffers` modest on an 8 GB laptop. A small swap file is a safety ne
 
 ## Export checklist
 
-- [ ] `ingest --status` shows the source run complete.
+- [ ] `extract.main --status` shows the source run complete.
 - [ ] Snapshot time and per-table row counts recorded.
 - [ ] SQL n-flow matches exported row counts.
 - [ ] No `hex_address`, `_etl_*`, or credentials in the export.
-- [ ] Files are written under `outputs/etl/export/<snapshot>/`.
+- [ ] Files are written under `outputs/etl/load/<snapshot>/`.
 - [ ] Parquet opens in DuckDB.
 - [ ] `manifest.json` has `phase`, `stage`, `schema`, row counts, and SHA-256 hashes.
 - [ ] `nflow.csv` exported counts equal local counts and the manifest.

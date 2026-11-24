@@ -26,15 +26,15 @@ contracts, local schema/quality, and local cohort/overlap/n-flow. Do not change
 
 | Action | Path | Purpose |
 | --- | --- | --- |
-| create | `src/scripts/etl/profile/schema.py` | `DatasetRef`, `ProfileRecord`, `StageManifest`, `ComparisonRecord` |
-| create | `src/scripts/etl/profile/adapters.py` | read-only `PostgresDataset`, partial-run detection |
-| create | `src/scripts/etl/profile/metrics.py` | aggregate helpers |
-| create | `src/scripts/etl/profile/profile_local.py` | local schema/column/relation profile |
-| create | `src/scripts/etl/profile/profile_quality.py` | local quality checks |
-| create | `src/scripts/etl/profile/profile_overlap_local.py` | local cohort/overlap/n-flow |
-| create | `src/scripts/etl/profile/run_profile.py` | local/quality/overlap orchestrator |
-| create | `src/scripts/etl/profile/tests/test_profile_core.py` | contract + n-flow checks |
-| create | `outputs/etl/profile/local_*.csv` | snapshot-tagged outputs |
+| create | `src/scripts/etl/transform/profile/schema.py` | `DatasetRef`, `ProfileRecord`, `StageManifest`, `ComparisonRecord` |
+| create | `src/scripts/etl/transform/profile/adapters.py` | read-only `PostgresDataset`, partial-run detection |
+| create | `src/scripts/etl/transform/profile/metrics.py` | aggregate helpers |
+| create | `src/scripts/etl/transform/profile/profile_local.py` | local schema/column/relation profile |
+| create | `src/scripts/etl/transform/profile/profile_quality.py` | local quality checks |
+| create | `src/scripts/etl/transform/profile/profile_overlap_local.py` | local cohort/overlap/n-flow |
+| create | `src/scripts/etl/transform/profile/run_profile.py` | local/quality/overlap orchestrator |
+| create | `src/scripts/etl/transform/profile/tests/test_profile_core.py` | contract + n-flow checks |
+| create | `outputs/etl/transform/profile/local_*.csv` | snapshot-tagged outputs |
 
 ## Implementation points
 

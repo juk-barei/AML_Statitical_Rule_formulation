@@ -20,9 +20,9 @@ One hypothesis, one folder. Anything used by only one hypothesis stays in that f
 ## Inputs
 
 - `outputs/etl/transform/` — cleaned, eligible, feature-level tables from the ETL path.
-- `outputs/etl/export/<snapshot>/` — the frozen handoff snapshot (`cohort_wallet.parquet` and event exports) when a test must be reproducible against a fixed freeze.
+- `outputs/etl/load/<snapshot>/` — the frozen handoff snapshot (`cohort_wallet.parquet` and event exports) when a test must be reproducible against a fixed freeze.
 - `outputs/eda/` — exploration outputs for step 3 (distributions, group shape, outliers) and the chart decisions they produced.
-- `outputs/etl/profile/` — denominators and cohort counts.
+- `outputs/etl/transform/profile/` — denominators and cohort counts.
 
 State the snapshot and row counts beside every quantitative claim, and never mix CSV-export counts with mirror counts.
 

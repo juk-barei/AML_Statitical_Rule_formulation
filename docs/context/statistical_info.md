@@ -10,4 +10,4 @@ Snapshot: overview **2026-11-20T10:57Z**; overlap **11:12Z**. The DBs are live a
 
 **Verdict:** three groups only after priority cleaning. Use all eligible illicit (≈6,300), then 50,000 per comparison arm, seed-cluster sampled. Do not use 500,000 per arm.
 
-Scripts: `src/scripts/etl/profile/profile_databases.py` (table/column profile), `src/scripts/etl/profile/profile_overlap.py` (overlap and cohort counts). Outputs: `outputs/etl/profile/`.
+Scripts: `src/scripts/etl/transform/profile/profile_databases.py` (table/column profile), `src/scripts/etl/transform/profile/profile_overlap.py` (overlap and cohort counts). Outputs: `outputs/etl/transform/profile/`.

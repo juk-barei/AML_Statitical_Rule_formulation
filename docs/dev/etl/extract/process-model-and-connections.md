@@ -1,6 +1,6 @@
 # ETL process notes
 
-> Historical note: this analysis was written against the pre-refactor `src/scripts/ETL.py`. The current writer is `src/scripts/etl/ingest.py`; line numbers below may be stale.
+> Historical note: this analysis was written against the pre-refactor `src/scripts/ETL.py`. The current writer is `src/scripts/etl/extract/main.py` (the extract stage); line numbers below are stale and refer to the old `ETL.py`.
 
 1. What each process actually opens
 
