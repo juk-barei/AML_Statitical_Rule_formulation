@@ -164,3 +164,6 @@ Details and code patterns: `src/scripts/etl/README.md`.
 - Ingest the licit database and profile its schema, coverage, and overlap with the blacklist.
 - Build the authoritative cohort table with `illicit / suspicious / licit / unlabeled`.
 - Add written H0/H1 per response and run the assumption checks.
+## Terminology
+- Hedgehog analogy: Hedgehog mode is about organization of files and directory that reflects each other in src/scripts/, outputs/, and tasks/. It is about having clear separation in each section clearly like ETL has Extract, load, and transform. Inside Extract there are Extract from parquet, online db. In load there are load to parquet, csv, or online db.
+- When I askeed you to help me with hedgehog situation or mode, I meant to ask you to help find category for that directory I am asking you about, and also consider crating reflected or connecting directory in other parts of the project as well/ Ex: I ask about hedgehod analogy for transform directory in src/scripts/etl/transform. You can try to think of the right way to categorize takss in transform here given the context and info and also  think of what directories to create in outputs/ and tasks and in docs/dev/.
