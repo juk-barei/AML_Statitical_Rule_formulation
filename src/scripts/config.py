@@ -11,7 +11,7 @@ ETL_OUTPUT_DIR = OUTPUT / "etl"
 EDA_OUTPUT_DIR = OUTPUT / "eda"
 HYPOTHESIS_TESTING_OUTPUT_DIR = OUTPUT / "hypothesis_testing"
 STATISTICAL_LEARNING_OUTPUT_DIR = OUTPUT / "statistical_learning"
-PROFILING_OUTPUT_DIR = ETL_OUTPUT_DIR / "profile"
+PROFILING_OUTPUT_DIR = ETL_OUTPUT_DIR / "transform" /"profile"
 
 def print_path(path: Path):
     print(f"Path of the {argname('path')} is {path}")
