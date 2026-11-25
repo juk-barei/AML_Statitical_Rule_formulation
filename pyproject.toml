@@ -29,7 +29,7 @@ jupyter_vim = ["jupyterlab-vim>=4.1.4"]
 
 [project.scripts]
 extract = "src.scripts.etl.extract.main:main"
-load = "src.scripts.etl.laod.main:main"
+load = "src.scripts.etl.load.main:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src", "src.*"]
