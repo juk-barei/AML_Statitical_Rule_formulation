@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from src.scripts.etl.profile.profile_features import (
+from src.scripts.etl.transform.profile.profile_features import (
     NFLOW_COLUMNS,
     PROFILE_COLUMNS,
     burst_eligible,
@@ -67,11 +67,21 @@ def test_eligibility() -> None:
 
 def test_nflow_rows() -> None:
     stats = [
-        {"group": "illicit", "feature": "tx_lifetime_days", "n": 10, "n_eligible": 7},
-        {"group": "licit", "feature": "tx_lifetime_days", "n": 20, "n_eligible": 12},
+        {
+            "wallet_class": "illicit",
+            "feature": "tx_lifetime_days",
+            "n": 10,
+            "n_eligible": 7,
+        },
+        {
+            "wallet_class": "licit",
+            "feature": "tx_lifetime_days",
+            "n": 20,
+            "n_eligible": 12,
+        },
     ]
     rows = nflow_rows(stats, "2026-11-23T00:00:00Z", False)
-    check(len(rows) == 2, "one row per group x feature")
+    check(len(rows) == 2, "one row per wallet_class x feature")
     check(all(set(row) == set(NFLOW_COLUMNS) for row in rows), "n-flow schema")
     check(rows[0]["n_dropped"] == 3, "first n-flow drop")
 

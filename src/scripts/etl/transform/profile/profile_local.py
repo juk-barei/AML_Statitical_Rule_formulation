@@ -3,7 +3,7 @@
 Quick mode samples large tables for null/share/distinct/time ranges; full mode
 scans them. Row counts are always exact.
 
-    python -m src.scripts.etl.profile.profile_local --schemas illicit,licit
+    python -m src.scripts.etl.transform.profile.profile_local --schemas illicit,licit
 """
 from __future__ import annotations
 
