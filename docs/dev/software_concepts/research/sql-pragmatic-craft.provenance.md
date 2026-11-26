@@ -1,0 +1,23 @@
+# Provenance: SQL for Smarties, The Pragmatic Programmer, and the external book
+
+- **Date:** 2026-11-22
+- **Rounds:** 1 research round; 3 researcher children completed
+- **Sources consulted:** 24 numbered sources plus local repo files
+- **Sources accepted:** 24 numbered sources; local repo docs and code
+- **Sources rejected/blocked:**
+  - Added external book: **not found** in `docs/external_resources/` or the `capstone-1` tree; BLOCKED — title/path needed
+  - Full body of *SQL for Smarties*: no authorised copy; publisher TOCs, author articles, and PostgreSQL docs used
+  - Full 2019 *Pragmatic Programmer* text: paywalled; publisher tips, samples, errata, and author interviews used
+  - PostgreSQL server major version: unverified; client 17.12 only
+- **Verification:** PASS WITH NOTES
+- **Plan:** `outputs/.plans/sql-pragmatic-craft.md`
+- **Research files:**
+  - `outputs/.drafts/sql-pragmatic-craft-research-sql.md`
+  - `outputs/.drafts/sql-pragmatic-craft-research-pragmatic.md`
+  - `outputs/.drafts/sql-pragmatic-craft-research-external.md`
+  - `outputs/.drafts/sql-pragmatic-craft-repo-notes.md`
+- **Draft:** `outputs/.drafts/sql-pragmatic-craft-draft.md`
+- **Cited:** `outputs/.drafts/sql-pragmatic-craft-cited.md`
+- **Review:** `outputs/.drafts/sql-pragmatic-craft-verification.md`
+- **Final:** `outputs/sql-pragmatic-craft.md`
+- **Concept docs:** unchanged; proposed minimal edits are listed in the final report, all still `proposed`.

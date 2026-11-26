@@ -1,5 +1,5 @@
 # AGENTS.md — project contract
-<!-- Last updated: 2026-11-26 | Edit count: 2 -->
+<!-- Last updated: 2026-11-26 | Edit count: 3 -->
 
 This file is the short, enforceable contract for agents working in this repo.
 Detailed evidence and decisions live in `docs/context/step_1_profiling_samples.md`.
@@ -73,7 +73,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
 - Trackers mirror the same split: `tasks/etl/`, `tasks/eda/`, `tasks/statistical_learning/`; the 8-step workflow stays in `tasks/hypothesis_testing/`.
 - Do not create a new top-level output or task folder without updating this contract and `src/scripts/README.md`.
 - `src/scripts/etl/extract/main.py` writes ETL outputs; `src/scripts/etl/load/main.py` writes handoff exports. Notebooks write only under their producer area.
-- Software-design baseline: start at `docs/dev/software_concepts/README.md`. Files with user-set `Status: Accept`, `accepted`, `Accepted`, or `approved` are normative; `proposed`/`draft` are reference only. Current accepted baseline: `01`, `02`, `05`, `07`, `09`, `10`. Agents must not change a status; only the user approves. `docs/dev/software_concepts/research/` is evidence, not policy.
+- Software-design baseline: start at `docs/dev/software_concepts/README.md`. Files with user-set `Status: Accept`, `accepted`, `Accepted`, or `approved` are normative; `proposed`/`draft` are reference only. Current accepted baseline: `01`, `02`, `03`, `04`, `05`, `07`, `09`, `10`. Agents must not change a status; only the user approves. `docs/dev/software_concepts/research/` is evidence, not policy.
 - Variable/function names are provisional. Renaming is allowed when a name becomes ambiguous or the project grows; update Python, SQL, tests, docs, and output columns in one change, and do not keep aliases.
 
 ## Cohort contract
@@ -169,4 +169,4 @@ Details and code patterns: `src/scripts/etl/README.md`.
 - Add written H0/H1 per response and run the assumption checks.
 ## Terminology
 - Hedgehog analogy: Hedgehog mode is about organization of files and directory that reflects each other in src/scripts/, outputs/, and tasks/. It is about having clear separation in each section clearly like ETL has Extract, load, and transform. Inside Extract there are Extract from parquet, online db. In load there are load to parquet, csv, or online db.
-- When I askeed you to help me with hedgehog situation or mode, I meant to ask you to help find category for that directory I am asking you about, and also consider crating reflected or connecting directory in other parts of the project as well/ Ex: I ask about hedgehod analogy for transform directory in src/scripts/etl/transform. You can try to think of the right way to categorize takss in transform here given the context and info and also  think of what directories to create in outputs/ and tasks and in docs/dev/.
+- When I askeed you to help me with hedgehog situation or mode, I meant to ask you to help find category for that directory I am asking you about, and also consider crating reflected or connecting directory in other parts of the project as well/ Ex: I ask about hedgehog analogy for transform directory in src/scripts/etl/transform. You can try to think of the right way to categorize takss in transform here given the context and info and also  think of what directories to create in outputs/ and tasks and in docs/dev/.

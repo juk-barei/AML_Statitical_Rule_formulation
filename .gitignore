@@ -7,6 +7,5 @@ __pycache__/
 !**/.gitkeep
 docs/external_resources
 **/.ipynb_checkpoints/
-docs/dev/software_concepts
 outputs/etl/load
 **/archive/
