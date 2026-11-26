@@ -43,7 +43,7 @@ def select_short_holding_wallets(
 
 1. **Docstring every public module, class, and function.** One-line summary; args, returns, raises; units; snapshot if the result is snapshot-bound.
 2. **Comments explain why, not what.** If the code says it, do not repeat it.
-3. **Comment non-obvious invariants and external constraints.** Example: “blacklist wins at every hop”; “8 GB target: stream, do not materialize.”
+3. **Comment non-obvious invariants and external constraints.** Example: “blacklist wins at every hop”; “16 GB team target: stream, do not materialize.”
 4. **SQL rule comments name the rule and source.** `-- S2: lifetime <= 7 days (docs/hypothesis.md)`.
 5. **Thresholds state provenance.** `# 15 min is provisional; calibrate in Step 8, not here.`
 6. **TODOs carry a task id.** `# TODO(task-05): replace with the frozen cohort path.` No bare `TODO`/`FIXME`.

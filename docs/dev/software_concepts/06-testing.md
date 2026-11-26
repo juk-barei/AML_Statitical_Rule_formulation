@@ -28,7 +28,7 @@ Small and medium tests must not require the 11M-row mirror. If a test needs the 
 | Layer | Required test |
 | --- | --- |
 | L0 raw | row count per shard sums to table count; coverage status |
-| L1 clean | dedupe/null rules on a tiny fixture; no duplicate `tx_hash` |
+| L1 clean | dedupe/null rules on a tiny fixture; no duplicate `tx_hash` / `transaction_hash` |
 | L2 cohort | priority is total; one group per wallet; blacklist at hop 3 is illicit |
 | L3 features | each formula on a known fixture; eligibility n-flow |
 | L4 analysis | result table shape; n-flow reconciliation; no raw-table read |
