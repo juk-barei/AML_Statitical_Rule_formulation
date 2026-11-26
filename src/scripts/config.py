@@ -1,8 +1,6 @@
 """Put all the configuration in here"""
 from pathlib import Path
 
-from varname import argname
-
 # == File ==
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "datasets"
@@ -11,10 +9,11 @@ ETL_OUTPUT_DIR = OUTPUT / "etl"
 EDA_OUTPUT_DIR = OUTPUT / "eda"
 HYPOTHESIS_TESTING_OUTPUT_DIR = OUTPUT / "hypothesis_testing"
 STATISTICAL_LEARNING_OUTPUT_DIR = OUTPUT / "statistical_learning"
-PROFILING_OUTPUT_DIR = ETL_OUTPUT_DIR / "transform" /"profile"
+PROFILING_OUTPUT_DIR = ETL_OUTPUT_DIR / "transform" / "profile"
 
-def print_path(path: Path):
-    print(f"Path of the {argname('path')} is {path}")
+
+def print_path(name: str, path: Path) -> None:
+    print(f"Path of {name} is {path}")
 # DEFAULT VALUE
 DEFAULT_FILE_EXTENSION = "*.csv"
 DEFAULT_DEBUG_MODE = 0
@@ -37,9 +36,9 @@ ARG_HELP_F_MESSAGE = f"""
 {bold_text("NOTE: ")} You can't enter keywoard {bold_text("all")} as a part of index chaining. Ex: 1, all, 4. """
 
 def main():
-    print_path(ROOT)
-    print_path(SRC)
-    print_path(OUTPUT)
+    print_path("ROOT", ROOT)
+    print_path("SRC", SRC)
+    print_path("OUTPUT", OUTPUT)
 
 if __name__ == "__main__":
     main()
