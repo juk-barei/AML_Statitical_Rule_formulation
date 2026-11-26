@@ -21,7 +21,7 @@ python -m src.scripts.etl.extract.main --help
 
 **Output rule:** every artifact goes under the area that produced it — `src/scripts/eda/` writes only to `outputs/eda/`, `src/scripts/etl/` only to `outputs/etl/`, and so on. ETL has three stage folders that mirror its name: `outputs/etl/{extract,transform,load}`. Handoff snapshots are one directory per snapshot: `outputs/etl/load/<snapshot>/`. Do not add a top-level output folder without updating `AGENTS.md` and this table.
 
-**Writer rule:** `src/scripts/etl/extract/main.py` is the only writer of the local PostgreSQL mirror; `src/scripts/etl/load/load.py` is the designated writer for shared exports. Notebooks in `src/notebooks/` are read-only against the mirror.
+**Writer rule:** `src/scripts/etl/extract/main.py` is the only writer of the local PostgreSQL mirror; `src/scripts/etl/load/main.py` is the designated writer for shared exports. Notebooks in `src/notebooks/` are read-only against the mirror.
 
 **Test rule:** tests live in a `tests/` folder inside the stage they test — `extract/tests/`, `transform/<module>/tests/`, `load/tests/`. There is no shared top-level `tests/` folder under an area.
 

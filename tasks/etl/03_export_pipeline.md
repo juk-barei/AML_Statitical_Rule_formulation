@@ -1,18 +1,18 @@
-# Export pipeline — `load.py`
+# Export pipeline — `load/main.py`
 
 - **Status:** done
 - **Blocked by:** [`01_export_contract.md`](01_export_contract.md); complete ingestion run
   (`python -m src.scripts.etl.extract.main --status`)
 - **Blocks:** [`04_web_serving.md`](04_web_serving.md); every hypothesis step after EDA
 - **Owner:** worker
-- **Output:** `src/scripts/etl/load/load.py`; `outputs/etl/load/phase1_raw_{illicit,licit}_<UTC>/`
-- **Updated:** 2026-11-23
+- **Output:** `src/scripts/etl/load/main.py`; `outputs/etl/load/phase1_raw_{illicit,licit}_<UTC>/`
+- **Updated:** 2026-11-26
 
 ## Objective
 
 Implement the designated export writer. It reads the mirror read-only, writes one frozen
 snapshot under `outputs/etl/load/<snapshot>/`, and records the manifest the contract
-requires. At the time of this task, `src/scripts/etl/load/load.py` was a stub (`parse_args` only); it is implemented now.
+requires. At the time of this task, the export module was a stub (`parse_args` only); it is implemented now in `src/scripts/etl/load/main.py`.
 
 ## Resources / context
 
@@ -28,7 +28,7 @@ requires. At the time of this task, `src/scripts/etl/load/load.py` was a stub (`
 
 | Action | Path | Purpose |
 | --- | --- | --- |
-| update | `src/scripts/etl/load/load.py` | CLI + export implementation |
+| update | `src/scripts/etl/load/main.py` | CLI + export implementation |
 | create | `src/scripts/etl/tests/test_load_export.py` | contract checks |
 | create | `outputs/etl/load/<snapshot>/` | the snapshot itself |
 

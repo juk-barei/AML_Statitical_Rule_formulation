@@ -4,7 +4,7 @@
 - **Blocked by:** —
 - **Blocks:** `03_export_pipeline.md`
 - **Owner:** worker
-- **Output:** `docs/context/export_contract.md` (implemented by `src/scripts/etl/load/load.py`)
+- **Output:** `docs/context/export_contract.md` (implemented by `src/scripts/etl/load/main.py`)
 - **Updated:** 2026-11-23
 
 ## Objective

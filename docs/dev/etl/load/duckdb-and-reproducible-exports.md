@@ -1,7 +1,8 @@
 # DuckDB and reproducible export environments
+<!-- Last updated: 2026-11-26 | Edit count: 2 -->
 
-- **Scope:** why `src/scripts/etl/load/load.py` uses DuckDB, how the engine is distributed, and when a container image is warranted.
-- **Applies to:** ETL export (`load/load.py`), Parquet handoff, public raw-data releases, paper reproduction.
+- **Scope:** why `src/scripts/etl/load/main.py` uses DuckDB, how the engine is distributed, and when a container image is warranted.
+- **Applies to:** ETL export (`load/main.py`), Parquet handoff, public raw-data releases, paper reproduction.
 - **Related:** [`src/scripts/etl/README.md`](../../../../src/scripts/etl/README.md), [`etl/extract/process-model-and-connections.md`](../extract/process-model-and-connections.md).
 
 ## 1. What DuckDB is
@@ -33,19 +34,19 @@ DuckDB ships the same engine through several distribution surfaces:
 
 | Surface | Install | Role in this project |
 | --- | --- | --- |
-| Python package `duckdb` | `uv add duckdb` | **Required.** `load.py` imports it to convert and verify Parquet. |
+| Python package `duckdb` | `uv add duckdb` | **Required.** `load/main.py` imports it to convert and verify Parquet. |
 | CLI `duckdb-cli` | `uvx duckdb-cli` | Optional inspection only. Runs in an isolated `uvx` environment. |
 | System/binary CLI | OS package or release binary | Not used; adds an unmanaged version to the host. |
 
 The Python wheel contains platform-specific native code, so `uv` resolves the correct wheel for the interpreter and OS. As of 2026-11-23, `duckdb==2.0.1` resolves for the project's Python 3.14 environment, and `uvx duckdb-cli` reports the same engine version.
 
-`uvx duckdb-cli` is **not importable** by project code. It is a separate environment and must not be invoked by `load.py`; doing so would make the pipeline depend on a mutable user cache and a second process.
+`uvx duckdb-cli` is **not importable** by project code. It is a separate environment and must not be invoked by `load/main.py`; doing so would make the pipeline depend on a mutable user cache and a second process.
 
 Version discipline:
 
 - Pin the Python package in `pyproject.toml`/`uv.lock`; the engine version is part of the export environment.
 - A CLI version mismatch is usually harmless for reading Parquet, but it is a second engine and should not be used for pipeline verification.
-- DuckDB's CSV sniffer can infer different types across versions. `load.py` must pass explicit column types from `information_schema`, not rely on inference.
+- DuckDB's CSV sniffer can infer different types across versions. `load/main.py` must pass explicit column types from `information_schema`, not rely on inference.
 
 ## 3. Role in the export path
 
@@ -102,7 +103,7 @@ RUN uv sync --frozen --no-install-project --no-dev
 COPY src ./src
 RUN uv sync --frozen --no-dev
 
-ENTRYPOINT ["python", "-m", "src.scripts.etl.load.load"]
+ENTRYPOINT ["python", "-m", "src.scripts.etl.load.main"]
 ```
 
 Build-context rules:
@@ -147,7 +148,7 @@ The image is the executable environment; the manifest and hashes are the data ev
 
 | Decision | Rationale |
 | --- | --- |
-| Install `duckdb` as a project dependency | `load.py` needs the Python API; `uv.lock` pins it. |
+| Install `duckdb` as a project dependency | `load/main.py` needs the Python API; `uv.lock` pins it. |
 | Use `uvx duckdb-cli` only for inspection | Keeps the CLI out of the pipeline and avoids a mutable cache dependency. |
 | Do not run DuckDB as a server or container | Embedded engine; no network surface or service to operate. |
 | Containerize the whole ETL environment only when reproducing/publishing | Pins Python, `uv`, lock, code, and OS together. |

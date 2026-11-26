@@ -20,7 +20,7 @@ Hypothesis-specific work stays in [`tasks/hypothesis_testing/`](../hypothesis_te
 | --- | --- | --- | --- | --- |
 | [`01_export_contract.md`](01_export_contract.md) | done | — | `03_export_pipeline.md` | frozen snapshot contract + checklist |
 | [`02_memory_safe_access.md`](02_memory_safe_access.md) | in_progress | — | every analysis step | reusable SQL/streaming guidance + verification check |
-| [`03_export_pipeline.md`](03_export_pipeline.md) | done | `01_export_contract.md`; complete ingestion | `04_web_serving.md`; every hypothesis | `src/scripts/etl/load/load.py`; illicit/licit snapshots |
+| [`03_export_pipeline.md`](03_export_pipeline.md) | done | `01_export_contract.md`; complete ingestion | `04_web_serving.md`; every hypothesis | `src/scripts/etl/load/main.py`; illicit/licit snapshots |
 | [`04_web_serving.md`](04_web_serving.md) | todo | `03_export_pipeline.md` | web application | wallet-level serving table |
 | [`05_local_profiling.md`](05_local_profiling.md) | in_progress | — | cohort builder, licit EDA | local profile/quality/overlap CSVs + contracts |
 | [`06_feature_profile.md`](06_feature_profile.md) | blocked | full-frame cohort/transaction join | feature/cohort comparison | feature profile + n-flow CSVs |

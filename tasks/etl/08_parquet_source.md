@@ -18,7 +18,7 @@ row counts, and hashes.
 - `src/scripts/etl/README.md` § Extract → Parquet source
 - `docs/dev/etl/extract/parquet-source.md` — mechanism and limits
 - accepted concepts `01`, `02`, `05`, `07`, `09`, `10`
-- `src/scripts/etl/load/load.py` — the manifest producer
+- `src/scripts/etl/load/main.py` — the manifest producer
 
 ## Files
 
