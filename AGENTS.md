@@ -1,4 +1,5 @@
 # AGENTS.md — project contract
+<!-- Last updated: 2026-11-26 | Edit count: 2 -->
 
 This file is the short, enforceable contract for agents working in this repo.
 Detailed evidence and decisions live in `docs/context/step_1_profiling_samples.md`.
@@ -31,13 +32,14 @@ The user commits, creates the branch, or approves the plan first.
 - Execute only phase N inside its declared paths. Do not fix neighbouring scopes, rename unrelated files, or expand the phase.
 - Verify phase N (tests, lint, render, or file state) and report the evidence.
 - Stop and ask the user to review. Recommend that phase's commit message. Do not start phase N+1 until the user commits and explicitly asks.
+- **Documentation freshness trigger:** At the end of every phase, stage migration, rename, or ingestion milestone, the agent must enter an audit check for documentation staleness. If paths (e.g. script renames), cohort invariants (e.g. ingestion status), or task trackers have drifted from the codebase reality, the agent MUST explicitly alert and remind the user to update documentation across `AGENTS.md`, `README.md`, `docs/`, and `tasks/` to ensure continuous relevancy and prevent drift before moving on.
 - A new request while a phase is in progress goes through §1 again; it is not an extension of the current phase.
 
 Every stall and phase report names the location (directories/files), scope (area / subcategory / label), and the exact next action for the user.
 
 ## Data authority
 - Terminology is canonical in `docs/context/glossary.md`: rules are `S1`–`S6`, research questions `H1`–`H6`, null/alternative `H0`/`Ha` (never `H1`), and the third implemented level is `unlabeled` (never `background`).
-- **PostgreSQL mirror** is the analysis dataset. `src/scripts/etl/extract/main.py` is the only writer of the local mirror; `src/scripts/etl/load/load.py` is the designated writer for shared exports.
+- **PostgreSQL mirror** is the analysis dataset. `src/scripts/etl/extract/main.py` is the only writer of the local mirror; `src/scripts/etl/load/main.py` is the designated writer for shared exports.
 - `datasets/*.csv` is a **stale, partial export**. Never mix CSV and mirror counts in one table or conclusion.
 - State the snapshot and row counts beside any quantitative claim.
 - Use `src/.env.example` as the variable contract. Never read or print `src/.env`; the ETL modules load it internally.
@@ -61,7 +63,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
 
 - Code areas are `src/scripts/{etl,eda,hypothesis_testing,statistical_learning}`.
 - **ETL has exactly three stages**, matching its name: `src/scripts/etl/{extract,transform,load}`. `profile/` is not a stage; it is a read-only first step inside `transform/`.
-- **Each stage entry point is `main.py`** inside its stage directory, so the folder supplies the context: `extract/main.py`, not `extract/extract.py`. The export stage still uses `load/load.py`; rename it to `load/main.py` when the stage move is completed. Helper modules keep their own names.
+- **Each stage entry point is `main.py`** inside its stage directory, so the folder supplies the context: `extract/main.py`, not `extract/extract.py`; and `load/main.py`, not `load/load.py`. Helper modules keep their own names.
 - **Tests live with the stage they test**, in `<stage>/tests/`: `extract/tests/`, `load/tests/`, and `transform/<module>/tests/`. There is no top-level `etl/tests/`, and no `outputs/etl/tests/`.
 - `outputs/` mirrors those areas: every artifact goes under the area that produces it.
   - ETL: `outputs/etl/{extract,transform,load}`. Profiling writes to `outputs/etl/transform/profile/`; handoff snapshots live in `outputs/etl/load/phase<N>_<stage>_<schema>_<UTC>/`.
@@ -70,7 +72,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
   - Statistical learning: `outputs/statistical_learning/`.
 - Trackers mirror the same split: `tasks/etl/`, `tasks/eda/`, `tasks/statistical_learning/`; the 8-step workflow stays in `tasks/hypothesis_testing/`.
 - Do not create a new top-level output or task folder without updating this contract and `src/scripts/README.md`.
-- `src/scripts/etl/extract/main.py` writes ETL outputs; `src/scripts/etl/load/load.py` writes handoff exports. Notebooks write only under their producer area.
+- `src/scripts/etl/extract/main.py` writes ETL outputs; `src/scripts/etl/load/main.py` writes handoff exports. Notebooks write only under their producer area.
 - Software-design baseline: start at `docs/dev/software_concepts/README.md`. Files with user-set `Status: Accept`, `accepted`, `Accepted`, or `approved` are normative; `proposed`/`draft` are reference only. Current accepted baseline: `01`, `02`, `05`, `07`, `09`, `10`. Agents must not change a status; only the user approves. `docs/dev/software_concepts/research/` is evidence, not policy.
 - Variable/function names are provisional. Renaming is allowed when a name becomes ambiguous or the project grows; update Python, SQL, tests, docs, and output columns in one change, and do not keep aliases.
 
@@ -80,7 +82,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
 | --- | --- |
 | `illicit` | Blacklisted wallets (`blacklisted_wallets`) plus hop-0 wallets |
 | `suspicious` | `min(hop_level) ∈ 1..5` **and** not blacklisted |
-| `licit` | External licit database (`LICIT_ONLINE_DATABASE_LINK`); ingestion pending |
+| `licit` | External licit database (`LICIT_ONLINE_DATABASE_LINK`); 100% ingested into mirror |
 | `unlabeled` | Universe minus illicit and suspicious; **provisional**, never called licit |
 
 **Priority:** blacklist wins at every hop. Any wallet with a blacklist record at hop 1–5 is **illicit**, not suspicious — not just hop 3.
@@ -91,7 +93,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
 
 - Non-parametric tests (Mann–Whitney, Kruskal–Wallis, Dunn) relax normality and equal-variance assumptions. They **do not** fix dependence.
 - `suspicious` is graph-derived from blacklisted seeds and is not an independent sample. Use seed-cluster permutation/bootstrap, a mixed model, or report it as a nested/descriptive arm.
-- Once licit is ingested, the clean independent contrast is **illicit vs licit**. Check overlap and sampling-frame compatibility before pooling.
+- Now that licit is ingested into mirror, the clean independent contrast is **illicit vs licit**. Check overlap and sampling-frame compatibility before pooling.
 - Follow the Lecture 05 eight-step ANOVA workflow: response/factor/groups → H0/Ha/α → explore → assumptions → test → post-hoc → effect size → conclusion.
 - Report effect sizes and exact denominators, not only p-values.
 
@@ -113,6 +115,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
 - **Write in term of analogy or scenario or example**: Try to make it clear with the way you emphasize a concept via direct scenario and code. Let the reader read it shortly and think longer. Don't simplify, be direct and clear, the user can't understand is the user's skill issue. 
 - **One source of truth.** `docs/dev/` holds architecture and tooling; module `README.md` files hold pipeline behavior; `docs/context/` holds durable decisions; `tasks/` holds status. Link instead of duplicating.
 - **Mark history as history.** Do not present stale line numbers or pre-refactor behavior as current.
+- **Documentation freshness and drift trigger.** Documentation must never lag behind code state. After any series of updates (e.g., module renames, stage migrations, database ingestion completion, or schema adjustments), the agent triggers an audit state: scan `AGENTS.md`, `README.md`, `docs/`, and `tasks/` for stale references and explicitly remind the user to update their documentation to reflect current reality.
 - Have date of edit and write. Has edit count on it as well. Write a new files has edit counts of 1 next time it is 2, and so on.
 
 ## `docs/dev/` notes
@@ -161,7 +164,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
 
 ## Open items
 
-- Ingest the licit database and profile its schema, coverage, and overlap with the blacklist.
+- Profile licit schema, coverage, and overlap with the blacklist (licit database ingestion is 100% complete).
 - Build the authoritative cohort table with `illicit / suspicious / licit / unlabeled`.
 - Add written H0/H1 per response and run the assumption checks.
 ## Terminology

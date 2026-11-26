@@ -18,7 +18,7 @@ only a pointer, not a second copy of the rules.
 - The **PostgreSQL mirror** is the analysis dataset; `datasets/*.csv` is a stale, partial export and is never mixed with mirror counts.
 - Cohorts are `illicit`, `suspicious`, `licit`, `unlabeled` — see the cohort table in [`AGENTS.md`](AGENTS.md); blacklist priority applies at every hop, and `unlabeled` is never called licit.
 - `suspicious` is graph-derived and nested, so inference needs seed-cluster permutation/bootstrap or a clearly descriptive framing; see the inference rules in [`AGENTS.md`](AGENTS.md).
-- `src/scripts/etl/extract/main.py` is the only writer of the mirror and `src/scripts/etl/load/load.py` the designated writer for exports; notebooks are read-only. Details in [`src/scripts/etl/README.md`](src/scripts/etl/README.md).
+- `src/scripts/etl/extract/main.py` is the only writer of the mirror and `src/scripts/etl/load/main.py` the designated writer for exports; notebooks are read-only. Details in [`src/scripts/etl/README.md`](src/scripts/etl/README.md).
 - EDA follows Lecture 02, inference follows the Lecture 05 eight-step ANOVA workflow; output folders mirror `src/scripts/` — see [`src/scripts/README.md`](src/scripts/README.md).
 
 ## Prerequisites
