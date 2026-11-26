@@ -3,7 +3,7 @@
 Every check returns a failed-row count and its denominator. Checks are additive;
 a missing table or column is recorded as skipped, not treated as zero failures.
 
-    python -m src.scripts.etl.profile.profile_quality --schemas illicit,licit
+    python -m src.scripts.etl.transform.profile.profile_quality --schemas illicit,licit
 """
 from __future__ import annotations
 

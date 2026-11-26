@@ -1,6 +1,6 @@
 """Assert-based checks for the profile contracts and n-flow arithmetic."""
-from src.scripts.etl.profile.profile_overlap_local import build_nflow
-from src.scripts.etl.profile.schema import (
+from src.scripts.etl.transform.profile.profile_overlap_local import build_nflow
+from src.scripts.etl.transform.profile.schema import (
     ComparisonRecord,
     ProfileRecord,
     StageManifest,
@@ -19,25 +19,30 @@ def test_comparison_delta() -> None:
         table="accounts",
         column="address",
         metric="null_share",
+        wallet_class="illicit",
         value=0.1,
         denominator=100,
         snapshot_id="2026-11-22T00:00:00Z",
     )
     after = ProfileRecord(
         dataset="local",
-        stage="raw",
+        stage="clean",
         table="accounts",
         column="address",
         metric="null_share",
+        wallet_class="illicit",
         value=0.0,
         denominator=100,
         snapshot_id="2026-11-22T00:00:00Z",
     )
     comparison = ComparisonRecord.from_records(before, after)
+    check(comparison.stage_before == "raw", "stage_before")
+    check(comparison.stage_after == "clean", "stage_after")
     check(comparison.delta == -0.1, "delta must be after - before")
     check(comparison.delta_pct == -100.0, "delta percent")
     check(comparison.n_before == 100, "n_before")
     check(comparison.n_after == 100, "n_after")
+    check(comparison.as_dict()["wallet_class"] == "illicit", "wallet_class in dict")
 
 
 def test_comparison_rejects_snapshot() -> None:

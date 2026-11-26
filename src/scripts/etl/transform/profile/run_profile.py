@@ -1,6 +1,6 @@
 """Orchestrate the available local profiling parts.
 
-    python -m src.scripts.etl.profile.run_profile --parts local,quality,overlap,features
+    python -m src.scripts.etl.transform.profile.run_profile --parts local,quality,overlap,features
 
 Feature/benchmark runs are heavy; use --limit-wallets or --benchmark-limit for a
 bounded smoke run. Local-vs-online comparison is not implemented yet.

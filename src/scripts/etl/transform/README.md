@@ -18,7 +18,7 @@ Cohort definitions, hop nesting, and inference constraints are in [`AGENTS.md`](
 | H1 / H3 / H5 features | pass-through speed, spraying/funneling, seed proximity — wallet-level aggregates |
 | H2 / H4 / H6 features | wallet-level response features for the shared cohort table |
 
-Every transform reports the `group × filter` n-flow so the number of rows removed is visible at each step.
+Every transform reports the `wallet_class × filter` n-flow so the number of rows removed is visible at each step.
 
 ## Rules
 

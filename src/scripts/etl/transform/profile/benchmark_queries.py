@@ -4,7 +4,7 @@ Every query runs as ``EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)``; the script
 writes one row per run to ``query_benchmarks.csv`` and the raw plan to
 ``query_plans/<query>.json``. Query results are never exported.
 
-    python -m src.scripts.etl.profile.benchmark_queries --schema licit \
+    python -m src.scripts.etl.transform.profile.benchmark_queries --schema licit \
       --queries accounts_count --limit 1000
 """
 from __future__ import annotations

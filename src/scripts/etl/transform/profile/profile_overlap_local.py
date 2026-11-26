@@ -4,7 +4,7 @@ Read-only against the mirror. Group priority is illicit > suspicious > licit >
 unlabeled. Uses ``NOT EXISTS`` for nullable anti-joins and aggregates hops
 before joining, per the accepted SQL rules.
 
-    python -m src.scripts.etl.profile.profile_overlap_local
+    python -m src.scripts.etl.transform.profile.profile_overlap_local
 """
 from __future__ import annotations
 
@@ -179,7 +179,7 @@ def _build_counts(illicit: PostgresDataset, licit: PostgresDataset) -> dict[str,
 
 
 def build_nflow(counts: dict[str, int], snapshot_id: str, is_partial: bool) -> list[dict[str, Any]]:
-    """Build the group x filter n-flow rows from exact counts."""
+    """Build the wallet_class x filter n-flow rows from exact counts."""
     return [
         {
             "stage": "account_union",
@@ -255,13 +255,13 @@ def profile_overlap(
     counts = _build_counts(illicit, licit)
     total = counts["universe"]
 
-    group_rows = [
-        {"group": "illicit", "count": counts["blacklist"]},
-        {"group": "suspicious", "count": counts["suspicious"]},
-        {"group": "licit", "count": counts["licit_clean"]},
-        {"group": "unlabeled", "count": counts["unlabeled"]},
+    wallet_class_rows = [
+        {"wallet_class": "illicit", "count": counts["blacklist"]},
+        {"wallet_class": "suspicious", "count": counts["suspicious"]},
+        {"wallet_class": "licit", "count": counts["licit_clean"]},
+        {"wallet_class": "unlabeled", "count": counts["unlabeled"]},
     ]
-    for row in group_rows:
+    for row in wallet_class_rows:
         row["share"] = row["count"] / total if total else 0.0
         row["snapshot_at"] = snapshot_id
         row["is_partial"] = is_partial
@@ -310,7 +310,7 @@ def profile_overlap(
         "nflow": output_dir / "local_nflow.csv",
         "hop_seed": output_dir / "local_hop_seed.csv",
     }
-    pd.DataFrame(group_rows).to_csv(paths["cohort_counts"], index=False)
+    pd.DataFrame(wallet_class_rows).to_csv(paths["cohort_counts"], index=False)
     pd.DataFrame(overlap_rows).to_csv(paths["group_overlap"], index=False)
     pd.DataFrame(build_nflow(counts, snapshot_id, is_partial)).to_csv(paths["nflow"], index=False)
     pd.DataFrame(hop_rows).to_csv(paths["hop_seed"], index=False)
