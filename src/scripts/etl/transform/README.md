@@ -24,7 +24,7 @@ Every transform reports the `group × filter` n-flow so the number of rows remov
 
 - **SQL computes, pandas displays.** Aggregate, join, deduplicate, and window in SQL. Never load `accounts`, `transactions`, or `wallet_hops` wholesale into pandas; return wallet-level rows or a bounded sample.
 - **One rule, one place.** A clean applied to one arm must be applied identically to the others; keep it in a CTE or view rather than copying conditions between queries.
-- **No ad-hoc DDL or DML from notebooks.** Persistent tables are created through the ETL writer path — `extract/main.py` (mirror), `load/load.py` (exports), or a dedicated writer script under `src/scripts/etl/`. Intermediate results that do not need to persist stay as queries.
+- **No ad-hoc DDL or DML from notebooks.** Persistent tables are created through the ETL writer path — `extract/main.py` (mirror), `load/main.py` (exports), or a dedicated writer script under `src/scripts/etl/`. Intermediate results that do not need to persist stay as queries.
 - **Freeze what you export.** A transform feeding a handoff snapshot is recorded in `outputs/etl/load/<snapshot>/manifest.json`, with snapshot time, row counts, exclusions, and hashes.
 
 Memory and export patterns (streaming, `COPY`, DuckDB settings) are in [`../README.md`](../README.md).

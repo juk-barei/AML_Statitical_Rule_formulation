@@ -1,7 +1,7 @@
 # Export contract — frozen snapshot
 
-- **Status:** implemented by `src/scripts/etl/load/load.py`
-- **Updated:** 2026-11-24
+- **Status:** implemented by `src/scripts/etl/load/main.py`
+- **Updated:** 2026-11-26
 
 A snapshot is one directory under `outputs/etl/load/<snapshot>/` (an explicit external path is allowed). It contains data files plus `manifest.json`, `nflow.csv`, `DATA_DICTIONARY.md`, and `README.md`.
 

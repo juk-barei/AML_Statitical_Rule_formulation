@@ -26,7 +26,7 @@ receives credentials.
 
 | Action | Path | Purpose |
 | --- | --- | --- |
-| update | `src/scripts/etl/load/load.py` | `--target serving` load path from the snapshot |
+| update | `src/scripts/etl/load/main.py` | `--target serving` load path from the snapshot |
 | create | `docs/context/web_serving.md` | table schema, role, and limits |
 
 ## Implementation points

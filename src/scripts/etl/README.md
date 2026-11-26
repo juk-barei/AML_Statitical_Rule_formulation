@@ -8,13 +8,13 @@ Data authority, cohort rules, and inference rules are in [`AGENTS.md`](../../../
 | --- | --- | --- |
 | Extract | `extract/main.py` — online PostgreSQL or a frozen Parquet snapshot → local PostgreSQL mirror. **Only writer of the mirror.** `extract/parquet_source.py` is the Parquet adapter behind `--source parquet`; `extract/ingest_licit.py` resumes and verifies the licit load. | Mirror database; `outputs/etl/extract/` reports |
 | Transform | `transform/` — SQL for cleaning, cohort priority, eligibility, and features. `transform/profile/` is the read-only first step. See [`transform/README.md`](transform/README.md). | `outputs/etl/transform/` |
-| Load | `load/load.py` — frozen snapshot exporter: schema/table selection, Parquet or CSV, manifest, hashes. | `outputs/etl/load/<snapshot>/` |
+| Load | `load/main.py` — frozen snapshot exporter: schema/table selection, Parquet or CSV, manifest, hashes. | `outputs/etl/load/<snapshot>/` |
 
 **Tests live with their stage.** `extract/tests/`, `transform/profile/tests/`, and `load/tests/` hold the assert-based checks for that stage. There is no top-level `etl/tests/`, and no test writes into `outputs/etl/tests/`.
 
-> The stage move is in progress: files are in the new directories, but imports and output constants still point at the old paths. The layout and commands in this README are the target contract. The export stage still uses `load/load.py`; it becomes `load/main.py` when the move completes.
+> Stage migration note: The ETL stages are organized into `extract/`, `transform/`, and `load/`. The export stage entry point is `load/main.py` (accessible via `python -m src.scripts.etl.load.main` or `uv run load`). Helper modules keep their own names.
 
-Notebooks are **read-only** against the mirror: no `INSERT`, `UPDATE`, `DELETE`, or DDL. A cleaned or aggregated table that must persist is written by `extract/main.py`, `load/load.py`, or a dedicated writer script under `src/scripts/etl/` — never created by hand in a notebook.
+Notebooks are **read-only** against the mirror: no `INSERT`, `UPDATE`, `DELETE`, or DDL. A cleaned or aggregated table that must persist is written by `extract/main.py`, `load/main.py`, or a dedicated writer script under `src/scripts/etl/` — never created by hand in a notebook.
 
 ## Extract
 
@@ -86,7 +86,7 @@ with `permission denied for schema public`.
 
 Requires the variables in `src/.env.example`. Never read or print `src/.env`.
 
-Before any export, confirm per-table coverage. `load.py` reads the newest run that includes each table; a table is complete only when all shards completed and local rows equal ingested rows. Local and online counts drift; never quote a moving partial as a frozen `N`.
+Before any export, confirm per-table coverage. `load/main.py` reads the newest run that includes each table; a table is complete only when all shards completed and local rows equal ingested rows. Local and online counts drift; never quote a moving partial as a frozen `N`.
 
 ## Transform
 
@@ -112,19 +112,19 @@ Run `--dry-run` first. It prints per-table coverage and row counts without writi
 
 ```bash
 # Full raw illicit snapshot, default phase/stage path
-python -m src.scripts.etl.load.load --schema illicit --tables all --dry-run
+python -m src.scripts.etl.load.main --schema illicit --tables all --dry-run
 
 # Full licit snapshot, explicit transformed stage
-python -m src.scripts.etl.load.load --schema licit --tables all --stage transformed
+python -m src.scripts.etl.load.main --schema licit --tables all --stage transformed
 
 # H1/H3 transactions only, gzip CSV (explicit large-CSV opt-in)
-python -m src.scripts.etl.load.load \
+python -m src.scripts.etl.load.main \
   --schema illicit --tables transactions \
   --out-dir /shared/handoff/h1_h3 --name illicit_transactions \
   --format csv --compression gzip --allow-large-csv
 
 # H5 graph handoff
-python -m src.scripts.etl.load.load \
+python -m src.scripts.etl.load.main \
   --schema illicit --tables wallet_hops,blacklisted_wallets \
   --out-dir /shared/handoff/h5 --name illicit_h5
 ```
