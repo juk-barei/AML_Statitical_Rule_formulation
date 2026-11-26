@@ -80,7 +80,7 @@ python -m src.scripts.etl.extract.verify_ingestion --schema licit
 
 `ingest_licit` resumes the latest licit run, then prints status and coverage.
 `verify_ingestion` is read-only and exits non-zero until every table is 100%.
-It is a command-line check, not a test fixture, and lives under `extract/tests/`.
+It is a command-line check, not a test fixture, and lives at `extract/verify_ingestion.py`.
 Always pass `--schema licit`; `--status` without it targets `public` and fails
 with `permission denied for schema public`.
 
@@ -90,7 +90,7 @@ Before any export, confirm per-table coverage. `load/main.py` reads the newest r
 
 ## Transform
 
-Transform in SQL, not in pandas. SQL lives in `transform/` and covers cleaning, cohort priority, eligibility, and per-wallet features (CTEs, window functions, `GROUP BY wallet_address`). The rule for each clean is documented once in SQL and applied identically to every arm, with the `group × filter` n-flow recorded — see [`transform/README.md`](transform/README.md).
+Transform in SQL, not in pandas. SQL lives in `transform/` and covers cleaning, cohort priority, eligibility, and per-wallet features (CTEs, window functions, `GROUP BY wallet_address`). Keep L0 mirror schemas (`illicit.*`, `licit.*`) strictly read-only; L1/L2 derived layers may be materialized as views/tables in a dedicated transform schema (with documented `DROP SCHEMA` cleanup at project end). Apply each clean rule identically to every arm and record the `wallet_class × filter` n-flow — see [`transform/README.md`](transform/README.md).
 
 Profiling is the first transform step: `transform/profile/` reads the source and mirror, writes CSVs to `outputs/etl/transform/profile/`, and EDA plots those results. Profiling never writes to the mirror and is not a separate ETL stage.
 
