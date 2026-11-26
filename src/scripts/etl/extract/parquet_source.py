@@ -55,9 +55,9 @@ from src.scripts.etl.extract.main import (
     NULL_SENTINEL,
     ShardTask,
     build_ingestion_report,
-    create_post_ingest_indexes,
+    create_post_extract_indexes,
     create_progress_tables,
-    drop_post_ingest_indexes,
+    drop_post_extract_indexes,
     ensure_schema,
     finish_run,
     parse_row_limits,
@@ -615,7 +615,7 @@ def run_parquet_ingest(args: Any) -> int:
             table for table in snapshot.tables if table.name not in finished
         ]
         if not args.skip_indexes:
-            drop_post_ingest_indexes(
+            drop_post_extract_indexes(
                 local_engine, [table.name for table in tables_to_load]
             )
 
@@ -695,7 +695,7 @@ def run_parquet_ingest(args: Any) -> int:
             ),
         )
         if run_status == "completed" and not args.skip_indexes:
-            create_post_ingest_indexes(
+            create_post_extract_indexes(
                 local_engine, [table.name for table in snapshot.tables]
             )
 

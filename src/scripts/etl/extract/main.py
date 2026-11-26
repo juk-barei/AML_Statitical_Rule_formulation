@@ -1040,7 +1040,7 @@ def copy_dataframe_to_postgres(
             cursor.copy_expert(copy_sql, buffer)
 
 
-def ingest_shard(task: ShardTask) -> ShardResult:
+def extract_shard(task: ShardTask) -> ShardResult:
     """Read one shard from the cloud in batches and COPY it into the local DB."""
     if _SOURCE_ENGINE is None or _LOCAL_ENGINE is None:
         raise RuntimeError("Worker engines were not initialized.")
@@ -1428,7 +1428,7 @@ POST_INGEST_INDEXES: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
 }
 
 
-def drop_post_ingest_indexes(
+def drop_post_extract_indexes(
     local_engine: Engine, table_names: Sequence[str]
 ) -> None:
     """Drop the known indexes before a bulk load; recreate them afterwards."""
@@ -1445,7 +1445,7 @@ def drop_post_ingest_indexes(
                 )
 
 
-def create_post_ingest_indexes(
+def create_post_extract_indexes(
     local_engine: Engine, table_names: Sequence[str]
 ) -> None:
     """Add the indexes used by the notebook after all rows are present."""
@@ -1625,7 +1625,7 @@ def run_etl(args: argparse.Namespace) -> int:
             resume=resume,
         )
         if not args.skip_indexes:
-            drop_post_ingest_indexes(local_engine, table_names)
+            drop_post_extract_indexes(local_engine, table_names)
         seed_progress(
             local_engine,
             run_id,
@@ -1694,7 +1694,7 @@ def run_etl(args: argparse.Namespace) -> int:
                 total_ingested_rows=int(report["ingested_rows"].sum()),
             )
             if not args.skip_indexes:
-                create_post_ingest_indexes(local_engine, table_names)
+                create_post_extract_indexes(local_engine, table_names)
             print(report.to_string(index=False))
             return 0
 
@@ -1712,7 +1712,7 @@ def run_etl(args: argparse.Namespace) -> int:
             local_link, is_source=False, schema=target_schema
         )
         try:
-            futures = [executor.submit(ingest_shard, task) for task in tasks_to_run]
+            futures = [executor.submit(extract_shard, task) for task in tasks_to_run]
             wait_for_workers(
                 futures,
                 run_id=run_id,
@@ -1774,7 +1774,7 @@ def run_etl(args: argparse.Namespace) -> int:
             )
 
             if not args.skip_indexes and run_status == "completed":
-                create_post_ingest_indexes(report_engine, table_names)
+                create_post_extract_indexes(report_engine, table_names)
 
             print("\nFinal ingestion report")
             print(report.to_string(index=False))
