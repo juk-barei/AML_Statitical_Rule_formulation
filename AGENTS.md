@@ -1,5 +1,5 @@
 # AGENTS.md — project contract
-<!-- Last updated: 2026-11-26 | Edit count: 3 -->
+<!-- Last updated: 2026-11-26 | Edit count: 4 -->
 
 This file is the short, enforceable contract for agents working in this repo.
 Detailed evidence and decisions live in `docs/context/step_1_profiling_samples.md`.
@@ -50,8 +50,8 @@ Every stall and phase report names the location (directories/files), scope (area
 - **PostgreSQL computes; pandas displays.** Push filters, joins, cohort priority, eligibility, deduplication, and feature aggregation into SQL. Never load `accounts`, `transactions`, or `wallet_hops` wholesale into pandas.
 - **Return small results.** Select only needed columns; return wallet-level aggregates or a bounded sample (`50k–100k` rows). `LIMIT` is for exploration only; reported counts must come from full-frame SQL.
 - **Stream row-level work.** Use `engine.connect().execution_options(stream_results=True)` with `pd.read_sql_query(..., chunksize=50_000)` and process one chunk or wallet group at a time.
-- **The mirror is read-only outside the ETL writers.** Notebooks and ad-hoc scripts must not `INSERT`, `UPDATE`, `DELETE`, or run DDL against the mirror.
-- **Cleaning is a documented rule, not an eyeball edit.** Express it as a read-only CTE/view, apply it identically to every arm, and report the n-flow. Never silently drop zero-event or undefined rows.
+- **The L0 mirror (`illicit.*`, `licit.*`) is read-only outside `extract/main.py`.** Notebooks and ad-hoc scripts must not `INSERT`, `UPDATE`, `DELETE`, or run DDL against the mirror.
+- **Cleaning is a documented rule, not an eyeball edit.** Express it in transform SQL (as a CTE/view, or materialized view/table in a dedicated transform schema with documented `DROP SCHEMA` cleanup at project end), apply it identically to every arm, and report the n-flow. Never silently drop zero-event or undefined rows.
 - **Export contract:** Parquet is the analysis handoff; CSV only for small manifests/data dictionaries; managed PostgreSQL only for the wallet-level serving table. DuckDB queries Parquet; it does not replace the mirror or the serving database.
 - **Freeze before export.** Record snapshot time, source, per-table row counts, exclusions, and a manifest/hash. Never mix mirror, sample, and CSV counts.
 - **Export naming:** the default snapshot id is `phase<N>_<stage>_<schema>_<UTC>`. `N` is the positive integer in `[tool.capstone].phase` in `pyproject.toml`; `stage` is `raw` or `transformed`. `manifest.json` records `snapshot`, `directory`, `phase`, `stage`, and `schema`. Do not hardcode the phase or publish a snapshot without those fields.
@@ -160,7 +160,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
 
 - Drop `hex_address` from analysis views unless a task explicitly needs the hex form.
 - Resolve undefined responses by a stated eligibility rule, never by silently dropping zeros.
-- Report an n-flow table (group × filter) for every response.
+- Report an n-flow table (`wallet_class × filter`) for every response.
 
 ## Open items
 

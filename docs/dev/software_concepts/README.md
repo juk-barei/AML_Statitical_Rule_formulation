@@ -39,7 +39,7 @@ Accepted by the user: `01`, `02`, `03`, `04`, `05`, `07`, `09`, `10`. Still prop
 4. **Abstraction and DRY** — when not to split.
 5. **Naming and comments** — the exact low-level rules.
 6. **Testing** — the largest section; read before merging code.
-7. **Performance and observability** — the 8 GB constraint.
+7. **Performance and observability** — 16–23 GB bounds and SQL-first discipline.
 8. **SQL rules** — the exact SQL patterns and anti-patterns.
 9. **Migration checklist** — the order to implement.
 10. **References** — evidence and the full research report.
