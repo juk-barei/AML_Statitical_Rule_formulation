@@ -2,12 +2,12 @@
 import contextlib
 import io
 
+from src.scripts.etl.db import validate_schema_name
 from src.scripts.etl.extract.main import (
     ShardTask,
     build_batch_query,
     parse_args,
     parse_row_limits,
-    validate_schema_name,
 )
 
 

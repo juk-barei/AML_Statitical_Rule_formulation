@@ -38,8 +38,6 @@ from __future__ import annotations
 
 import argparse
 import io
-import os
-import re
 import time
 from collections.abc import Sequence
 from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
@@ -47,12 +45,26 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
-from urllib.parse import quote
 
 import pandas as pd  # pyright: ignore[reportMissingImports]
-from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
-from sqlalchemy import create_engine, inspect, text  # pyright: ignore[reportMissingImports]
+from sqlalchemy import inspect, text  # pyright: ignore[reportMissingImports]
 from sqlalchemy.engine import Connection, Engine  # pyright: ignore[reportMissingImports]
+
+from src.scripts.etl.db import (
+    ENV_PATH,
+    LOCAL_CONNECT_TIMEOUT_SECONDS,
+    SOURCE_CONNECT_TIMEOUT_SECONDS,
+    create_database_engine,
+    force_psycopg_driver,
+    get_illicit_online_db_link,
+    get_licit_online_db_link,
+    get_local_db_link,
+    get_local_engine,
+    get_source_link,
+    load_environment,
+    safe_error_message,
+    validate_schema_name,
+)
 
 # ---------------------------------------------------------------------------
 # Time constants (kept explicit instead of using magic numbers)
@@ -64,8 +76,6 @@ HOURS_PER_DAY = 24
 SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY
 
 PERCENT = 100
-SOURCE_CONNECT_TIMEOUT_SECONDS = 60
-LOCAL_CONNECT_TIMEOUT_SECONDS = 10
 
 # ---------------------------------------------------------------------------
 # ETL defaults
@@ -83,7 +93,6 @@ DEFAULT_DEBUG_MODE = 0
 # Project paths
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
-ENV_PATH = PROJECT_ROOT / "src" / ".env"
 OUTPUT_DIR = PROJECT_ROOT / "outputs" / "etl" / "extract"
 
 # PostgreSQL COPY uses this marker for NULL values.  The Python string is
@@ -213,18 +222,6 @@ def qualified_name(engine: Engine, table_name: str) -> str:
     )
 
 
-def safe_error_message(error: BaseException) -> str:
-    """Return an error string with connection strings redacted."""
-    message = f"{type(error).__name__}: {error}"
-    message = re.sub(
-        r"postgresql(?:\+\w+)?://[^\s]+",
-        "postgresql://<redacted>",
-        message,
-    )
-    message = re.sub(r"(password=)[^\s&]+", r"\1<redacted>", message)
-    return message[:2000]
-
-
 def as_int(value: Any) -> int:
     """Coerce a scalar report value (often a numpy/pandas scalar) to int."""
     try:
@@ -251,85 +248,6 @@ def as_timestamp(value: Any) -> pd.Timestamp | None:
     return timestamp
 
 
-def load_environment() -> None:
-    """Load ``src/.env`` if it exists; never print its contents."""
-    if ENV_PATH.exists():
-        load_dotenv(ENV_PATH, override=False)
-
-# get_online_db_link
-# Get illicit db
-def get_illicit_online_db_link() -> str:
-    link = os.getenv("ILLICIT_ONLINE_DATABASE_LINK")
-    if not link:
-        raise RuntimeError(
-            "ILLICIT_ONLINE_DATABASE_LINK is not set. Add it to src/.env before running ETL."
-        )
-    return link
-
-# Get licit db
-def get_licit_online_db_link() -> str:
-    link = os.getenv("LICIT_ONLINE_DATABASE_LINK")
-    if not link:
-        raise RuntimeError(
-            "LICIT_ONLINE_DATABASE_LINK is not set. Add it to src/.env before running ETL."
-        )
-    return link
-
-
-def get_source_link(source: str) -> str:
-    """Return the online link for the requested source."""
-    if source == "illicit":
-        return get_illicit_online_db_link()
-    if source == "licit":
-        return get_licit_online_db_link()
-    raise ValueError(f"Unknown source: {source}. Use 'illicit' or 'licit'.")
-
-
-def get_local_db_link() -> str:
-    name = os.getenv("LOCAL_DB_NAME")
-    user = os.getenv("LOCAL_DB_USER")
-    host = os.getenv("LOCAL_DB_HOST")
-    password = os.getenv("LOCAL_DB_PASS")
-    missing = [
-        variable_name
-        for variable_name, value in {
-            "LOCAL_DB_NAME": name,
-            "LOCAL_DB_USER": user,
-            "LOCAL_DB_HOST": host,
-            "LOCAL_DB_PASS": password,
-        }.items()
-        if not value
-    ]
-    if missing:
-        raise RuntimeError(
-            "Local database variables are incomplete: " + ", ".join(missing)
-        )
-    # The missing-variable check above guarantees these are strings, but mypy
-    # cannot narrow os.getenv() return values through a list comprehension.
-    assert name is not None and user is not None
-    assert host is not None and password is not None
-    return (
-        f"postgresql+psycopg://{quote(user, safe='')}:{quote(password, safe='')}"
-        f"@{host}/{name}"
-    )
-
-
-def force_psycopg_driver(link: str) -> str:
-    """Use psycopg 3 when the environment gives a plain postgresql:// URL."""
-    if link.startswith("postgresql://"):
-        return "postgresql+psycopg://" + link[len("postgresql://") :]
-    return link
-
-
-def validate_schema_name(schema: str) -> str:
-    """Return a safe PostgreSQL schema name."""
-    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", schema):
-        raise ValueError(
-            f"Invalid schema name: {schema!r}. Use letters, digits, and underscores."
-        )
-    return schema
-
-
 def ensure_schema(engine: Engine, schema: str) -> None:
     """Create the target schema if it does not exist."""
     schema = validate_schema_name(schema)
@@ -338,36 +256,6 @@ def ensure_schema(engine: Engine, schema: str) -> None:
         connection.execute(
             text(f"CREATE SCHEMA IF NOT EXISTS {quote_identifier(schema)}")
         )
-
-
-def create_database_engine(
-    link: str,
-    *,
-    is_source: bool,
-    pool_size: int = 1,
-    schema: str | None = None,
-) -> Engine:
-    connect_timeout = (
-        SOURCE_CONNECT_TIMEOUT_SECONDS if is_source else LOCAL_CONNECT_TIMEOUT_SECONDS
-    )
-    connect_args: dict[str, Any] = {"connect_timeout": connect_timeout}
-    if schema:
-        schema = validate_schema_name(schema)
-        # Put the requested schema first; public is the fallback for extensions.
-        connect_args["options"] = f"-csearch_path={schema},public"
-    else:
-        schema = "public"
-    engine = create_engine(
-        force_psycopg_driver(link),
-        pool_pre_ping=True,
-        pool_size=pool_size,
-        max_overflow=0,
-        connect_args=connect_args,
-        # Statements qualify their tables with this schema; search_path only
-        # remains as the fallback for extension lookups.
-        execution_options={"capstone_schema": schema},
-    )
-    return engine
 
 
 def parse_row_limits(spec: str) -> dict[str, int]:
@@ -1903,12 +1791,6 @@ def run_etl(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 # Notebook read API
 # ---------------------------------------------------------------------------
-def get_local_engine() -> Engine:
-    """Create an engine for the local mirror (notebook-friendly)."""
-    load_environment()
-    return create_database_engine(get_local_db_link(), is_source=False)
-
-
 def read_local_table(
     table_name: str,
     *,

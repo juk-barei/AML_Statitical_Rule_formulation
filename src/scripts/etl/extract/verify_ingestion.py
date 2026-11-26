@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from sqlalchemy import MetaData, Table, case, func, inspect, select
 from sqlalchemy.exc import NoSuchTableError, ProgrammingError
 
-from src.scripts.etl.extract.main import get_local_engine, validate_schema_name
+from src.scripts.etl.db import get_local_engine, validate_schema_name
 
 
 @dataclass(frozen=True)

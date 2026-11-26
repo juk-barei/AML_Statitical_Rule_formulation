@@ -17,7 +17,7 @@ from sqlalchemy import distinct, exists, func, select
 from sqlalchemy.sql import Select
 
 from src.scripts.config import PROFILING_OUTPUT_DIR
-from src.scripts.etl.extract.main import get_local_engine, validate_schema_name
+from src.scripts.etl.db import get_local_engine, validate_schema_name
 from src.scripts.etl.transform.profile.adapters import PostgresDataset
 from src.scripts.etl.transform.profile.schema import utc_snapshot_id
 
