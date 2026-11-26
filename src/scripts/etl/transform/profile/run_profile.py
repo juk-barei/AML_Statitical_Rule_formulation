@@ -11,7 +11,7 @@ import argparse
 from pathlib import Path
 
 from src.scripts.config import PROFILING_OUTPUT_DIR
-from src.scripts.etl.extract.main import get_local_engine, validate_schema_name
+from src.scripts.etl.db import get_local_engine, validate_schema_name
 from src.scripts.etl.transform.profile import (
     benchmark_queries,
     profile_features,

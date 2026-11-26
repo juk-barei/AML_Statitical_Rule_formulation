@@ -44,24 +44,26 @@ import duckdb
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
+from src.scripts.etl.db import (
+    create_database_engine,
+    get_local_db_link,
+    load_environment,
+    safe_error_message,
+    validate_schema_name,
+)
 from src.scripts.etl.extract.main import (
     NULL_SENTINEL,
     ShardTask,
     build_ingestion_report,
-    create_database_engine,
     create_post_ingest_indexes,
     create_progress_tables,
     drop_post_ingest_indexes,
     ensure_schema,
     finish_run,
-    get_local_db_link,
-    load_environment,
     parse_row_limits,
     qualified_name,
     quote_identifier,
-    safe_error_message,
     seed_progress,
-    validate_schema_name,
     write_progress,
     write_report,
 )

@@ -225,7 +225,7 @@ The failure mode is not the database; it is materializing millions of address st
 ```python
 from sqlalchemy import text
 
-from src.scripts.etl.extract.main import get_local_engine, load_environment
+from src.scripts.etl.db import get_local_engine, load_environment
 
 load_environment()
 engine = get_local_engine()

@@ -15,7 +15,7 @@ import pandas as pd
 from sqlalchemy import MetaData, Table, func, inspect, select, tablesample
 
 from src.scripts.config import PROFILING_OUTPUT_DIR
-from src.scripts.etl.extract.main import get_local_engine, validate_schema_name
+from src.scripts.etl.db import get_local_engine, validate_schema_name
 from src.scripts.etl.transform.profile.adapters import PostgresDataset, table_coverage
 from src.scripts.etl.transform.profile.schema import utc_snapshot_id
 
