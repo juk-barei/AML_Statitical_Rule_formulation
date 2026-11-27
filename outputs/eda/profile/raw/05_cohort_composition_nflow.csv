@@ -1,0 +1,11 @@
+wallet_class,wallets_total,wallets_in_accounts,wallets_hop_only,share,panel,stage,filter,n_in,n_out,n_dropped,reason,snapshot_at,is_partial
+illicit,17046.0,17046.0,0.0,0.001725850920134897,cohort_universe,,,,,,,,
+suspicious,3959525.0,3932508.0,27017.0,0.4008887636129959,cohort_universe,,,,,,,,
+licit,5180495.0,5180495.0,0.0,0.5245079234133658,cohort_universe,,,,,,,,
+unlabeled,719801.0,719801.0,0.0,0.0728774620535034,cohort_universe,,,,,,,,
+,,,,,nflow,account_union,cross_schema_dedupe,11484681.0,9849850.0,1634831.0,address present in both schemas,2026-11-23T03:10:00Z,False
+,,,,,nflow,universe,accounts_plus_blacklist_plus_hop,9849850.0,9849850.0,0.0,frozen account universe; hop-only wallets are excluded from feature profiles,2026-11-23T03:10:00Z,False
+,,,,,nflow,illicit,blacklist_label_1,17046.0,17046.0,0.0,priority group,2026-11-23T03:10:00Z,False
+,,,,,nflow,suspicious,min_hop_1_5_and_not_blacklisted,3967831.0,3959525.0,8306.0,blacklist wins at every hop,2026-11-23T03:10:00Z,False
+,,,,,nflow,licit,external_minus_illicit_minus_suspicious,6614681.0,5180495.0,1434186.0,illicit/suspicious overlap,2026-11-23T03:10:00Z,False
+,,,,,nflow,unlabeled,universe_minus_labelled,9849850.0,692784.0,9157066.0,assigned to illicit/suspicious/licit,2026-11-23T03:10:00Z,False
