@@ -1,0 +1,4 @@
+stage,filter,n_in,n_out,n_dropped,reason,generated_at
+L1_clean,raw_union_to_deduped_tx_hash,26343989,26189701,154288,"cross-schema tx_hash dedupe (illicit=15017691, licit=11326298)",2026-11-27T17:04:09+00:00
+L1_clean,flag_valid_for_features_baseline,26189701,26094208,95493,"non-destructive gate: ts_flag='ok' and amount_flag not in (null,negative,sentinel,above_supply,zero)",2026-11-27T17:04:09+00:00
+L1_clean,sensitivity_exclude_trx_4444_artifact,26094208,25076430,1017778,sensitivity gate excluding upstream 0.225-rate 4444.444444 TRX rows,2026-11-27T17:04:09+00:00
