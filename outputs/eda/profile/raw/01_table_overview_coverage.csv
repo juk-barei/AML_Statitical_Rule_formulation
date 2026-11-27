@@ -1,0 +1,12 @@
+schema,table,rows,source_rows,coverage_status,is_partial,snapshot_at
+illicit,transactions,15017691,15017691,complete,False,2026-11-23T03:10:00Z
+illicit,wallet_hops,6965210,6965210,complete,False,2026-11-23T03:10:00Z
+illicit,accounts,4870000,4870000,complete,False,2026-11-23T03:10:00Z
+illicit,pipeline_crawl_state,3891889,3891887,stale,True,2026-11-23T03:10:00Z
+illicit,blacklisted_wallets,17046,17046,complete,False,2026-11-23T03:10:00Z
+licit,transactions,11326298,11326298,complete,False,2026-11-23T03:10:00Z
+licit,accounts,6614681,6614681,complete,False,2026-11-23T03:10:00Z
+licit,wallet_hops,80756,80756,complete,False,2026-11-23T03:10:00Z
+licit,pipeline_crawl_state,74337,74337,complete,False,2026-11-23T03:10:00Z
+licit,seed_wallets,721,721,complete,False,2026-11-23T03:10:00Z
+licit,blacklisted_wallets,0,0,complete,False,2026-11-23T03:10:00Z
