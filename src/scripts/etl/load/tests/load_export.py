@@ -14,6 +14,7 @@ from src.scripts.etl.load.main import (
     Coverage,
     clear_previous_snapshot,
     completeness,
+    default_out_dir,
     export_type,
     output_filenames,
     parse_args,
@@ -89,6 +90,11 @@ def test_snapshot_naming() -> None:
         snapshot_name(2, "transformed", "licit", "20261124T000000Z")
         == "phase2_transformed_licit_20261124T000000Z",
         "transformed snapshot name",
+    )
+    out = default_out_dir(1, "transformed", "transform", "20261127T000000Z")
+    check(
+        out.parts[-4:] == ("outputs", "etl", "load", "phase1_transformed_transform_20261127T000000Z"),
+        f"default_out_dir must target outputs/etl/load, got {out}",
     )
 
 

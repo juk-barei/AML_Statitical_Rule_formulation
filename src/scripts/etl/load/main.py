@@ -167,7 +167,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         default="",
         help=(
             "Snapshot directory. Default: "
-            "outputs/etl/export/phase<phase>_<stage>_<schema>_<UTC>.\n"
+            "outputs/etl/load/phase<phase>_<stage>_<schema>_<UTC>.\n"
             "An external/mounted path is allowed; it is recorded in the manifest."
         ),
     )
@@ -504,7 +504,7 @@ def default_out_dir(phase: int, stage: str, schema: str, stamp: str) -> Path:
         ROOT
         / "outputs"
         / "etl"
-        / "export"
+        / "load"
         / snapshot_name(phase, stage, schema, stamp)
     )
 
