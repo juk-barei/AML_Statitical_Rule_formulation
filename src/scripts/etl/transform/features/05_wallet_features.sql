@@ -4,19 +4,19 @@
 --            stateless log1p transforms only (no stateful ML scaling).
 --
 -- Source (L2 + stg):
---   {transform_schema}.cohort_wallet
---   {transform_schema}._stg_feat_scalar
---   {transform_schema}._stg_feat_degrees
---   {transform_schema}._stg_feat_h4
---   {transform_schema}._stg_feat_usdt_temporal
---   {transform_schema}._stg_feat_h6_cv
+--   transform.cohort_wallet
+--   transform._stg_feat_scalar
+--   transform._stg_feat_degrees
+--   transform._stg_feat_h4
+--   transform._stg_feat_usdt_temporal
+--   transform._stg_feat_h6_cv
 -- Target (L3):
---   {transform_schema}.wallet_features (1 row per wallet = cohort_wallet)
+--   transform.wallet_features (1 row per wallet = cohort_wallet)
 -- =============================================================================
 
-DROP TABLE IF EXISTS {transform_schema}.wallet_features;
+DROP TABLE IF EXISTS transform.wallet_features;
 
-CREATE TABLE {transform_schema}.wallet_features AS
+CREATE TABLE transform.wallet_features AS
 SELECT
     -- L2 cohort identity & provenance
     c.wallet_address,
@@ -125,25 +125,25 @@ SELECT
     (j.jaccard_index IS NOT NULL) AS elig_h4,
     (h6.cv_delta_t_all IS NOT NULL) AS elig_h6_all,
     (h6.cv_delta_t_out IS NOT NULL) AS elig_h6_out
-FROM {transform_schema}.cohort_wallet c
-LEFT JOIN {transform_schema}._stg_feat_scalar s
+FROM transform.cohort_wallet c
+LEFT JOIN transform._stg_feat_scalar s
     ON s.wallet_address = c.wallet_address
-LEFT JOIN {transform_schema}._stg_feat_degrees d
+LEFT JOIN transform._stg_feat_degrees d
     ON d.wallet_address = c.wallet_address
-LEFT JOIN {transform_schema}._stg_feat_h4 j
+LEFT JOIN transform._stg_feat_h4 j
     ON j.wallet_address = c.wallet_address
-LEFT JOIN {transform_schema}._stg_feat_usdt_temporal u
+LEFT JOIN transform._stg_feat_usdt_temporal u
     ON u.wallet_address = c.wallet_address
-LEFT JOIN {transform_schema}._stg_feat_h6_cv h6
+LEFT JOIN transform._stg_feat_h6_cv h6
     ON h6.wallet_address = c.wallet_address
 ORDER BY c.wallet_class, c.wallet_address;
 
 -- Post-materialization PK + cleanup of intermediate staging tables
-ALTER TABLE {transform_schema}.wallet_features
+ALTER TABLE transform.wallet_features
     ADD CONSTRAINT pk_wallet_features PRIMARY KEY (wallet_address);
 
-DROP TABLE IF EXISTS {transform_schema}._stg_feat_scalar;
-DROP TABLE IF EXISTS {transform_schema}._stg_feat_degrees;
-DROP TABLE IF EXISTS {transform_schema}._stg_feat_h4;
-DROP TABLE IF EXISTS {transform_schema}._stg_feat_usdt_temporal;
-DROP TABLE IF EXISTS {transform_schema}._stg_feat_h6_cv;
+DROP TABLE IF EXISTS transform._stg_feat_scalar;
+DROP TABLE IF EXISTS transform._stg_feat_degrees;
+DROP TABLE IF EXISTS transform._stg_feat_h4;
+DROP TABLE IF EXISTS transform._stg_feat_usdt_temporal;
+DROP TABLE IF EXISTS transform._stg_feat_h6_cv;

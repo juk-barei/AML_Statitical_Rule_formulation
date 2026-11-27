@@ -2,19 +2,19 @@
 -- L3 Step 4: H6 inter-arrival time CV (all clean non-zero events AND OUT-only
 --            directional sensitivity).
 --
--- Source (L1 + stg): {transform_schema}.clean_transactions, {transform_schema}._stg_feat_scalar
--- Target (stg):      {transform_schema}._stg_feat_h6_cv
+-- Source (L1 + stg): transform.clean_transactions, transform._stg_feat_scalar
+-- Target (stg):      transform._stg_feat_h6_cv
 --
 -- Pre-filters to wallets with total_tx_count >= 5 via EXISTS so window sorting
 -- skips the ~8.5M single-tx / inactive wallets.
 -- =============================================================================
 
-DROP TABLE IF EXISTS {transform_schema}._stg_feat_h6_cv;
+DROP TABLE IF EXISTS transform._stg_feat_h6_cv;
 
-CREATE TABLE {transform_schema}._stg_feat_h6_cv AS
+CREATE TABLE transform._stg_feat_h6_cv AS
 WITH elig_all AS (
     SELECT wallet_address
-    FROM {transform_schema}._stg_feat_scalar
+    FROM transform._stg_feat_scalar
     WHERE total_tx_count >= 5
 ),
 events AS (
@@ -23,7 +23,7 @@ events AS (
         'OUT'::TEXT AS direction,
         t.block_timestamp,
         t.tx_hash
-    FROM {transform_schema}.clean_transactions t
+    FROM transform.clean_transactions t
     WHERE t.is_valid_for_features
       AND EXISTS (SELECT 1 FROM elig_all e WHERE e.wallet_address = t.from_address)
     UNION ALL
@@ -32,7 +32,7 @@ events AS (
         'IN'::TEXT AS direction,
         t.block_timestamp,
         t.tx_hash
-    FROM {transform_schema}.clean_transactions t
+    FROM transform.clean_transactions t
     WHERE t.is_valid_for_features
       AND EXISTS (SELECT 1 FROM elig_all e WHERE e.wallet_address = t.to_address)
 ),

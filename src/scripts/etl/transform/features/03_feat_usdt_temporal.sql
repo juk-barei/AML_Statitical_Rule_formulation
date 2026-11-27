@@ -2,8 +2,8 @@
 -- L3 Step 3: H1 USDT pass-through speed (IN -> subsequent OUT lag) and
 --            H2 USDT 1-hour burst ratio (both >=5 gate and >=1 sensitivity).
 --
--- Source (L1):  {transform_schema}.clean_transactions
--- Target (stg): {transform_schema}._stg_feat_usdt_temporal
+-- Source (L1):  transform.clean_transactions
+-- Target (stg): transform._stg_feat_usdt_temporal
 --
 -- Window frame rules (docs/dev/software_concepts/10-sql-rules.md Rule 6):
 --   - prev_in_ts uses explicit ROWS frame with deterministic tie-break
@@ -12,9 +12,9 @@
 --     because burst volume is defined over a 1-hour calendar time window.
 -- =============================================================================
 
-DROP TABLE IF EXISTS {transform_schema}._stg_feat_usdt_temporal;
+DROP TABLE IF EXISTS transform._stg_feat_usdt_temporal;
 
-CREATE TABLE {transform_schema}._stg_feat_usdt_temporal AS
+CREATE TABLE transform._stg_feat_usdt_temporal AS
 WITH usdt_events AS (
     SELECT
         from_address AS wallet_address,
@@ -22,7 +22,7 @@ WITH usdt_events AS (
         block_timestamp,
         tx_hash,
         amount
-    FROM {transform_schema}.clean_transactions
+    FROM transform.clean_transactions
     WHERE is_valid_for_features
       AND token_symbol = 'USDT'
     UNION ALL
@@ -32,7 +32,7 @@ WITH usdt_events AS (
         block_timestamp,
         tx_hash,
         amount
-    FROM {transform_schema}.clean_transactions
+    FROM transform.clean_transactions
     WHERE is_valid_for_features
       AND token_symbol = 'USDT'
 ),

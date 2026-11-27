@@ -15,6 +15,7 @@ Usage (execute step-by-step or end-to-end):
 from __future__ import annotations
 
 import argparse
+import re
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
@@ -41,10 +42,12 @@ VALID_STEPS: tuple[str, ...] = tuple(name for name, _ in SQL_STEPS) + ("nflow", 
 
 
 def render_sql(filename: str, *, transform_schema: str) -> str:
-    """Load one L3 SQL file and substitute the validated transform schema."""
+    """Load one directly-executable L3 SQL file, rewriting schema if overridden."""
     t_schema = validate_schema_name(transform_schema)
-    template = (SQL_DIR / filename).read_text(encoding="utf-8")
-    return template.format(transform_schema=t_schema)
+    sql_text = (SQL_DIR / filename).read_text(encoding="utf-8")
+    if t_schema != "transform":
+        sql_text = re.sub(r"\btransform\.", f"{t_schema}.", sql_text)
+    return sql_text
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
