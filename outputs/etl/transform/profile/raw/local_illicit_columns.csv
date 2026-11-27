@@ -1,0 +1,32 @@
+schema,table,column,data_type,nullable,rows,sample_rows,non_null,nulls,null_share,distinct_approx,min,max,method,snapshot_at,is_partial
+illicit,accounts,address,VARCHAR,False,4870000,4870000,4870000,0,0.0,5148807,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,accounts,first_seen_timestamp,TIMESTAMP WITH TIME ZONE,True,4870000,4870000,189075,4680925,0.9611755646817248,181884,2018-12-14 13:25:03.000000+07:00,2026-11-21 13:57:21.000000+07:00,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,accounts,last_seen_timestamp,TIMESTAMP WITH TIME ZONE,True,4870000,4870000,159062,4710938,0.9673383983572895,154014,2020-09-24 21:37:39.000000+07:00,2026-10-29 14:43:33.000000+07:00,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,accounts,created_date,TIMESTAMP WITH TIME ZONE,True,4870000,4870000,189075,4680925,0.9611755646817248,181884,2018-12-14 13:25:03.000000+07:00,2026-11-21 13:57:21.000000+07:00,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,accounts,created_at,TIMESTAMP WITH TIME ZONE,False,4870000,4870000,4870000,0,0.0,136414,2026-10-28 21:15:20.965029+07:00,2026-11-21 21:45:46.680521+07:00,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,blacklisted_wallets,wallet_address,VARCHAR,False,17046,17046,17046,0,0.0,17142,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,blacklisted_wallets,blacklisted_timestamp,BIGINT,True,17046,17046,8946,8100,0.4751847940865892,6681,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,blacklisted_wallets,blacklisted_utc,TIMESTAMP WITH TIME ZONE,True,17046,17046,8946,8100,0.4751847940865892,6814,2020-06-26 22:22:39.000000+07:00,2026-10-20 08:18:12.000000+07:00,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,blacklisted_wallets,transaction_id,VARCHAR,True,17046,17046,8946,8100,0.4751847940865892,9126,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,blacklisted_wallets,source_name,VARCHAR,False,17046,17046,17046,0,0.0,1,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,blacklisted_wallets,label,INTEGER,False,17046,17046,17046,0,0.0,1,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,blacklisted_wallets,created_at,TIMESTAMP WITH TIME ZONE,False,17046,17046,17046,0,0.0,7937,2026-10-28 21:16:13.287964+07:00,2026-11-22 08:07:12.398599+07:00,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,transactions,tx_hash,VARCHAR,False,15017691,15017691,15017691,0,0.0,14142544,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,transactions,block_number,BIGINT,False,15017691,15017691,15017691,0,0.0,4474555,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,transactions,block_timestamp,TIMESTAMP WITH TIME ZONE,False,15017691,15017691,15017691,0,0.0,13111889,1989-08-27 02:06:26.783000+07:00,2026-11-21 21:35:48.000000+07:00,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,transactions,from_address,VARCHAR,False,15017691,15017691,15017691,0,0.0,2588475,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,transactions,to_address,VARCHAR,False,15017691,15017691,15017691,0,0.0,2786890,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,transactions,token_symbol,VARCHAR,False,15017691,15017691,15017691,0,0.0,2,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,transactions,contract_address,VARCHAR,True,15017691,15017691,4774957,10242734,0.682044530014634,1,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,transactions,amount,DOUBLE,False,15017691,15017691,15017691,0,0.0,1016860,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,transactions,amount_exact,VARCHAR,False,15017691,15017691,15017691,0,0.0,993152,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,transactions,fee_trx,"DECIMAL(18,6)",False,15017691,15017691,15017691,0,0.0,214,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,transactions,created_at,TIMESTAMP WITH TIME ZONE,False,15017691,15017691,15017691,0,0.0,144882,2026-10-28 21:17:11.737871+07:00,2026-11-21 21:45:46.680521+07:00,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,wallet_hops,hop_id,BIGINT,False,6965210,6965210,6965210,0,0.0,6696820,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,wallet_hops,wallet_address,VARCHAR,False,6965210,6965210,6965210,0,0.0,4172096,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,wallet_hops,seed_address,VARCHAR,False,6965210,6965210,6965210,0,0.0,16447,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,wallet_hops,parent_address,VARCHAR,True,6965210,6965210,6964731,479,6.877036011835967e-05,95149,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,wallet_hops,via_tx_hash,VARCHAR,True,6965210,6965210,6964715,495,7.106749114527774e-05,6855660,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,wallet_hops,hop_level,SMALLINT,False,6965210,6965210,6965210,0,0.0,6,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,wallet_hops,direction,VARCHAR,False,6965210,6965210,6965210,0,0.0,2,,,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False
+illicit,wallet_hops,discovered_at,TIMESTAMP WITH TIME ZONE,False,6965210,6965210,6965210,0,0.0,97762,2026-10-28 21:24:56.802650+07:00,2026-11-22 08:09:11.825941+07:00,exact_parquet,phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z,False

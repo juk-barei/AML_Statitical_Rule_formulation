@@ -4,8 +4,8 @@
 - **Blocked by:** —
 - **Blocks:** export size/time decisions, cohort/feature query design
 - **Owner:** worker subagent + lead review
-- **Output:** `outputs/etl/transform/profile/query_benchmarks.csv`, `query_plans/`
-- **Updated:** 2026-11-23
+- **Output:** `outputs/etl/transform/profile/query_benchmarks.csv` (raw `query_plans/*.json` removed as redundant noise; regenerable on demand)
+- **Updated:** 2026-11-27
 
 ## Objective
 

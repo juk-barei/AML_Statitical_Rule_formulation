@@ -1,30 +1,43 @@
 # `etl/transform` — SQL and feature builders
+<!-- Last updated: 2026-11-27 | Edit count: 3 -->
 
-SQL that turns the raw mirror into analysable tables: cleaning, cohort priority, eligibility, and the per-wallet features the hypotheses consume. One `.sql` file per rule set, with a short module wrapper only when a script needs to run it.
+SQL that turns the raw mirror into analysable tables: cleaning, cohort priority, eligibility, and per-wallet features for **all hypotheses (`H1`–`H6`)**. Scope narrows to `H2` / `H4` / `H6` only **after** the transformed database is exported to teammates (for `H1` / `H3` / `H5` and the web application). One `.sql` file per rule set, with a short module wrapper only when a script needs to run it.
 
-Profiling is the first step in this stage, not a separate ETL stage. `profile/` reads the source and mirror, writes `outputs/etl/transform/profile/`, and EDA plots those results. Transformation rules are then written from the profile's findings. See [`profile/README.md`](profile/README.md).
+Profiling is the first step in this stage, not a separate ETL stage. `profile/` reads the source, mirror, and frozen Parquet snapshots, writes stage-scoped CSVs under `outputs/etl/transform/profile/{raw,transformed}/` (`--stage raw|transformed`), and EDA plots those results. Transformation rules are then written from the `raw/` profile's findings and audited against `transformed/` after export. See [`profile/README.md`](profile/README.md).
 
-Outputs go to `outputs/etl/transform/`; tests for a transform live in `tests/` beside it.
+Outputs mirror the sections under `outputs/etl/transform/{profile/{raw,transformed},clean,cohort,features}/`; tests for each section live in `<section>/tests/`.
 
 Cohort definitions, hop nesting, and inference constraints are in [`AGENTS.md`](../../../../AGENTS.md). This folder implements them; it does not redefine them.
 
-## What belongs here
+## Sections (Hedgehog layout, L1–L3)
 
-| Concern | Rule to build |
-| --- | --- |
-| Cleaning | documented, versioned rules: null handling, type fixes, deduplication, zero-event rows — stated once, applied to every arm |
-| Cohort priority | `illicit` (blacklist wins at every hop) > `suspicious` (hop 1–5, not blacklisted) > `licit` > `unlabeled` |
-| Eligibility | a stated eligibility rule per response, so undefined responses are resolved by the rule, never dropped silently |
-| H1 / H3 / H5 features | pass-through speed, spraying/funneling, seed proximity — wallet-level aggregates |
-| H2 / H4 / H6 features | wallet-level response features for the shared cohort table |
+| Folder | Layer | Owns |
+| --- | --- | --- |
+| `profile/` | Read-only (L0–L3) | Schema, quality, anomaly, overlap, benchmarks, and stage-to-stage comparisons (`raw → clean → cohort → features`). |
+| `clean/` | **L1** | Cross-schema union, `tx_hash` deduplication, type unification, dropping `hex_address`, and non-destructive row flags (`amount_flag`, `timestamp_flag`) applied identically to every arm. |
+| `cohort/` | **L2** | Materialized 1-row-per-wallet `cohort_wallet` with priority `illicit` (blacklist wins at every hop) > `suspicious` (hop 1–5, not blacklisted) > `licit` > `unlabeled`, nested `min_hop_level`, and seed multiplicity. |
+| `features/` | **L3** | Wallet-grain SQL aggregations, **all `H1`–`H6` feature formulas**, stated eligibility gates (never silently dropping undefined rows), and stateless monotonic transforms (`log1p`). |
 
-Every transform reports the `group × filter` n-flow so the number of rows removed is visible at each step.
+**Scaling boundary:** Stateless transforms (`log1p`, ratios) belong in `features/` (L3). Stateful scaling (Z-score standardization, min-max normalization, `RobustScaler`, percentile Winsorization) **must not** live here — fit it exclusively on training splits inside `src/scripts/statistical_learning/` to prevent train/test leakage.
+
+Every transform reports the `wallet_class × filter` n-flow so the number of rows removed is visible at each step.
 
 ## Rules
 
 - **SQL computes, pandas displays.** Aggregate, join, deduplicate, and window in SQL. Never load `accounts`, `transactions`, or `wallet_hops` wholesale into pandas; return wallet-level rows or a bounded sample.
-- **One rule, one place.** A clean applied to one arm must be applied identically to the others; keep it in a CTE or view rather than copying conditions between queries.
-- **No ad-hoc DDL or DML from notebooks.** Persistent tables are created through the ETL writer path — `extract/main.py` (mirror), `load/main.py` (exports), or a dedicated writer script under `src/scripts/etl/`. Intermediate results that do not need to persist stay as queries.
+- **One rule, one place.** A clean applied to one arm must be applied identically to the others; keep it in transform SQL (as a CTE/view, or materialized view/table in a dedicated transform schema with documented `DROP SCHEMA` cleanup at project end) rather than copying conditions between queries.
+- **No ad-hoc DDL or DML from notebooks.** L0 mirror schemas (`illicit.*`, `licit.*`) are strictly read-only outside `extract/main.py`. Persistent derived tables live in a dedicated transform schema written only by ETL transform scripts — never created by hand in a notebook.
 - **Freeze what you export.** A transform feeding a handoff snapshot is recorded in `outputs/etl/load/<snapshot>/manifest.json`, with snapshot time, row counts, exclusions, and hashes.
+
+## Indexing vs. Parquet export (by consumer role)
+
+Parquet files do not store PostgreSQL B-tree indexes. Indexing is therefore a **workload-specific database step**, not a blanket post-transform requirement, while **Parquet + zstd remains the canonical handoff**:
+
+| Stage / Consumer | Storage | Access Pattern | Indexing Rule |
+| --- | --- | --- | --- |
+| **L0 mirror (`illicit.*`, `licit.*`)** | Local PostgreSQL | Verbatim source mirror | **Never index or alter.** L0 is read-only outside `extract/main.py`. |
+| **Transform (`L1 → L2 → L3`)** | Dedicated transform schema in local PostgreSQL | Multi-table joins to build flat wallet-grain L3 | Index join keys (e.g., `wallet_address` on materialized L1/L2) **only if** a transform join in PostgreSQL uses them, and create indexes **after** bulk materialization (`CREATE TABLE AS` / `COPY`), never before. `COPY` export to Parquet is a sequential scan and does not benefit from B-tree indexes. |
+| **Hypothesis testing / EDA / ML (`H1`–`H6`)** | Frozen Parquet snapshot (`load/main.py`) | Columnar scans across ~9.88M wallets | **No DB index required.** Export flat L2/L3 tables to Parquet + zstd (optionally sorted by `wallet_class` for free Parquet row-group pruning). Teammates who load Parquet into their own PostgreSQL index only for their own SQL queries. |
+| **Web app (`wallet_serving`)** | Managed PostgreSQL (`load/main.py --target serving`) | Concurrent single-wallet point lookups (`WHERE address = $1`) | **Mandatory `address PRIMARY KEY`** created after bulk load by the serving loader. Additional secondary indexes (e.g., `wallet_class`, `risk_score`) belong to the web app team's API query routes. |
 
 Memory and export patterns (streaming, `COPY`, DuckDB settings) are in [`../README.md`](../README.md).

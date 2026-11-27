@@ -1,9 +1,9 @@
 """Read-only local profile of H2/H4/H6 wallet-level features.
 
-Profiles feature distributions and eligibility n-flow per cohort group; it does
+Profiles feature distributions and eligibility n-flow per wallet_class; it does
 not write a feature table. All heavy work stays in PostgreSQL.
 
-    python -m src.scripts.etl.profile.profile_features --schemas illicit,licit
+    python -m src.scripts.etl.transform.profile.profile_features --schemas illicit,licit
 """
 from __future__ import annotations
 
@@ -37,9 +37,9 @@ from sqlalchemy.sql.elements import FrameClause, FrameClauseType
 from sqlalchemy.sql.selectable import Subquery
 
 from src.scripts.config import PROFILING_OUTPUT_DIR
-from src.scripts.etl.extract.main import get_local_engine, validate_schema_name
+from src.scripts.etl.db import get_local_engine, validate_schema_name
 from src.scripts.etl.transform.profile.adapters import PostgresDataset
-from src.scripts.etl.transform.profile.schema import utc_snapshot_id
+from src.scripts.etl.transform.profile.schema import VALID_STAGES, stage_output_dir, utc_snapshot_id
 
 MIN_HOP = 1
 MAX_HOP = 5
@@ -83,7 +83,7 @@ METRICS = (
 
 PROFILE_COLUMNS = (
     "schema",
-    "group",
+    "wallet_class",
     "feature",
     "metric",
     "value",
@@ -95,7 +95,7 @@ PROFILE_COLUMNS = (
 )
 
 NFLOW_COLUMNS = (
-    "group",
+    "wallet_class",
     "feature",
     "filter",
     "n_in",
@@ -314,7 +314,7 @@ def build_cohort(
     suspicious_match = hop_agg.c.min_hop.between(MIN_HOP, MAX_HOP)
     external_match = external_addresses.c.address.is_not(None)
     source_match = source_addresses.c.address.is_not(None)
-    group = case(
+    wallet_class = case(
         (blacklisted_match, literal("illicit")),
         (suspicious_match, literal("suspicious")),
         (external_match, literal("licit")),
@@ -331,7 +331,7 @@ def build_cohort(
     return (
         select(
             address.label("address"),
-            group.label("group"),
+            wallet_class.label("wallet_class"),
             home_schema.label("schema"),
         )
         .select_from(
@@ -579,7 +579,7 @@ def build_wallet_features(cohort: Select, transactions: Table) -> Select:
     return (
         select(
             scope.c.address.label("wallet_address"),
-            scope.c.group,
+            scope.c.wallet_class,
             scope.c.schema,
             func.coalesce(event_agg.c.event_count, 0).label("event_count"),
             lifetime.label("tx_lifetime_days"),
@@ -657,21 +657,22 @@ def _feature_expr(feature_values, mapping, default):
 
 
 def feature_stats(connection, wallet_features: Select) -> list[dict[str, Any]]:
-    """Compute the long-metric inputs per schema x group x feature."""
-    wf = wallet_features.subquery("wallet_features")
+    """Compute the long-metric inputs per schema x wallet_class x feature."""
+    wallet_features_subquery = wallet_features.subquery("wallet_features")
     feature_values = _feature_values()
-    event_count = wf.c.event_count
-    usdt_count = wf.c.usdt_event_count
-    lifetime = wf.c.tx_lifetime_days
-    burst = wf.c.burst_ratio
-    jaccard = wf.c.jaccard_index
-    cv = wf.c.cv_delta_t
-    mean_gap = wf.c.mean_gap_seconds
+    event_count = wallet_features_subquery.c.event_count
+    usdt_count = wallet_features_subquery.c.usdt_event_count
+    lifetime = wallet_features_subquery.c.tx_lifetime_days
+    burst = wallet_features_subquery.c.burst_ratio
+    jaccard = wallet_features_subquery.c.jaccard_index
+    cv = wallet_features_subquery.c.cv_delta_t
+    mean_gap = wallet_features_subquery.c.mean_gap_seconds
 
     lifetime_eligible = event_count >= MIN_LIFETIME_EVENTS
     burst_eligible = usdt_count >= MIN_BURST_EVENTS
     jaccard_eligible = and_(
-        wf.c.trx_funder_count > 0, wf.c.usdt_recipient_count > 0
+        wallet_features_subquery.c.trx_funder_count > 0,
+        wallet_features_subquery.c.usdt_recipient_count > 0,
     )
     cv_eligible = and_(
         event_count >= MIN_CV_EVENTS,
@@ -730,8 +731,8 @@ def feature_stats(connection, wallet_features: Select) -> list[dict[str, Any]]:
     eligible_value = case((eligible, value), else_=None)
     query = (
         select(
-            wf.c.schema,
-            wf.c.group,
+            wallet_features_subquery.c.schema,
+            wallet_features_subquery.c.wallet_class,
             feature_values.c.feature,
             func.count().label("n"),
             func.count().filter(eligible).label("n_eligible"),
@@ -752,9 +753,17 @@ def feature_stats(connection, wallet_features: Select) -> list[dict[str, Any]]:
             func.min(eligible_value).label("min_value"),
             func.max(eligible_value).label("max_value"),
         )
-        .select_from(wf.join(feature_values, true()))
-        .group_by(wf.c.schema, wf.c.group, feature_values.c.feature)
-        .order_by(wf.c.schema, wf.c.group, feature_values.c.feature)
+        .select_from(wallet_features_subquery.join(feature_values, true()))
+        .group_by(
+            wallet_features_subquery.c.schema,
+            wallet_features_subquery.c.wallet_class,
+            feature_values.c.feature,
+        )
+        .order_by(
+            wallet_features_subquery.c.schema,
+            wallet_features_subquery.c.wallet_class,
+            feature_values.c.feature,
+        )
     )
     # pi-lens-ignore: python-sql-injection -- SQLAlchemy Core; no string interpolation
     return [dict(row) for row in connection.execute(query).mappings()]
@@ -809,7 +818,7 @@ def profile_rows(
             rows.append(
                 {
                     "schema": stat["schema"],
-                    "group": stat["group"],
+                    "wallet_class": stat["wallet_class"],
                     "feature": feature,
                     "metric": metric,
                     "value": value,
@@ -830,16 +839,16 @@ def nflow_rows(
 ) -> list[dict[str, Any]]:
     totals: dict[tuple[str, str], list[int]] = {}
     for stat in stats:
-        key = (stat["group"], stat["feature"])
+        key = (stat["wallet_class"], stat["feature"])
         current = totals.setdefault(key, [0, 0])
         current[0] += int(stat["n"] or 0)
         current[1] += int(stat["n_eligible"] or 0)
     rows: list[dict[str, Any]] = []
-    for (group, feature), (n_in, n_out) in sorted(totals.items()):
+    for (wallet_class, feature), (n_in, n_out) in sorted(totals.items()):
         filter_name, reason = FEATURE_ELIGIBILITY[feature]
         rows.append(
             {
-                "group": group,
+                "wallet_class": wallet_class,
                 "feature": feature,
                 "filter": filter_name,
                 "n_in": n_in,
@@ -855,10 +864,12 @@ def nflow_rows(
 
 def _cohort_counts(connection, cohort: Select) -> dict[str, int]:
     scope = cohort.subquery("cohort_counts")
-    query = select(scope.c.group, func.count()).group_by(scope.c.group)
+    query = select(scope.c.wallet_class, func.count()).group_by(
+        scope.c.wallet_class
+    )
     # pi-lens-ignore: python-sql-injection -- SQLAlchemy Core; no string interpolation
     rows = connection.execute(query).all()
-    return {str(group): int(count) for group, count in rows}
+    return {str(wallet_class): int(count) for wallet_class, count in rows}
 
 
 def _assert_reconciled(
@@ -871,25 +882,27 @@ def _assert_reconciled(
     if path.exists():
         frame = pd.read_csv(path)
         expected = {
-            str(group): int(count)
-            for group, count in zip(frame["group"], frame["count"], strict=True)
+            str(wallet_class): int(count)
+            for wallet_class, count in zip(
+                frame["wallet_class"], frame["count"], strict=True
+            )
         }
     if expected is not None:
-        for group, count in expected.items():
-            if observed.get(group, 0) != count:
+        for wallet_class, count in expected.items():
+            if observed.get(wallet_class, 0) != count:
                 raise ValueError(
-                    f"cohort group {group} does not reconcile: "
-                    f"profile={observed.get(group, 0)} expected={count}"
+                    f"cohort wallet_class {wallet_class} does not reconcile: "
+                    f"profile={observed.get(wallet_class, 0)} expected={count}"
                 )
         return
     total = sum(observed.values())
     labelled = sum(
-        observed.get(group, 0)
-        for group in ("illicit", "suspicious", "licit", "unlabeled")
+        observed.get(wallet_class, 0)
+        for wallet_class in ("illicit", "suspicious", "licit", "unlabeled")
     )
     if labelled != total:
         raise ValueError(
-            "cohort groups do not partition the universe: "
+            "cohort wallet_classes do not partition the universe: "
             f"{labelled} != {total}"
         )
 
@@ -950,7 +963,7 @@ def profile_features(
     cohort_scope = cohort_query.subquery("cohort")
     limited = select(
         cohort_scope.c.address,
-        cohort_scope.c.group,
+        cohort_scope.c.wallet_class,
         cohort_scope.c.schema,
     ).subquery("cohort_limited")
 
@@ -961,7 +974,7 @@ def profile_features(
         for dataset in datasets:
             scoped = select(
                 limited.c.address,
-                limited.c.group,
+                limited.c.wallet_class,
                 limited.c.schema,
             ).where(limited.c.schema == dataset.schema)
             wallet_features = build_wallet_features(
@@ -983,6 +996,7 @@ def profile_features(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--schemas", default="illicit,licit")
+    parser.add_argument("--stage", choices=VALID_STAGES, default="raw")
     parser.add_argument("--output-dir", default=str(PROFILING_OUTPUT_DIR))
     parser.add_argument("--snapshot-id", default="")
     parser.add_argument("--limit-wallets", type=int, default=None)
@@ -1002,7 +1016,7 @@ def main(argv: list[str] | None = None) -> int:
         ]
         paths = profile_features(
             datasets,
-            Path(args.output_dir),
+            stage_output_dir(Path(args.output_dir), args.stage),
             limit_wallets=args.limit_wallets,
             dry_run=args.dry_run,
         )

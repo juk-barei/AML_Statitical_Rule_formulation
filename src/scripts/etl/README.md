@@ -81,7 +81,7 @@ python -m src.scripts.etl.extract.verify_ingestion --schema licit
 
 `ingest_licit` resumes the latest licit run, then prints status and coverage.
 `verify_ingestion` is read-only and exits non-zero until every table is 100%.
-It is a command-line check, not a test fixture, and lives under `extract/tests/`.
+It is a command-line check, not a test fixture, and lives at `extract/verify_ingestion.py`.
 Always pass `--schema licit`; `--status` without it targets `public` and fails
 with `permission denied for schema public`.
 
@@ -91,7 +91,7 @@ Before any export, confirm per-table coverage. `load/main.py` reads the newest r
 
 ## Transform
 
-Transform in SQL, not in pandas. SQL lives in `transform/` and covers cleaning, cohort priority, eligibility, and per-wallet features (CTEs, window functions, `GROUP BY wallet_address`). The rule for each clean is documented once in SQL and applied identically to every arm, with the `group × filter` n-flow recorded — see [`transform/README.md`](transform/README.md).
+Transform in SQL, not in pandas. SQL lives in `transform/` and covers cleaning, cohort priority, eligibility, and per-wallet features (CTEs, window functions, `GROUP BY wallet_address`). Keep L0 mirror schemas (`illicit.*`, `licit.*`) strictly read-only; L1/L2 derived layers may be materialized as views/tables in a dedicated transform schema (with documented `DROP SCHEMA` cleanup at project end). Apply each clean rule identically to every arm and record the `wallet_class × filter` n-flow — see [`transform/README.md`](transform/README.md).
 
 Profiling is the first transform step: `transform/profile/` reads the source, mirror, and frozen Parquet snapshots, writes stage-scoped CSVs to `outputs/etl/transform/profile/{raw,transformed}/` (`--stage raw|transformed`), and EDA plots those results. Full-frame stage profiling (`profile_stage.py`) runs DuckDB over frozen Parquet snapshots without mutating PostgreSQL (see [`docs/dev/etl/transform/profile/duckdb-stage-profiling.md`](../../../docs/dev/etl/transform/profile/duckdb-stage-profiling.md)). Profiling never writes to the mirror and is not a separate ETL stage.
 
@@ -228,7 +228,7 @@ The failure mode is not the database; it is materializing millions of address st
 ```python
 from sqlalchemy import text
 
-from src.scripts.etl.extract.main import get_local_engine, load_environment
+from src.scripts.etl.db import get_local_engine, load_environment
 
 load_environment()
 engine = get_local_engine()

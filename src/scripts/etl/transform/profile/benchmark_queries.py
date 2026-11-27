@@ -4,7 +4,7 @@ Every query runs as ``EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)``; the script
 writes one row per run to ``query_benchmarks.csv`` and the raw plan to
 ``query_plans/<query>.json``. Query results are never exported.
 
-    python -m src.scripts.etl.profile.benchmark_queries --schema licit \
+    python -m src.scripts.etl.transform.profile.benchmark_queries --schema licit \
       --queries accounts_count --limit 1000
 """
 from __future__ import annotations
@@ -20,8 +20,8 @@ from typing import Any
 from sqlalchemy import Connection, bindparam, text
 
 from src.scripts.config import PROFILING_OUTPUT_DIR
-from src.scripts.etl.extract.main import get_local_engine, validate_schema_name
-from src.scripts.etl.transform.profile.schema import utc_snapshot_id
+from src.scripts.etl.db import get_local_engine, validate_schema_name
+from src.scripts.etl.transform.profile.schema import VALID_STAGES, stage_output_dir, utc_snapshot_id
 
 
 @dataclass(frozen=True)
@@ -411,6 +411,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--schema", required=True)
     parser.add_argument("--queries", default="all")
+    parser.add_argument("--stage", choices=VALID_STAGES, default="raw")
     parser.add_argument("--output-dir", default=str(PROFILING_OUTPUT_DIR))
     parser.add_argument("--repeat", type=int, default=1)
     parser.add_argument("--limit", type=int, default=None)
@@ -435,7 +436,7 @@ def main(argv: list[str] | None = None) -> int:
         raise ValueError("at least one schema is required")
     queries = select_queries(args.queries)
     snapshot_id = args.snapshot_id or utc_snapshot_id()
-    output_dir = Path(args.output_dir)
+    output_dir = stage_output_dir(Path(args.output_dir), args.stage)
 
     if args.dry_run:
         for schema in schemas:

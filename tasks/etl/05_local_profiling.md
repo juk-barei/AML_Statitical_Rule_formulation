@@ -1,11 +1,11 @@
 # Local profile foundation — F, A, B
 
-- **Status:** in_progress
+- **Status:** done
 - **Blocked by:** —
 - **Blocks:** cohort builder, licit EDA, feature profile
 - **Owner:** lead + subagents
-- **Output:** local profile/quality/overlap CSVs + reusable profile contracts
-- **Updated:** 2026-11-22
+- **Output:** local profile/quality/overlap/pretransform CSVs + reusable profile contracts
+- **Updated:** 2026-11-27
 
 ## Objective
 
@@ -51,17 +51,7 @@ transactions are 54.6% complete.
 
 ## Done when
 
-- `run_profile --parts local,quality,overlap` completes.
-- Core checks pass.
-- `local_cohort_counts`, `group_overlap`, `nflow`, and `hop_seed` are snapshot-tagged.
-- No mirror writes and no `ingest.py` edits.
-EOF
-
-cd /home/annoy/projects/team/capstone-1/dev/data_analysis && python3 - <<'PY'
-from pathlib import Path
-p=Path('tasks/etl/README.md')
-t=p.read_text()
-t=t.replace('| [`04_web_serving.md`](04_web_serving.md) | todo | `03_export_pipeline.md` | web application | wallet-level serving table |','| [`04_web_serving.md`](04_web_serving.md) | todo | `03_export_pipeline.md` | web application | wallet-level serving table |\n| [`05_local_profiling.md`](05_local_profiling.md) | in_progress | — | cohort builder, licit EDA | local profile/quality/overlap CSVs + contracts |')
-p.write_text(t)
-print('updated tasks/etl/README.md')
-PY
+- `run_profile --parts local,quality,overlap` and `--parts pretransform` complete.
+- Core and pretransform checks pass; zero negative nulls.
+- `local_cohort_counts`, `group_overlap`, `nflow`, `hop_seed`, `pretransform_cleaning`, and `sampling_frame` are snapshot-tagged.
+- No mirror writes and no `extract/main.py` edits.

@@ -3,7 +3,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
+
+VALID_STAGES = ("raw", "transformed")
+
+
+def stage_output_dir(base_dir: Path, stage: str) -> Path:
+    """Resolve the stage subdirectory (raw or transformed) without double-nesting."""
+    if stage not in VALID_STAGES:
+        raise ValueError(f"stage must be one of {VALID_STAGES}, got {stage!r}")
+    return base_dir if base_dir.name == stage else base_dir / stage
 
 
 def utc_snapshot_id() -> str:
@@ -50,7 +60,7 @@ class TableCoverage:
 
 @dataclass(frozen=True)
 class ProfileRecord:
-    """One metric for one table/column/group at one stage."""
+    """One metric for one table/column/wallet_class at one stage."""
 
     dataset: str
     stage: str
@@ -60,20 +70,19 @@ class ProfileRecord:
     denominator: int | None
     snapshot_id: str
     column: str | None = None
-    group: str | None = None
+    wallet_class: str | None = None
     is_partial: bool = False
     method: str = "exact"
     note: str = ""
 
     @property
-    def key(self) -> tuple[str, str, str, str, str, str]:
+    def key(self) -> tuple[str, str, str, str, str]:
         return (
             self.dataset,
-            self.stage,
             self.table,
             self.column or "",
             self.metric,
-            self.group or "",
+            self.wallet_class or "",
         )
 
     def as_dict(self) -> dict[str, Any]:
@@ -85,7 +94,7 @@ class ProfileRecord:
             "metric": self.metric,
             "value": self.value,
             "denominator": self.denominator,
-            "group": self.group,
+            "wallet_class": self.wallet_class,
             "snapshot_id": self.snapshot_id,
             "is_partial": self.is_partial,
             "method": self.method,
@@ -95,9 +104,11 @@ class ProfileRecord:
 
 @dataclass(frozen=True)
 class ComparisonRecord:
-    """Before/after pair for one ProfileRecord key."""
+    """Before/after pair for one ProfileRecord key across stages."""
 
-    key: tuple[str, str, str, str, str, str]
+    key: tuple[str, str, str, str, str]
+    stage_before: str
+    stage_after: str
     value_before: float | int | None
     value_after: float | int | None
     delta: float | int | None
@@ -128,6 +139,8 @@ class ComparisonRecord:
             delta_pct = (delta / before.value * 100.0) if before.value else None
         return cls(
             key=before.key,
+            stage_before=before.stage,
+            stage_after=after.stage,
             value_before=before.value,
             value_after=after.value,
             delta=delta,
@@ -138,14 +151,15 @@ class ComparisonRecord:
         )
 
     def as_dict(self) -> dict[str, Any]:
-        dataset, stage, table, column, metric, group = self.key
+        dataset, table, column, metric, wallet_class = self.key
         return {
             "dataset": dataset,
-            "stage": stage,
+            "stage_before": self.stage_before,
+            "stage_after": self.stage_after,
             "table": table,
             "column": column or None,
             "metric": metric,
-            "group": group or None,
+            "wallet_class": wallet_class or None,
             "value_before": self.value_before,
             "value_after": self.value_after,
             "delta": self.delta,

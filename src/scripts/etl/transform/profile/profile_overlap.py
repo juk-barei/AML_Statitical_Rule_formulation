@@ -9,7 +9,7 @@ import pandas as pd
 from sqlalchemy import MetaData, Table, distinct, func, select, tablesample
 
 from src.scripts.config import PROFILING_OUTPUT_DIR
-from src.scripts.etl.extract.main import (
+from src.scripts.etl.db import (
     create_database_engine,
     get_illicit_online_db_link,
     get_licit_online_db_link,
@@ -17,7 +17,7 @@ from src.scripts.etl.extract.main import (
     validate_schema_name,
 )
 
-OUTPUT_DIR = PROFILING_OUTPUT_DIR
+OUTPUT_DIR = PROFILING_OUTPUT_DIR / "raw"
 def table_obj(engine, schema: str, name: str) -> Table:
     return Table(name, MetaData(), schema=schema, autoload_with=engine)
 

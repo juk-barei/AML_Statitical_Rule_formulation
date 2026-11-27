@@ -64,6 +64,8 @@ Details and code patterns: `src/scripts/etl/README.md`.
 
 - Code areas are `src/scripts/{etl,eda,hypothesis_testing,statistical_learning}`.
 - **ETL has exactly three stages**, matching its name: `src/scripts/etl/{extract,transform,load}`. `profile/` is not a stage; it is a read-only first step inside `transform/`.
+- **Transform sections (`L1`–`L3` + profiling):** `src/scripts/etl/transform/{profile,clean,cohort,features}` — `profile/` (read-only schema, quality, anomaly, overlap, and stage comparison), `clean/` (L1 cross-schema union, dedupe, and non-destructive row flags), `cohort/` (L2 wallet-grain priority table), and `features/` (L3 wallet-grain aggregates, eligibility, and stateless `log1p`). Stateful ML scaling (standardization, normalization, Winsorization) stays out of ETL and belongs in `src/scripts/statistical_learning/` fit on train folds only.
+- **Transform hypothesis scope:** `etl/transform/` builds cleaned tables, cohort membership, and wallet-level features for **all hypotheses (`H1`–`H6`)** before export. Narrowing scope to `H2` / `H4` / `H6` applies only **after** the transformed database is exported to teammates (for `H1` / `H3` / `H5` and the web application).
 - **Each stage entry point is `main.py`** inside its stage directory, so the folder supplies the context: `extract/main.py`, not `extract/extract.py`; and `load/main.py`, not `load/load.py`. Helper modules keep their own names.
 - **Tests live with the stage they test**, in `<stage>/tests/`: `extract/tests/`, `load/tests/`, and `transform/<module>/tests/`. There is no top-level `etl/tests/`, and no `outputs/etl/tests/`.
 - `outputs/` mirrors those areas: every artifact goes under the area that produces it.
@@ -148,7 +150,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
 
 - `tasks/` is the live tracker for the 8-step workflow; start at `tasks/hypothesis_testing/README.md`.
 - Each step directory has `main.md` (objective + shared task table) and shared task files. Active hypotheses have one tracker each: `tasks/hypothesis_testing/H2.md`, `H4.md`, `H6.md`.
-- Phase-1 active hypotheses are **H2, H4, H6**; **H1, H3, H5 are deferred** and have no tracker.
+- Phase-1 active **hypothesis-testing** scope is **H2, H4, H6** (after the transformed database is exported to teammates); **H1, H3, H5** are deferred from hypothesis testing and have no hypothesis tracker, while ETL `transform/` still prepares all **H1–H6** features prior to export.
 - Do not create per-step `H2/H4/H6` folders; update the hypothesis tracker instead.
 - Every other `.md` file at the step root is one shared subtask or helper task.
 - After every run, update the touched step `main.md`, hypothesis tracker (`H2.md`, `H4.md`, or `H6.md`), and task files: status, blocked by, blocks, output, updated.

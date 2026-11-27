@@ -15,7 +15,7 @@ A hypothesis runner needs `tx_lifetime_days` and `cv_delta_t`. It must not join 
 | L0 raw | `illicit.*`, `licit.*` mirror | `extract/main.py` only | L1 only |
 | L1 clean | typed, deduped, null-policy applied | transform SQL | L2 only |
 | L2 cohort | one row per wallet: group, hop, seed, flags | cohort builder | L3, analysis |
-| L3 features | one row per wallet: H2/H4/H6 columns | feature builder | analysis |
+| L3 features | one row per wallet: all H1–H6 columns (scope narrows to H2/H4/H6 only after transformed export) | feature builder | analysis |
 | L4 analysis | profile and test outputs | profiling/tests | humans |
 | L5 export | frozen snapshot + manifest | `load/main.py` | downstream |
 
