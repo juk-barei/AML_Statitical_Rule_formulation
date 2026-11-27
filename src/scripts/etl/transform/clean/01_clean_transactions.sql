@@ -2,10 +2,11 @@
 -- L1 Step 1: Cross-schema transaction union, deduplication, and non-destructive
 --            quality flagging.
 --
--- Source schemas (read-only L0): {illicit_schema}.transactions, {licit_schema}.transactions
--- Target schema (derived L1):    {transform_schema}.clean_transactions
---                                {transform_schema}.clean_tx_conflicts
+-- Source schemas (read-only L0): illicit.transactions, licit.transactions
+-- Target schema (derived L1):    transform.clean_transactions
+--                                transform.clean_tx_conflicts
 --
+-- Directly executable in psql / DBeaver (no template placeholders).
 -- Rules enforced (see docs/dev/software_concepts/10-sql-rules.md):
 --   - Identical cleaning flags applied to both schemas.
 --   - Deterministic dedupe via ROW_NUMBER() (never DISTINCT ON without ORDER BY).
@@ -15,13 +16,13 @@
 --     4444.444444 TRX rows stay in clean_transactions with explicit flags.
 -- =============================================================================
 
-CREATE SCHEMA IF NOT EXISTS {transform_schema};
+CREATE SCHEMA IF NOT EXISTS transform;
 
-DROP TABLE IF EXISTS {transform_schema}.clean_tx_conflicts;
-DROP TABLE IF EXISTS {transform_schema}.clean_transactions;
+DROP TABLE IF EXISTS transform.clean_tx_conflicts;
+DROP TABLE IF EXISTS transform.clean_transactions;
 
 -- 1A. Audit table of cross-schema tx_hash field conflicts (expected ~3,200 rows)
-CREATE TABLE {transform_schema}.clean_tx_conflicts AS
+CREATE TABLE transform.clean_tx_conflicts AS
 SELECT
     i.tx_hash,
     i.token_symbol AS illicit_token_symbol,
@@ -41,8 +42,8 @@ SELECT
     (i.block_timestamp IS DISTINCT FROM l.block_timestamp) AS diff_ts,
     (i.from_address IS DISTINCT FROM l.from_address) AS diff_from,
     (i.to_address IS DISTINCT FROM l.to_address) AS diff_to
-FROM {illicit_schema}.transactions i
-INNER JOIN {licit_schema}.transactions l
+FROM illicit.transactions i
+INNER JOIN licit.transactions l
     ON i.tx_hash = l.tx_hash
 WHERE i.token_symbol IS DISTINCT FROM l.token_symbol
    OR i.amount IS DISTINCT FROM l.amount
@@ -51,7 +52,7 @@ WHERE i.token_symbol IS DISTINCT FROM l.token_symbol
    OR i.to_address IS DISTINCT FROM l.to_address;
 
 -- 1B. Materialized L1 clean_transactions (1 row per unique tx_hash)
-CREATE TABLE {transform_schema}.clean_transactions AS
+CREATE TABLE transform.clean_transactions AS
 WITH raw_union AS (
     SELECT
         tx_hash,
@@ -67,7 +68,7 @@ WITH raw_union AS (
         created_at,
         'illicit'::TEXT AS source_schema,
         1 AS src_rank
-    FROM {illicit_schema}.transactions
+    FROM illicit.transactions
     UNION ALL
     SELECT
         tx_hash,
@@ -83,7 +84,7 @@ WITH raw_union AS (
         created_at,
         'licit'::TEXT AS source_schema,
         2 AS src_rank
-    FROM {licit_schema}.transactions
+    FROM licit.transactions
 ),
 flagged AS (
     SELECT
@@ -164,6 +165,6 @@ SELECT
         AND r.amount_flag NOT IN ('null', 'negative', 'sentinel', 'above_supply', 'zero')
     ) AS is_valid_for_features
 FROM ranked r
-LEFT JOIN {transform_schema}.clean_tx_conflicts c
+LEFT JOIN transform.clean_tx_conflicts c
     ON c.tx_hash = r.tx_hash
 WHERE r.rn = 1;

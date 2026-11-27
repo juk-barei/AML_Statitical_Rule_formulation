@@ -86,6 +86,7 @@ def test_sql_guardrails() -> None:
         assert not re.search(r"\bNATURAL\s+JOIN\b", no_comments, re.IGNORECASE)
         assert not re.search(r"\bDISTINCT\s+ON\b", no_comments, re.IGNORECASE)
         assert "hex_address" not in no_comments
+        assert "{" not in no_comments and "}" not in no_comments
 
 
 def test_sql_fixture_parity_in_memory_duckdb() -> None:
