@@ -46,6 +46,7 @@ def test_sql_guardrails() -> None:
         assert not re.search(r"\bDISTINCT\s+ON\b", no_comments, re.IGNORECASE)
         assert "hex_address" not in no_comments
         assert "background" not in no_comments.lower()
+        assert "{" not in no_comments and "}" not in no_comments
 
 
 def test_sql_fixture_nullable_antijoin_and_fanout() -> None:
