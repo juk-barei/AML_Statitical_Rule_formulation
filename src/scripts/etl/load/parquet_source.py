@@ -141,7 +141,7 @@ def main() -> int:
 
         rejects(
             lambda: load_parquet_snapshot(
-                Path("outputs/etl/export"),
+                Path("outputs/etl/load"),
                 target_schema="illicit",
             ),
             "relative path must fail",
