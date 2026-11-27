@@ -26,6 +26,10 @@ Hypothesis-specific work stays in [`tasks/hypothesis_testing/`](../hypothesis_te
 | [`06_feature_profile.md`](06_feature_profile.md) | done | — | L1–L3 transform builders | full-frame H1–H6 distributions, histograms, and reconciled n-flow CSVs |
 | [`07_query_benchmarks.md`](07_query_benchmarks.md) | done | — | export/cohort design | benchmark CSV + query plans |
 | [`08_parquet_source.md`](08_parquet_source.md) | done | — | offline setup | Parquet → PostgreSQL loader |
+| [`09_l1_clean.md`](09_l1_clean.md) | todo | `06_feature_profile.md` | `11_l3_features.md`; `12_transformed_export_audit.md` | L1 `clean_transactions`, `clean_tx_conflicts`, `clean_wallet_hops` + n-flow |
+| [`10_l2_cohort.md`](10_l2_cohort.md) | todo | `06_feature_profile.md` | `11_l3_features.md`; `12_transformed_export_audit.md` | L2 `cohort_wallet` + partition/n-flow CSVs |
+| [`11_l3_features.md`](11_l3_features.md) | todo | `09_l1_clean.md`; `10_l2_cohort.md` | `12_transformed_export_audit.md` | L3 `wallet_features` (H1–H6) + `feature_nflow.csv` |
+| [`12_transformed_export_audit.md`](12_transformed_export_audit.md) | todo | `09_l1_clean.md`; `10_l2_cohort.md`; `11_l3_features.md` | `04_web_serving.md`; H2/H4/H6 & teammate handoff | frozen transformed Parquet + `raw_vs_transformed_diff.csv` |
 
 Status vocabulary: `todo` / `in_progress` / `blocked` / `done`. `done` files are
 archived per [`AGENTS.md`](../../AGENTS.md); do not delete them.
