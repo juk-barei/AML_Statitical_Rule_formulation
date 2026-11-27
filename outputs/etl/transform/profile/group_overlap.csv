@@ -1,5 +1,0 @@
-comparison,left_count,right_count,overlap,left_share,right_share,method,snapshot_at
-illicit blacklist vs licit accounts,15185,6614681,2977,0.19604873230161343,0.00045005949644434857,exact,2026-11-20T11:12:46.435947+00:00
-illicit suspicious sample vs licit accounts,5000,6614681,2485,0.497,0.00037567949232925974,sample of 5000 suspicious hop 1-5 wallets,2026-11-20T11:12:46.435947+00:00
-illicit blacklist vs licit seed_wallets,15185,721,6,0.00039512676983865657,0.008321775312066574,exact,2026-11-20T11:12:46.435947+00:00
-illicit blacklist vs licit blacklist,15185,0,0,0.0,0.0,exact,2026-11-20T11:12:46.435947+00:00
