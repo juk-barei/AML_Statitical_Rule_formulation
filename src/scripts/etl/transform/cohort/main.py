@@ -12,6 +12,7 @@ Usage (execute step-by-step or end-to-end):
 from __future__ import annotations
 
 import argparse
+import re
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
@@ -41,16 +42,19 @@ def render_sql(
     illicit_schema: str,
     licit_schema: str,
 ) -> str:
-    """Load one SQL file and substitute validated schema identifiers."""
+    """Load one directly-executable SQL file, rewriting schema names if overridden."""
     t_schema = validate_schema_name(transform_schema)
     i_schema = validate_schema_name(illicit_schema)
     l_schema = validate_schema_name(licit_schema)
-    template = (SQL_DIR / filename).read_text(encoding="utf-8")
-    return template.format(
-        transform_schema=t_schema,
-        illicit_schema=i_schema,
-        licit_schema=l_schema,
-    )
+    sql_text = (SQL_DIR / filename).read_text(encoding="utf-8")
+    if t_schema != "transform":
+        sql_text = re.sub(r"\bCREATE SCHEMA IF NOT EXISTS transform\b", f"CREATE SCHEMA IF NOT EXISTS {t_schema}", sql_text)
+        sql_text = re.sub(r"\btransform\.", f"{t_schema}.", sql_text)
+    if i_schema != "illicit":
+        sql_text = re.sub(r"\billicit\.", f"{i_schema}.", sql_text)
+    if l_schema != "licit":
+        sql_text = re.sub(r"\blicit\.", f"{l_schema}.", sql_text)
+    return sql_text
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:

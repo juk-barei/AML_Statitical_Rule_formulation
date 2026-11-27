@@ -2,15 +2,16 @@
 -- L2 Step 1: Materialized wallet-grain cohort table (1 row per wallet).
 --
 -- Source schemas (read-only L0):
---   {illicit_schema}.accounts
---   {illicit_schema}.blacklisted_wallets
---   {illicit_schema}.wallet_hops
---   {licit_schema}.accounts
---   {licit_schema}.seed_wallets
---   {licit_schema}.wallet_hops
+--   illicit.accounts
+--   illicit.blacklisted_wallets
+--   illicit.wallet_hops
+--   licit.accounts
+--   licit.seed_wallets
+--   licit.wallet_hops
 -- Target (derived L2):
---   {transform_schema}.cohort_wallet
+--   transform.cohort_wallet
 --
+-- Directly executable in psql / DBeaver (no template placeholders).
 -- Enforces AGENTS.md & docs/dev/software_concepts/10-sql-rules.md:
 --   - Priority: illicit (blacklist label=1 OR hop 0) > suspicious (hop 1..5, not
 --     blacklisted) > licit (licit.accounts minus illicit/suspicious) > unlabeled.
@@ -23,19 +24,19 @@
 --     row-group pruning.
 -- =============================================================================
 
-CREATE SCHEMA IF NOT EXISTS {transform_schema};
+CREATE SCHEMA IF NOT EXISTS transform;
 
-DROP TABLE IF EXISTS {transform_schema}.cohort_wallet;
+DROP TABLE IF EXISTS transform.cohort_wallet;
 
-CREATE TABLE {transform_schema}.cohort_wallet AS
+CREATE TABLE transform.cohort_wallet AS
 WITH illicit_acc AS (
     SELECT DISTINCT address AS wallet_address
-    FROM {illicit_schema}.accounts
+    FROM illicit.accounts
     WHERE address IS NOT NULL
 ),
 licit_acc AS (
     SELECT DISTINCT address AS wallet_address
-    FROM {licit_schema}.accounts
+    FROM licit.accounts
     WHERE address IS NOT NULL
 ),
 blacklist AS (
@@ -43,14 +44,14 @@ blacklist AS (
         wallet_address,
         MIN(blacklisted_utc) AS blacklisted_utc,
         BOOL_OR(blacklisted_utc IS NOT NULL) AS has_blacklist_timestamp
-    FROM {illicit_schema}.blacklisted_wallets
+    FROM illicit.blacklisted_wallets
     WHERE label = 1
       AND wallet_address IS NOT NULL
     GROUP BY wallet_address
 ),
 hop0 AS (
     SELECT DISTINCT wallet_address
-    FROM {illicit_schema}.wallet_hops
+    FROM illicit.wallet_hops
     WHERE hop_level = 0
       AND wallet_address IS NOT NULL
 ),
@@ -61,7 +62,7 @@ hop_agg AS (
         MAX(hop_level)::SMALLINT AS max_hop_level,
         COUNT(DISTINCT seed_address)::INTEGER AS seed_count,
         COUNT(*)::INTEGER AS hop_row_count
-    FROM {illicit_schema}.wallet_hops
+    FROM illicit.wallet_hops
     WHERE hop_level BETWEEN 1 AND 5
       AND wallet_address IS NOT NULL
     GROUP BY wallet_address
@@ -76,7 +77,7 @@ primary_seed AS (
                 PARTITION BY wallet_address
                 ORDER BY hop_level ASC, discovered_at ASC NULLS LAST, seed_address ASC
             ) AS rn
-        FROM {illicit_schema}.wallet_hops
+        FROM illicit.wallet_hops
         WHERE hop_level BETWEEN 1 AND 5
           AND wallet_address IS NOT NULL
           AND seed_address IS NOT NULL
@@ -85,7 +86,7 @@ primary_seed AS (
 ),
 licit_seeds AS (
     SELECT DISTINCT wallet_address
-    FROM {licit_schema}.seed_wallets
+    FROM licit.seed_wallets
     WHERE wallet_address IS NOT NULL
 ),
 contaminated_licit_seeds AS (
@@ -99,7 +100,7 @@ contaminated_licit_seeds AS (
 ),
 from_contaminated_licit AS (
     SELECT DISTINCT lh.wallet_address
-    FROM {licit_schema}.wallet_hops lh
+    FROM licit.wallet_hops lh
     WHERE lh.wallet_address IS NOT NULL
       AND EXISTS (
           SELECT 1
