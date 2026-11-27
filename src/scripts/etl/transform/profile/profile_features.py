@@ -39,7 +39,7 @@ from sqlalchemy.sql.selectable import Subquery
 from src.scripts.config import PROFILING_OUTPUT_DIR
 from src.scripts.etl.db import get_local_engine, validate_schema_name
 from src.scripts.etl.transform.profile.adapters import PostgresDataset
-from src.scripts.etl.transform.profile.schema import utc_snapshot_id
+from src.scripts.etl.transform.profile.schema import VALID_STAGES, stage_output_dir, utc_snapshot_id
 
 MIN_HOP = 1
 MAX_HOP = 5
@@ -996,6 +996,7 @@ def profile_features(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--schemas", default="illicit,licit")
+    parser.add_argument("--stage", choices=VALID_STAGES, default="raw")
     parser.add_argument("--output-dir", default=str(PROFILING_OUTPUT_DIR))
     parser.add_argument("--snapshot-id", default="")
     parser.add_argument("--limit-wallets", type=int, default=None)
@@ -1015,7 +1016,7 @@ def main(argv: list[str] | None = None) -> int:
         ]
         paths = profile_features(
             datasets,
-            Path(args.output_dir),
+            stage_output_dir(Path(args.output_dir), args.stage),
             limit_wallets=args.limit_wallets,
             dry_run=args.dry_run,
         )

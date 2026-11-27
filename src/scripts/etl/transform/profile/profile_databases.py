@@ -17,7 +17,7 @@ from src.scripts.etl.db import (
     validate_schema_name,
 )
 
-OUTPUT_DIR = PROFILING_OUTPUT_DIR
+OUTPUT_DIR = PROFILING_OUTPUT_DIR / "raw"
 KEY_COLUMNS = {
     "accounts": ("address",),
     "transactions": ("token_symbol", "from_address", "to_address"),

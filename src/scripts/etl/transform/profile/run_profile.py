@@ -1,31 +1,37 @@
 """Orchestrate the available local profiling parts.
 
-    python -m src.scripts.etl.transform.profile.run_profile --parts local,quality,overlap,features
+    python -m src.scripts.etl.transform.profile.run_profile --parts local,quality,overlap,features --stage raw
+    python -m src.scripts.etl.transform.profile.run_profile --parts stage --stage raw
+    python -m src.scripts.etl.transform.profile.run_profile --parts stage --stage transformed
 
 Feature/benchmark runs against PostgreSQL are heavy; use --limit-wallets or
---benchmark-limit for a bounded smoke run. The ``pretransform`` part runs
-full-frame exact DuckDB queries over frozen Parquet snapshots without needing
-a live PostgreSQL instance.
+--benchmark-limit for a bounded smoke run. The ``stage`` part runs full-frame
+exact DuckDB queries over frozen Parquet snapshots (raw or transformed) without
+needing a live PostgreSQL instance.
 """
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
 
-from src.scripts.config import PROFILING_OUTPUT_DIR
+from src.scripts.config import ETL_OUTPUT_DIR, PROFILING_OUTPUT_DIR
 from src.scripts.etl.db import get_local_engine, validate_schema_name
 from src.scripts.etl.transform.profile import (
     benchmark_queries,
     profile_features,
     profile_local,
-    profile_pretransform,
     profile_quality,
+    profile_stage,
 )
 from src.scripts.etl.transform.profile.adapters import PostgresDataset
 from src.scripts.etl.transform.profile.profile_overlap_local import profile_overlap
-from src.scripts.etl.transform.profile.schema import utc_snapshot_id
+from src.scripts.etl.transform.profile.schema import (
+    VALID_STAGES,
+    stage_output_dir,
+    utc_snapshot_id,
+)
 
-AVAILABLE_PARTS = ("local", "quality", "overlap", "features", "benchmarks", "pretransform")
+AVAILABLE_PARTS = ("local", "quality", "overlap", "features", "benchmarks", "stage")
 
 
 def _schemas(value: str) -> list[str]:
@@ -37,6 +43,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--parts", default="local,quality,overlap")
     parser.add_argument("--schemas", default="illicit,licit")
     parser.add_argument("--mode", choices=("quick", "full"), default="quick")
+    parser.add_argument("--stage", choices=VALID_STAGES, default="raw")
     parser.add_argument("--sample-percent", type=float, default=2.0)
     parser.add_argument("--output-dir", default=str(PROFILING_OUTPUT_DIR))
     parser.add_argument("--snapshot-id", default="")
@@ -54,14 +61,15 @@ def main(argv: list[str] | None = None) -> int:
     if unknown:
         raise ValueError(f"unknown parts: {', '.join(unknown)}; available: {', '.join(AVAILABLE_PARTS)}")
 
-    output_dir = Path(args.output_dir)
-    if "pretransform" in requested:
-        paths = profile_pretransform.run_pretransform_profile(
+    output_dir = stage_output_dir(Path(args.output_dir), args.stage)
+    if "stage" in requested:
+        paths = profile_stage.run_stage_profile(
             load_dir=Path(args.load_dir),
             output_dir=output_dir,
+            stage=args.stage,
         )
-        print(f"[pretransform] {', '.join(str(path) for path in paths.values())}")
-        if requested == ("pretransform",):
+        print(f"[stage:{args.stage}] {', '.join(str(path) for path in paths.values())}")
+        if requested == ("stage",):
             return 0
 
     snapshot_id = args.snapshot_id or utc_snapshot_id()
@@ -112,6 +120,8 @@ def main(argv: list[str] | None = None) -> int:
                 args.benchmark_queries,
                 "--output-dir",
                 str(output_dir),
+                "--stage",
+                args.stage,
                 "--snapshot-id",
                 snapshot_id,
                 "--repeat",

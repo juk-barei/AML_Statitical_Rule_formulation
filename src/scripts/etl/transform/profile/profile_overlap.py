@@ -17,7 +17,7 @@ from src.scripts.etl.db import (
     validate_schema_name,
 )
 
-OUTPUT_DIR = PROFILING_OUTPUT_DIR
+OUTPUT_DIR = PROFILING_OUTPUT_DIR / "raw"
 def table_obj(engine, schema: str, name: str) -> Table:
     return Table(name, MetaData(), schema=schema, autoload_with=engine)
 

@@ -3,7 +3,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
+
+VALID_STAGES = ("raw", "transformed")
+
+
+def stage_output_dir(base_dir: Path, stage: str) -> Path:
+    """Resolve the stage subdirectory (raw or transformed) without double-nesting."""
+    if stage not in VALID_STAGES:
+        raise ValueError(f"stage must be one of {VALID_STAGES}, got {stage!r}")
+    return base_dir if base_dir.name == stage else base_dir / stage
 
 
 def utc_snapshot_id() -> str:
