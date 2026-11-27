@@ -9,7 +9,7 @@ from tempfile import TemporaryDirectory
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.scripts.etl.extract.main import get_local_engine
+from src.scripts.etl.db import get_local_engine
 from src.scripts.etl.transform.profile.benchmark_queries import (
     BENCHMARK_FIELDS,
     QUERIES,

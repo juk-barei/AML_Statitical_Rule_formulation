@@ -3,7 +3,7 @@
 Every check returns a failed-row count and its denominator. Checks are additive;
 a missing table or column is recorded as skipped, not treated as zero failures.
 
-    python -m src.scripts.etl.profile.profile_quality --schemas illicit,licit
+    python -m src.scripts.etl.transform.profile.profile_quality --schemas illicit,licit
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ import pandas as pd
 from sqlalchemy import Table, exists, func, select
 
 from src.scripts.config import PROFILING_OUTPUT_DIR
-from src.scripts.etl.extract.main import get_local_engine, validate_schema_name
+from src.scripts.etl.db import get_local_engine, validate_schema_name
 from src.scripts.etl.transform.profile.adapters import PostgresDataset
 from src.scripts.etl.transform.profile.schema import utc_snapshot_id
 

@@ -10,22 +10,29 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "duckdb>=2.0.1",
-    "jupyterlab>=4.6.5",
     "matplotlib>=3.11.2",
-    "mypy>=2.4.1",
     "numpy>=2.5.4",
     "pandas>=3.1.0",
-    "pandas-stubs>=3.1.0.261029",
     "psycopg>=3.3.8",
     "python-dotenv>=1.2.4",
     "scipy>=1.18.1",
     "seaborn>=0.13.2",
     "sqlalchemy>=2.1.8",
 ]
+
 [project.optional-dependencies]
-check_var = ["varname>=1.0.0"]
-inspect_variable = ["einspect>=0.5.16"]
+dev = [
+    "hypothesis>=6.0.0",
+    "mypy>=2.4.1",
+    "pandas-stubs>=3.1.0.261029",
+    "pytest>=8.0.0",
+]
+notebooks = ["jupyterlab>=4.6.5"]
 jupyter_vim = ["jupyterlab-vim>=4.1.4"]
+debug = [
+    "einspect>=0.5.16",
+    "varname>=1.0.0",
+]
 
 [project.scripts]
 extract = "src.scripts.etl.extract.main:main"

@@ -1,7 +1,6 @@
 """Orchestrate the available local profiling parts.
 
     python -m src.scripts.etl.transform.profile.run_profile --parts local,quality,overlap,features
-    python -m src.scripts.etl.transform.profile.run_profile --parts pretransform
 
 Feature/benchmark runs against PostgreSQL are heavy; use --limit-wallets or
 --benchmark-limit for a bounded smoke run. The ``pretransform`` part runs
@@ -13,8 +12,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from src.scripts.config import ETL_OUTPUT_DIR, PROFILING_OUTPUT_DIR
-from src.scripts.etl.extract.main import get_local_engine, validate_schema_name
+from src.scripts.config import PROFILING_OUTPUT_DIR
+from src.scripts.etl.db import get_local_engine, validate_schema_name
 from src.scripts.etl.transform.profile import (
     benchmark_queries,
     profile_features,
