@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from src.scripts.etl.profile.profile_features import (
+from src.scripts.etl.transform.profile.profile_features import (
     NFLOW_COLUMNS,
     PROFILE_COLUMNS,
     burst_eligible,

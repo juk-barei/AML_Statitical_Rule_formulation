@@ -1,6 +1,6 @@
 """Assert-based checks for the profile contracts and n-flow arithmetic."""
-from src.scripts.etl.profile.profile_overlap_local import build_nflow
-from src.scripts.etl.profile.schema import (
+from src.scripts.etl.transform.profile.profile_overlap_local import build_nflow
+from src.scripts.etl.transform.profile.schema import (
     ComparisonRecord,
     ProfileRecord,
     StageManifest,

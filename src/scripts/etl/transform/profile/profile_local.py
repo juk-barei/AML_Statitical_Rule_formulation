@@ -3,7 +3,7 @@
 Quick mode samples large tables for null/share/distinct/time ranges; full mode
 scans them. Row counts are always exact.
 
-    python -m src.scripts.etl.profile.profile_local --schemas illicit,licit
+    python -m src.scripts.etl.transform.profile.profile_local --schemas illicit,licit
 """
 from __future__ import annotations
 
@@ -49,15 +49,22 @@ def _source(table: Table, rows: int, mode: str, sample_percent: float):
     )
 
 
-def _column_aggregates(connection, source, names: tuple[str, ...]) -> tuple[dict[str, int], dict[str, int]]:
+def _column_aggregates(
+    connection, source, names: tuple[str, ...]
+) -> tuple[int, dict[str, int], dict[str, int]]:
     if not names:
-        return {}, {}
-    parts: list[Any] = []
+        sample_rows = int(
+            connection.execute(select(func.count()).select_from(source)).scalar_one()
+        )
+        return sample_rows, {}, {}
+    # Compute sample_rows in the same TABLESAMPLE scan so non_null never exceeds sample_rows.
+    parts: list[Any] = [func.count().label("__sample_rows")]
     for name in names:
         parts.append(func.count(source.c[name]).label(f"nn__{name}"))
         parts.append(func.count(func.distinct(source.c[name])).label(f"nd__{name}"))
     row = connection.execute(select(*parts).select_from(source)).mappings().one()
     return (
+        int(row["__sample_rows"]),
         {name: int(row[f"nn__{name}"]) for name in names},
         {name: int(row[f"nd__{name}"]) for name in names},
     )
@@ -89,11 +96,8 @@ def _profile_table(
     table = Table(table_name, MetaData(), schema=schema, autoload_with=connection)
     rows = int(connection.execute(select(func.count()).select_from(table)).scalar_one())
     source, method = _source(table, rows, mode, sample_percent)
-    sample_rows = int(
-        connection.execute(select(func.count()).select_from(source)).scalar_one()
-    )
     names = tuple(column.name for column in table.columns)
-    non_null, distinct = _column_aggregates(connection, source, names)
+    sample_rows, non_null, distinct = _column_aggregates(connection, source, names)
     times = tuple(name for name in TIME_COLUMNS if name in names)
     ranges = _time_ranges(connection, source, times)
     key_columns = [name for name in KEY_COLUMNS.get(table_name, ()) if name in names]

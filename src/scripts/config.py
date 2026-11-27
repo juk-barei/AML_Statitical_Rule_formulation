@@ -1,8 +1,6 @@
 """Put all the configuration in here"""
 from pathlib import Path
 
-from varname import argname
-
 # == File ==
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "datasets"
@@ -14,7 +12,12 @@ STATISTICAL_LEARNING_OUTPUT_DIR = OUTPUT / "statistical_learning"
 PROFILING_OUTPUT_DIR = ETL_OUTPUT_DIR / "transform" /"profile"
 
 def print_path(path: Path):
-    print(f"Path of the {argname('path')} is {path}")
+    try:
+        from varname import argname
+        label = argname("path")
+    except Exception:
+        label = "path"
+    print(f"Path of the {label} is {path}")
 # DEFAULT VALUE
 DEFAULT_FILE_EXTENSION = "*.csv"
 DEFAULT_DEBUG_MODE = 0
