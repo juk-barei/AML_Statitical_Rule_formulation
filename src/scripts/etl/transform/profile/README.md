@@ -1,7 +1,7 @@
 # `etl/transform/profile` — data-engineering profiling
-<!-- Last updated: 2026-11-27 | Edit count: 3 -->
+<!-- Last updated: 2026-11-27 | Edit count: 4 -->
 
-Read-only profiling of the source, local mirror, and frozen raw Parquet snapshots:
+Read-only profiling of the source, local mirror, and frozen Parquet snapshots (`raw` and `transformed`):
 schema, row counts, column types, relations, quality checks, cleaning anomalies,
 wallet overlap, sampling-frame compatibility, and full-frame H1–H6 feature readiness.
 It answers "what do we have, and does it match?" — not "what does the data mean?".
@@ -61,9 +61,15 @@ Variables come from `src/.env.example`; never read or print `src/.env`.
 ## Output and consumption
 
 All scripts route outputs to `outputs/etl/transform/profile/<stage>/` (`raw/` or `transformed/`)
-via `stage_output_dir(PROFILING_OUTPUT_DIR, stage)`.
+via `stage_output_dir(PROFILING_OUTPUT_DIR, stage)` in `schema.py`:
+
+- `outputs/etl/transform/profile/raw/` — baseline profile before L1–L3 transformation (frozen `phase*_raw_*` Parquet snapshots and local mirror checks).
+- `outputs/etl/transform/profile/transformed/` — post-transform profile over frozen `phase*_transformed_*` Parquet snapshots for raw-vs-transformed comparison.
+
 EDA and the L1–L3 transform builders consume these CSVs; record the snapshot and
-denominator beside any chart or claim.
+denominator beside any chart or claim. The mechanism and rationale for running
+`profile_stage.py` on DuckDB instead of PostgreSQL are documented in
+[`docs/dev/etl/transform/profile/duckdb-stage-profiling.md`](../../../../../docs/dev/etl/transform/profile/duckdb-stage-profiling.md).
 
 Tests live in `tests/` beside the modules:
 
