@@ -48,11 +48,11 @@ def read_wallet_sample(engine: Engine, limit: int = 50_000) -> pd.DataFrame:
 - Should every read helper return a generator instead of a DataFrame?
 -> Split by grain: return a generator (`iter_*_chunks`) for row-level/unbounded streaming, and return a `DataFrame` directly (`read_*`) for bounded wallet-level or aggregated reads where whole-column operations (quantiles, imputation, ANOVA, plots) are needed.
 - Do we need a Parquet adapter now, or only PostgreSQL/CSV until DuckDB is installed?
--> DuckDB (`>=2.0.1`) and Parquet adapters are already implemented in `extract/parquet_source.py` and `load/main.py`; profiling stays PostgreSQL-only per `02`.
+-> DuckDB (`>=2.0.1`) and Parquet adapters are already implemented in `extract/parquet_source.py`, `load/main.py`, and full-frame stage profiling (`profile_stage.py --stage raw|transformed` over frozen Parquet snapshots); local mirror checks (`local`, `quality`, `overlap`, `benchmarks`) stay PostgreSQL-only per `02`.
 - Which query should be the first benchmark: hop aggregation, cohort join, or feature aggregation?
 -> Cohort join first (already identified as the current bottleneck in `profile/README.md`). Benchmark priority does not change coding style; its `EXPLAIN ANALYZE` results guide indexing and L1/L2 materialization.
 
 ## Additional to discuss
 - Should we modify the database modeling to follow snowflake or star schema to improve the performance?
--> No Star/Snowflake remodeling needed. Keep L0 as a verbatim mirror, index `wallet_address` on materialized L1/L2 tables for join speed, and keep L3 as a flat wallet-grain feature table so L4/EDA/ML needs zero joins.
+-> No Star/Snowflake remodeling needed. Keep L0 as a verbatim, unindexed mirror; create `wallet_address` indexes on materialized L1/L2 tables **after** bulk materialization only when PostgreSQL transform joins need them; keep L3 as a flat wallet-grain table exported to Parquet for H1–H6 analytical scans (no B-tree index needed, since `COPY` export and columnar Parquet scans are sequential); and build `address PRIMARY KEY` on `wallet_serving` after bulk load in managed PostgreSQL for concurrent web-app point lookups (with extra API-filter indexes owned by the web app team).
 
