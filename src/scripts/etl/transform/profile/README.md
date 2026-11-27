@@ -1,75 +1,72 @@
 # `etl/transform/profile` — data-engineering profiling
+<!-- Last updated: 2026-11-27 | Edit count: 2 -->
 
-Read-only profiling of the source and local databases: schema, row counts,
-column types, relations, quality checks, and wallet overlap. It answers
-"what do we have, and does it match?" — not "what does the data mean?".
+Read-only profiling of the source, local mirror, and frozen raw Parquet snapshots:
+schema, row counts, column types, relations, quality checks, cleaning anomalies,
+wallet overlap, sampling-frame compatibility, and full-frame H1–H6 feature readiness.
+It answers "what do we have, and does it match?" — not "what does the data mean?".
 
-No writes: profiling only runs `SELECT` and writes CSV files. It never creates,
-alters, or inserts into the mirror.
+No writes: profiling only runs `SELECT` and writes compact CSV files. It never
+creates, alters, or inserts into the mirror.
 
-It is the first step of the `transform` stage: profile the source and mirror,
-plot the profile with `eda/`, then write the transform rules from what the profile
-showed. It is not a fourth ETL stage and has no top-level `outputs/etl/profile/`.
+It is the first step of the `transform` stage: profile the source/mirror/snapshots,
+plot the profile with `eda/`, then write the transform rules in `clean/`, `cohort/`,
+and `features/` from what the profile showed. It is not a fourth ETL stage and has
+no top-level `outputs/etl/profile/`.
 
 ## Scripts
 
 | Script | Purpose | Output |
 | --- | --- | --- |
-| `profile_databases.py` | online schema/column/relation/row profile | `db_overview.csv`, `columns.csv`, `relations.csv` |
-| `profile_overlap.py` | online illicit/licit overlap and cohort counts | `group_overlap.csv`, `cohort_counts.csv` |
-| `profile_local.py` | local schema/column/relation profile; quick mode samples large tables | `local_<schema>_{db_overview,columns,relations}.csv` |
+| `profile_databases.py` | online schema/column/relation/row profile | `relations.csv` (online FK reference) |
+| `profile_overlap.py` | online illicit/licit overlap and cohort counts | (on-demand; superseded by local exact outputs) |
+| `profile_local.py` | local PostgreSQL schema/column/coverage profile; single-query `TABLESAMPLE` scan | `local_<schema>_{db_overview,columns,coverage}.csv` |
 | `profile_quality.py` | duplicates, nulls, orphans, amounts, timestamps, token/contract, hops | `local_quality.csv` |
 | `profile_overlap_local.py` | local cohort counts, overlap, n-flow, hop/seed multiplicity | `local_{cohort_counts,group_overlap,nflow,hop_seed}.csv` |
-| `profile_features.py` | H2/H4/H6 feature/eligibility profile | `local_feature_profile.csv`, `local_feature_nflow.csv` |
-| `benchmark_queries.py` | `EXPLAIN (ANALYZE, BUFFERS)` benchmarks | `query_benchmarks.csv`, `query_plans/` |
-| `run_profile.py` | run `local`, `quality`, `overlap`, `features`, `benchmarks` | all of the above |
+| `profile_features.py` | PostgreSQL H2/H4/H6 feature/eligibility helper | (bounded smoke mode; full-frame handled by `profile_pretransform.py`) |
+| `profile_pretransform.py` | full-frame DuckDB profile over frozen raw Parquet snapshots: L1 cleaning anomalies, L2 sampling frame, L3 H1–H6 distributions, histograms, and reconciled n-flow | `local_{illicit,licit}_columns.csv`, `local_pretransform_cleaning.csv`, `local_sampling_frame.csv`, `local_wallet_distributions.csv`, `local_wallet_histograms.csv`, `local_feature_nflow.csv` |
+| `benchmark_queries.py` | `EXPLAIN (ANALYZE, BUFFERS)` benchmarks | `query_benchmarks.csv` (raw JSON plans omitted from git; regenerate on demand) |
+| `run_profile.py` | run `local`, `quality`, `overlap`, `features`, `benchmarks`, `pretransform` | all of the above |
 | `schema.py` | `DatasetRef`, `ProfileRecord`, `StageManifest`, `ComparisonRecord` | — |
 | `adapters.py` | read-only `PostgresDataset`, partial-run detection | — |
 | `metrics.py` | small SQL aggregate helpers | — |
 
 ## Run order
 
+Full-frame pre-transform profile over frozen raw Parquet snapshots (no live PostgreSQL required):
+
+```bash
+python -m src.scripts.etl.transform.profile.run_profile --parts pretransform
+```
+
+Local PostgreSQL checks:
+
 ```bash
 python -m src.scripts.etl.transform.profile.run_profile --parts local,quality,overlap \
   --schemas illicit,licit --mode quick --snapshot-id 2026-11-23T03:10:00Z
-```
-
-Feature and benchmark runs are heavier:
-
-```bash
-python -m src.scripts.etl.transform.profile.run_profile --parts features \
-  --schemas illicit,licit --limit-wallets 5000 \
-  --snapshot-id 2026-11-23T03:10:00Z
 python -m src.scripts.etl.transform.profile.run_profile --parts benchmarks \
   --schemas illicit,licit --benchmark-queries all --benchmark-limit 1000 \
   --snapshot-id 2026-11-23T03:10:00Z
 ```
 
-**Feature profile status:** the module and tests exist, but the full-frame run is
-blocked by the slow cohort/transaction join and a reconciliation mismatch with the
-overlap profile. Treat any bounded feature CSV as a smoke sample, not a full profile.
-
-Standalone:
-
-```bash
-python -m src.scripts.etl.transform.profile.profile_local --schemas illicit,licit
-python -m src.scripts.etl.transform.profile.profile_quality --schemas illicit,licit
-python -m src.scripts.etl.transform.profile.profile_overlap_local
-```
-
-Use a fixed `--snapshot-id` when the outputs must be compared. `is_partial` is
-recorded from the latest `_etl_progress` run, so a partial licit ingestion cannot
-look complete.
+**Feature profile status:** full-frame H1–H6 wallet feature distributions, histograms,
+and reconciled n-flow (`9,876,867` universe = `9,849,850` accounts union + `27,017`
+hop-only wallets with 0 transactions) are generated by `profile_pretransform.py`
+over the frozen `phase1_raw_{illicit,licit}_*` Parquet snapshots.
 
 Variables come from `src/.env.example`; never read or print `src/.env`.
 
 ## Output and consumption
 
 All scripts write to `outputs/etl/transform/profile/` (`PROFILING_OUTPUT_DIR`).
-EDA and the cohort builder consume these CSVs; record the snapshot and denominator
-beside any chart or claim. A chart built from a stale profile must say so.
+EDA and the L1–L3 transform builders consume these CSVs; record the snapshot and
+denominator beside any chart or claim.
 
-Tests live in `tests/` beside the modules (`pytest src/scripts/etl/transform/profile/tests`).
+Tests live in `tests/` beside the modules:
 
-The stage move is in progress: the output constant and imports still point at the
-pre-move paths until the code catches up with this README.
+```bash
+python -m src.scripts.etl.transform.profile.tests.test_profile_core
+python -m src.scripts.etl.transform.profile.tests.test_profile_features
+python -m src.scripts.etl.transform.profile.tests.test_benchmark
+python -m src.scripts.etl.transform.profile.tests.test_profile_pretransform
+```

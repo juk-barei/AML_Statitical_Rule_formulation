@@ -2,8 +2,10 @@
 
     python -m src.scripts.etl.transform.profile.run_profile --parts local,quality,overlap,features
 
-Feature/benchmark runs are heavy; use --limit-wallets or --benchmark-limit for a
-bounded smoke run. Local-vs-online comparison is not implemented yet.
+Feature/benchmark runs against PostgreSQL are heavy; use --limit-wallets or
+--benchmark-limit for a bounded smoke run. The ``pretransform`` part runs
+full-frame exact DuckDB queries over frozen Parquet snapshots without needing
+a live PostgreSQL instance.
 """
 from __future__ import annotations
 
@@ -16,13 +18,14 @@ from src.scripts.etl.transform.profile import (
     benchmark_queries,
     profile_features,
     profile_local,
+    profile_pretransform,
     profile_quality,
 )
 from src.scripts.etl.transform.profile.adapters import PostgresDataset
 from src.scripts.etl.transform.profile.profile_overlap_local import profile_overlap
 from src.scripts.etl.transform.profile.schema import utc_snapshot_id
 
-AVAILABLE_PARTS = ("local", "quality", "overlap", "features", "benchmarks")
+AVAILABLE_PARTS = ("local", "quality", "overlap", "features", "benchmarks", "pretransform")
 
 
 def _schemas(value: str) -> list[str]:
@@ -41,6 +44,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--benchmark-queries", default="all")
     parser.add_argument("--benchmark-limit", type=int, default=None)
     parser.add_argument("--benchmark-repeat", type=int, default=1)
+    parser.add_argument("--load-dir", default=str(ETL_OUTPUT_DIR / "load"))
     args = parser.parse_args(argv)
 
     requested = AVAILABLE_PARTS if args.parts == "all" else tuple(
@@ -51,6 +55,15 @@ def main(argv: list[str] | None = None) -> int:
         raise ValueError(f"unknown parts: {', '.join(unknown)}; available: {', '.join(AVAILABLE_PARTS)}")
 
     output_dir = Path(args.output_dir)
+    if "pretransform" in requested:
+        paths = profile_pretransform.run_pretransform_profile(
+            load_dir=Path(args.load_dir),
+            output_dir=output_dir,
+        )
+        print(f"[pretransform] {', '.join(str(path) for path in paths.values())}")
+        if requested == ("pretransform",):
+            return 0
+
     snapshot_id = args.snapshot_id or utc_snapshot_id()
     schemas = _schemas(args.schemas)
     engine = get_local_engine()
