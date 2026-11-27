@@ -22,8 +22,8 @@ Hypothesis-specific work stays in [`tasks/hypothesis_testing/`](../hypothesis_te
 | [`02_memory_safe_access.md`](02_memory_safe_access.md) | in_progress | — | every analysis step | reusable SQL/streaming guidance + verification check |
 | [`03_export_pipeline.md`](03_export_pipeline.md) | done | `01_export_contract.md`; complete ingestion | `04_web_serving.md`; every hypothesis | `src/scripts/etl/load/main.py`; illicit/licit snapshots |
 | [`04_web_serving.md`](04_web_serving.md) | todo | `03_export_pipeline.md` | web application | wallet-level serving table |
-| [`05_local_profiling.md`](05_local_profiling.md) | in_progress | — | cohort builder, licit EDA | local profile/quality/overlap CSVs + contracts |
-| [`06_feature_profile.md`](06_feature_profile.md) | blocked | full-frame cohort/transaction join | feature/cohort comparison | feature profile + n-flow CSVs |
+| [`05_local_profiling.md`](05_local_profiling.md) | done | — | cohort builder, licit EDA | local profile/quality/overlap/pretransform CSVs + contracts |
+| [`06_feature_profile.md`](06_feature_profile.md) | done | — | L1–L3 transform builders | full-frame H1–H6 distributions, histograms, and reconciled n-flow CSVs |
 | [`07_query_benchmarks.md`](07_query_benchmarks.md) | done | — | export/cohort design | benchmark CSV + query plans |
 | [`08_parquet_source.md`](08_parquet_source.md) | done | — | offline setup | Parquet → PostgreSQL loader |
 

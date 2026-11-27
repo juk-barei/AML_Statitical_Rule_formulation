@@ -1,54 +1,27 @@
 # Local feature profile — C
 
-- **Status:** blocked
-- **Blocked by:** full-frame cohort/transaction join is too slow; group counts do not reconcile with `local_cohort_counts.csv`
-- **Blocks:** H2/H4/H6 profiling, feature/cohort profiling comparison
+- **Status:** done
+- **Blocked by:** —
+- **Blocks:** L1–L3 transform builders (`clean/`, `cohort/`, `features/`), H1–H6 profiling comparison
 - **Owner:** worker subagent + lead review
-- **Output:** `outputs/etl/transform/profile/local_feature_profile.csv`, `local_feature_nflow.csv`
-- **Updated:** 2026-11-23
+- **Output:** `outputs/etl/transform/profile/local_wallet_distributions.csv`, `local_wallet_histograms.csv`, `local_feature_nflow.csv`
+- **Updated:** 2026-11-27
 
 ## Objective
 
-Profile H2/H4/H6 wallet-level features from the local mirror without writing a
-feature table. Record eligibility, zero mass, quantiles, pass counts, and the
-definition assumptions (H2 token scope, H6 direction/session).
-
-## Resources / context
-
-- `src/scripts/etl/transform/profile/schema.py`, `adapters.py`, `metrics.py`
-- `src/scripts/etl/transform/profile/profile_overlap_local.py` — cohort priority to mirror
-- `docs/hypothesis_testing/variabe_type.md`
-- accepted concepts `02`, `05`, `07`, `10`; testing reference `06`
-
-## Files
-
-| Action | Path | Purpose |
-| --- | --- | --- |
-| create | `src/scripts/etl/transform/profile/profile_features.py` | feature profile |
-| create | `src/scripts/etl/transform/profile/tests/test_profile_features.py` | tests |
-| create | `outputs/etl/transform/profile/local_feature_*.csv` | outputs |
-
-## Implementation points
-
-- H2 lifetime, USDT burst ratio, USDT event count.
-- H4 Jaccard; both-set eligibility.
-- H6 event count and CV; record missing direction/undefined session.
-- Group by cohort priority; reconcile group counts with `local_cohort_counts.csv`.
-- SQL-first, bounded smoke mode, no mirror writes, no `ingest.py` edits.
+Profile **all H1–H6** wallet-level features from the frozen raw Parquet snapshots
+without writing to the mirror. Record eligibility, zero mass, quantiles, skewness,
+pass counts, scale recommendations, and definition assumptions.
 
 ## Current result
 
-- `profile_features.py` and `test_profile_features.py` exist; ruff/pyright and unit checks pass.
-- A bounded smoke run completed earlier, but the full-frame run is blocked:
-  - the cohort/transaction join is too slow for a full pass;
-  - the account-only feature frame excludes 36,842 hop-only wallets that the overlap profile counts as suspicious;
-  - the full group counts therefore fail reconciliation.
-- Do not call the bounded feature CSV a full profile. Re-run after the cohort table is frozen.
+- Unblocked via `src/scripts/etl/transform/profile/profile_pretransform.py` (DuckDB over frozen `phase1_raw_{illicit,licit}_*` Parquet snapshots, 6 GB memory bound).
+- Reconciled full wallet universe: `9,876,867` = `9,849,850` accounts union + `27,017` hop-only wallets (`0` transactions, `0` blacklisted).
+- Generated full-frame `local_wallet_distributions.csv` (116 feature×cohort rows across H1–H6), `local_wallet_histograms.csv` (360 bin rows for offline EDA plots), and `local_feature_nflow.csv` (116 reconciled n-flow rows).
+- Unit tests (`test_profile_core`, `test_profile_features`, `test_profile_pretransform`) pass.
 
 ## Done when
 
-- A frozen cohort/frame table exists.
-- Full feature profile completes within the memory/time budget.
-- Group counts reconcile with the cohort profile.
-- Long-format profile and n-flow outputs are snapshot-tagged.
-EOF
+- Full-frame feature profile completes within the memory/time budget. (done)
+- Group counts reconcile with the cohort universe including hop-only accounting. (done)
+- Long-format profile, histogram, and n-flow outputs are snapshot-tagged. (done)

@@ -1,22 +1,24 @@
 # `etl/transform` — SQL and feature builders
+<!-- Last updated: 2026-11-27 | Edit count: 2 -->
 
-SQL that turns the raw mirror into analysable tables: cleaning, cohort priority, eligibility, and the per-wallet features the hypotheses consume. One `.sql` file per rule set, with a short module wrapper only when a script needs to run it.
+SQL that turns the raw mirror into analysable tables: cleaning, cohort priority, eligibility, and per-wallet features for **all hypotheses (`H1`–`H6`)**. Scope narrows to `H2` / `H4` / `H6` only **after** the transformed database is exported to teammates (for `H1` / `H3` / `H5` and the web application). One `.sql` file per rule set, with a short module wrapper only when a script needs to run it.
 
-Profiling is the first step in this stage, not a separate ETL stage. `profile/` reads the source and mirror, writes `outputs/etl/transform/profile/`, and EDA plots those results. Transformation rules are then written from the profile's findings. See [`profile/README.md`](profile/README.md).
+Profiling is the first step in this stage, not a separate ETL stage. `profile/` reads the source, mirror, and frozen raw Parquet snapshots, writes `outputs/etl/transform/profile/`, and EDA plots those results. Transformation rules are then written from the profile's findings. See [`profile/README.md`](profile/README.md).
 
-Outputs go to `outputs/etl/transform/`; tests for a transform live in `tests/` beside it.
+Outputs mirror the sections under `outputs/etl/transform/{profile,clean,cohort,features}/`; tests for each section live in `<section>/tests/`.
 
 Cohort definitions, hop nesting, and inference constraints are in [`AGENTS.md`](../../../../AGENTS.md). This folder implements them; it does not redefine them.
 
-## What belongs here
+## Sections (Hedgehog layout, L1–L3)
 
-| Concern | Rule to build |
-| --- | --- |
-| Cleaning | documented, versioned rules: null handling, type fixes, deduplication, zero-event rows — stated once, applied to every arm |
-| Cohort priority | `illicit` (blacklist wins at every hop) > `suspicious` (hop 1–5, not blacklisted) > `licit` > `unlabeled` |
-| Eligibility | a stated eligibility rule per response, so undefined responses are resolved by the rule, never dropped silently |
-| H1 / H3 / H5 features | pass-through speed, spraying/funneling, seed proximity — wallet-level aggregates |
-| H2 / H4 / H6 features | wallet-level response features for the shared cohort table |
+| Folder | Layer | Owns |
+| --- | --- | --- |
+| `profile/` | Read-only (L0–L3) | Schema, quality, anomaly, overlap, benchmarks, and stage-to-stage comparisons (`raw → clean → cohort → features`). |
+| `clean/` | **L1** | Cross-schema union, `tx_hash` deduplication, type unification, dropping `hex_address`, and non-destructive row flags (`amount_flag`, `timestamp_flag`) applied identically to every arm. |
+| `cohort/` | **L2** | Materialized 1-row-per-wallet `cohort_wallet` with priority `illicit` (blacklist wins at every hop) > `suspicious` (hop 1–5, not blacklisted) > `licit` > `unlabeled`, nested `min_hop_level`, and seed multiplicity. |
+| `features/` | **L3** | Wallet-grain SQL aggregations, **all `H1`–`H6` feature formulas**, stated eligibility gates (never silently dropping undefined rows), and stateless monotonic transforms (`log1p`). |
+
+**Scaling boundary:** Stateless transforms (`log1p`, ratios) belong in `features/` (L3). Stateful scaling (Z-score standardization, min-max normalization, `RobustScaler`, percentile Winsorization) **must not** live here — fit it exclusively on training splits inside `src/scripts/statistical_learning/` to prevent train/test leakage.
 
 Every transform reports the `wallet_class × filter` n-flow so the number of rows removed is visible at each step.
 
