@@ -1,5 +1,5 @@
 # AGENTS.md — project contract
-<!-- Last updated: 2026-11-26 | Edit count: 4 -->
+<!-- Last updated: 2026-11-27 | Edit count: 5 -->
 
 This file is the short, enforceable contract for agents working in this repo.
 Detailed evidence and decisions live in `docs/context/step_1_profiling_samples.md`.
@@ -53,6 +53,7 @@ Every stall and phase report names the location (directories/files), scope (area
 - **The L0 mirror (`illicit.*`, `licit.*`) is read-only outside `extract/main.py`.** Notebooks and ad-hoc scripts must not `INSERT`, `UPDATE`, `DELETE`, or run DDL against the mirror.
 - **Cleaning is a documented rule, not an eyeball edit.** Express it in transform SQL (as a CTE/view, or materialized view/table in a dedicated transform schema with documented `DROP SCHEMA` cleanup at project end), apply it identically to every arm, and report the n-flow. Never silently drop zero-event or undefined rows.
 - **Export contract:** Parquet is the analysis handoff; CSV only for small manifests/data dictionaries; managed PostgreSQL only for the wallet-level serving table. DuckDB queries Parquet; it does not replace the mirror or the serving database.
+- **Indexing by consumer role:** Keep L0 (`illicit.*`, `licit.*`) unindexed and read-only. In a dedicated local transform schema, create join-key indexes (e.g., `wallet_address` on materialized L1/L2) only when a PostgreSQL transform join needs them and only **after** bulk materialization; Parquet `COPY` export is a sequential scan and does not benefit from B-tree indexes. Analytical consumers (`H1`–`H6`) scan frozen Parquet snapshots without DB indexes; `wallet_serving` in managed PostgreSQL creates `address PRIMARY KEY` after bulk load for concurrent point lookups (plus secondary indexes owned by the web app team).
 - **Freeze before export.** Record snapshot time, source, per-table row counts, exclusions, and a manifest/hash. Never mix mirror, sample, and CSV counts.
 - **Export naming:** the default snapshot id is `phase<N>_<stage>_<schema>_<UTC>`. `N` is the positive integer in `[tool.capstone].phase` in `pyproject.toml`; `stage` is `raw` or `transformed`. `manifest.json` records `snapshot`, `directory`, `phase`, `stage`, and `schema`. Do not hardcode the phase or publish a snapshot without those fields.
 - **Sampling:** sample wallets, never transaction rows. Census small/rare arms; keep all events for selected wallets. Record seed, strata, cluster, and weights.
@@ -66,7 +67,7 @@ Details and code patterns: `src/scripts/etl/README.md`.
 - **Each stage entry point is `main.py`** inside its stage directory, so the folder supplies the context: `extract/main.py`, not `extract/extract.py`; and `load/main.py`, not `load/load.py`. Helper modules keep their own names.
 - **Tests live with the stage they test**, in `<stage>/tests/`: `extract/tests/`, `load/tests/`, and `transform/<module>/tests/`. There is no top-level `etl/tests/`, and no `outputs/etl/tests/`.
 - `outputs/` mirrors those areas: every artifact goes under the area that produces it.
-  - ETL: `outputs/etl/{extract,transform,load}`. Profiling writes to `outputs/etl/transform/profile/`; handoff snapshots live in `outputs/etl/load/phase<N>_<stage>_<schema>_<UTC>/`.
+  - ETL: `outputs/etl/{extract,transform,load}`. Profiling writes stage-scoped outputs to `outputs/etl/transform/profile/{raw,transformed}/` (`raw` baseline vs. post-transform); handoff snapshots live in `outputs/etl/load/phase<N>_<stage>_<schema>_<UTC>/`.
   - EDA: `outputs/eda/{univariate,bivariate,multivariate,profile,additional}`.
   - Hypothesis testing: `outputs/hypothesis_testing/{shared,h2,h4,h6}`.
   - Statistical learning: `outputs/statistical_learning/`.

@@ -1,4 +1,5 @@
 # ETL — extract, transform, load
+<!-- Last updated: 2026-11-27 | Edit count: 2 -->
 
 The data pipeline lives in `src/scripts/etl/`. It has exactly three stages — `extract/`, `transform/`, `load/` — matching the name. Profiling is not a fourth stage; it is a read-only first step inside `transform/`. Every file is written under the matching `outputs/etl/` stage folder.
 
@@ -92,7 +93,7 @@ Before any export, confirm per-table coverage. `load/main.py` reads the newest r
 
 Transform in SQL, not in pandas. SQL lives in `transform/` and covers cleaning, cohort priority, eligibility, and per-wallet features (CTEs, window functions, `GROUP BY wallet_address`). The rule for each clean is documented once in SQL and applied identically to every arm, with the `group × filter` n-flow recorded — see [`transform/README.md`](transform/README.md).
 
-Profiling is the first transform step: `transform/profile/` reads the source and mirror, writes CSVs to `outputs/etl/transform/profile/`, and EDA plots those results. Profiling never writes to the mirror and is not a separate ETL stage.
+Profiling is the first transform step: `transform/profile/` reads the source, mirror, and frozen Parquet snapshots, writes stage-scoped CSVs to `outputs/etl/transform/profile/{raw,transformed}/` (`--stage raw|transformed`), and EDA plots those results. Full-frame stage profiling (`profile_stage.py`) runs DuckDB over frozen Parquet snapshots without mutating PostgreSQL (see [`docs/dev/etl/transform/profile/duckdb-stage-profiling.md`](../../../docs/dev/etl/transform/profile/duckdb-stage-profiling.md)). Profiling never writes to the mirror and is not a separate ETL stage.
 
 Keep results wallet-level or bounded; never return raw event rows to pandas.
 
@@ -190,6 +191,8 @@ wallet_serving(address PK, group, risk_score, rule_flags, min_hop, seed, updated
 ```
 
 Expose it through an API with a read-only role. Do not expose the raw event table or database credentials. If the app must score arbitrary addresses outside the snapshot, that needs a live feature job, not a static export.
+
+**Indexing by consumer role:** Parquet files do not carry PostgreSQL B-tree indexes. Analytical consumers (`H1`–`H6`) scan columnar Parquet directly without DB indexes (sorting by `wallet_class` before export enables Parquet row-group pruning). In the local transform schema, build join-key indexes (`wallet_address` on L1/L2) **after** bulk materialization only when a PostgreSQL join needs them; `COPY` export is a full sequential scan and does not use indexes. In managed PostgreSQL, `wallet_serving` builds `address PRIMARY KEY` **after** bulk load to serve millisecond point lookups (`WHERE address = $1`), and the web app team owns any additional secondary indexes for extra API filter routes.
 
 ## Tests
 
