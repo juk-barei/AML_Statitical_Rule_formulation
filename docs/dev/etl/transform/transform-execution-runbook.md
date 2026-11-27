@@ -1,17 +1,18 @@
 # Transformation Execution, Export & Audit Runbook (Proposal)
-<!-- Created: 2026-11-27 | Last updated: 2026-11-27 | Edit count: 1 -->
+<!-- Created: 2026-11-27 | Last updated: 2026-11-27 | Edit count: 2 -->
 
-Step-by-step runbook for manually reviewing, executing, exporting, and auditing the L1–L3 transformation pipeline without touching L0 raw tables (`illicit.*`, `licit.*`).
+Step-by-step runbook for manually reviewing, executing, exporting, and auditing the L1–L3 transformation pipeline without touching L0 raw tables (`illicit.*`, `licit.*`). All `.sql` files are directly executable in `psql` / DBeaver (no template placeholders).
 
 ## 1. Branch Review & Merge Order
 
 Each phase sits on its own narrow branch for review before merging into `main`:
 
 1. `layhok/general-docs` — decision & forensic validation docs (`docs/context/{transform_phase_recommendations,ingestion_anomaly_validation}.md`)
-2. `layhok/etl-clean` — L1 cleaning (`src/scripts/etl/transform/clean/`)
-3. `layhok/etl-cohort` — L2 cohort priority (`src/scripts/etl/transform/cohort/`)
-4. `layhok/etl-features` — L3 H1–H6 features (`src/scripts/etl/transform/features/`)
-5. `layhok/etl-transform-audit` — stage comparison & execution runbook (`compare_stages.py` + `tasks/etl/`)
+2. `layhok/etl-load` — `default_out_dir()` fix pointing to `outputs/etl/load/` (`src/scripts/etl/load/`)
+3. `layhok/etl-clean` — L1 cleaning (`src/scripts/etl/transform/clean/`)
+4. `layhok/etl-cohort` — L2 cohort priority (`src/scripts/etl/transform/cohort/`)
+5. `layhok/etl-features` — L3 H1–H6 features (`src/scripts/etl/transform/features/`)
+6. `layhok/etl-transform-audit` — verification/cleanup SQL, stage comparator, and execution runbook (`90_verify_transform_counts.sql`, `99_drop_transform_schema.sql`, `compare_stages.py`, `tasks/etl/`)
 
 ## 2. Offline Verification (Zero PostgreSQL Writes)
 
@@ -55,24 +56,24 @@ Expected reconciliation checkpoints:
 - L2 `cohort_wallet`: `9,876,867` total (`17,046` illicit + `3,959,525` suspicious + `5,180,495` licit + `719,801` unlabeled); `0` rows violating `min_hop_level` nesting.
 - L3 `wallet_features`: exact `9,876,867` rows (1-to-1 with `cohort_wallet`).
 
-## 4. Frozen Transformed Export & Stage Audit
+## 4. Verification SQL, Frozen Transformed Export & Stage Audit
 
-> [!NOTE]
-> `src/scripts/etl/load/main.py:501-509` still defaults `--out-dir` to `outputs/etl/export/...`. Pass `--out-dir outputs/etl/load/phase1_transformed_transform_<UTC>` explicitly (and `--allow-partial` because `transform` has no `_etl_progress` bookkeeping table) until `load/main.py` is updated in its own branch.
+Run read-only checkpoint queries in `psql` / DBeaver:
+- `src/scripts/etl/transform/90_verify_transform_counts.sql`
+
+Then freeze and audit the transformed snapshot (`--allow-partial` is required because `transform` has no `_etl_progress` bookkeeping table):
 
 ```bash
-# Dry-run export first
+# Dry-run export first (defaults to outputs/etl/load/phase1_transformed_transform_<UTC>)
 python -m src.scripts.etl.load.main \
   --schema transform --stage transformed \
   --tables clean_transactions,clean_wallet_hops,cohort_wallet,wallet_features \
-  --out-dir outputs/etl/load/phase1_transformed_transform_20261127T000000Z \
   --allow-partial --dry-run
 
 # Export frozen transformed Parquet + manifest + SHA-256
 python -m src.scripts.etl.load.main \
   --schema transform --stage transformed \
   --tables clean_transactions,clean_wallet_hops,cohort_wallet,wallet_features \
-  --out-dir outputs/etl/load/phase1_transformed_transform_20261127T000000Z \
   --allow-partial
 
 # Profile frozen transformed snapshot -> outputs/etl/transform/profile/transformed/
@@ -84,8 +85,5 @@ python -m src.scripts.etl.transform.profile.compare_stages
 
 ## 5. End-of-Project Cleanup & Documentation Freshness
 
-- After the frozen transformed Parquet snapshot is verified and archived, reclaim local PostgreSQL disk space cleanly without touching L0:
-  ```sql
-  DROP SCHEMA IF EXISTS transform CASCADE;
-  ```
+- After the frozen transformed Parquet snapshot is verified and archived, run `src/scripts/etl/transform/99_drop_transform_schema.sql` (`DROP SCHEMA IF EXISTS transform CASCADE;`) to reclaim local PostgreSQL disk space cleanly without touching L0 (`illicit.*`, `licit.*`).
 - Refresh stale pre-ingestion counts in `docs/context/cohort_contract.md`, `docs/context/sampling_evaluation.md`, and `docs/context/glossary.md` once the transformed snapshot is frozen.
