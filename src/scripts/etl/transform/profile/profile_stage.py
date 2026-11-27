@@ -1,13 +1,15 @@
-"""Full-frame pre-transform profile over frozen Parquet snapshots via DuckDB.
+"""Full-frame stage profile (raw or transformed) over frozen Parquet snapshots via DuckDB.
 
-Read-only against the frozen raw Parquet handoff snapshots under
-``outputs/etl/load/phase1_raw_{illicit,licit}_*``. Produces compact,
-self-contained CSV outputs covering L1 cleaning anomalies, L2 sampling-frame
-compatibility, L3 wallet-level H1-H6 feature distributions, histograms, and
-reconciled n-flow tables so downstream EDA and transform validation can run
-offline without a live PostgreSQL instance.
+Read-only against frozen Parquet handoff snapshots under
+``outputs/etl/load/phase*_{raw,transformed}_*``. Produces compact,
+self-contained CSV outputs under ``outputs/etl/transform/profile/<stage>/``
+covering L1 cleaning anomalies, L2 sampling-frame compatibility, L3 wallet-level
+H1-H6 feature distributions, histograms, and reconciled n-flow tables so
+downstream EDA and raw-vs-transformed comparisons can run offline without a
+live PostgreSQL instance.
 
-    python -m src.scripts.etl.transform.profile.profile_pretransform
+    python -m src.scripts.etl.transform.profile.profile_stage --stage raw
+    python -m src.scripts.etl.transform.profile.profile_stage --stage transformed
 """
 from __future__ import annotations
 
@@ -23,6 +25,7 @@ import duckdb
 import pandas as pd
 
 from src.scripts.config import ETL_OUTPUT_DIR, PROFILING_OUTPUT_DIR
+from src.scripts.etl.transform.profile.schema import VALID_STAGES, stage_output_dir
 
 # Physical upper ceilings for L1 amount validation (documented snapshot constants).
 USDT_SUPPLY_CEILING = 94_248_192_941.363764  # Tronscan TRON USDT total supply (2026-11-10)
@@ -138,12 +141,21 @@ def recommend_scale(
     return "raw_or_train_only_standard_scaler"
 
 
-def _latest_snapshot_dir(load_dir: Path, schema: str) -> Path:
+def _latest_snapshot_dir(load_dir: Path, schema: str, stage: str = "raw") -> Path:
     candidates = sorted(
-        path for path in load_dir.glob(f"phase*_raw_{schema}_*") if path.is_dir()
+        path for path in load_dir.glob(f"phase*_{stage}_{schema}_*") if path.is_dir()
     )
     if not candidates:
-        raise FileNotFoundError(f"no raw snapshot found for {schema} in {load_dir}")
+        raise FileNotFoundError(f"no {stage} snapshot found for {schema} in {load_dir}")
+    return candidates[-1]
+
+
+def _latest_transformed_snapshot_dir(load_dir: Path) -> Path:
+    candidates = sorted(
+        path for path in load_dir.glob("phase*_transformed_*") if path.is_dir()
+    )
+    if not candidates:
+        raise FileNotFoundError(f"no transformed snapshot found in {load_dir}")
     return candidates[-1]
 
 
@@ -1228,29 +1240,239 @@ def _summarize_wallet_distributions(
     return pd.DataFrame(dist_rows), pd.DataFrame(nflow_rows), pd.DataFrame(hist_rows)
 
 
-def run_pretransform_profile(
+def _run_transformed_stage_profile(
+    *,
+    load_dir: Path,
+    stage_dir: Path,
+    memory_limit: str,
+    temp_dir: Path,
+    refresh_columns: bool,
+) -> dict[str, Path]:
+    """Profile a frozen transformed snapshot using the same CSV schemas as raw."""
+    snap_dir = _latest_transformed_snapshot_dir(load_dir)
+    manifest = _load_manifest(snap_dir)
+    snapshot_id = str(manifest["snapshot"])
+    schema_name = str(manifest.get("schema", "transformed"))
+    is_partial = bool(manifest.get("partial", False))
+    tables_meta: dict[str, Any] = manifest.get("tables", {})
+
+    con = _connect_duckdb(memory_limit, temp_dir)
+    written: dict[str, Path] = {}
+    try:
+        table_views: dict[str, str] = {}
+        for table_name in tables_meta:
+            view_name = f"t_{table_name}"
+            parquet_path = _table_parquet(snap_dir, manifest, table_name).replace("'", "''")
+            con.execute(
+                f"CREATE OR REPLACE VIEW {view_name} AS SELECT * FROM read_parquet('{parquet_path}')"
+            )
+            table_views[table_name] = view_name
+
+        if refresh_columns and table_views:
+            print(f"[stage:transformed] refreshing exact column null profiles ({schema_name})...", flush=True)
+            written["columns"] = _refresh_exact_columns(
+                con, schema_name, table_views, snapshot_id, is_partial, stage_dir
+            )
+
+        if "wallet_features" in table_views:
+            # Summarize only the FEATURE_SPECS columns actually present in wallet_features.
+            available_cols = {
+                row[0]
+                for row in con.execute("DESCRIBE SELECT * FROM t_wallet_features").fetchall()
+            }
+            if "wallet_class" in available_cols:
+                con.execute("CREATE OR REPLACE TEMP VIEW wallet_profile AS SELECT * FROM t_wallet_features")
+                cohort_totals = {
+                    str(wc): int(cnt)
+                    for wc, cnt in con.execute(
+                        "SELECT wallet_class, COUNT(*) FROM wallet_profile GROUP BY wallet_class"
+                    ).fetchall()
+                }
+                present_specs = tuple(spec for spec in FEATURE_SPECS if spec[0] in available_cols)
+                dist_rows: list[dict[str, Any]] = []
+                nflow_rows: list[dict[str, Any]] = []
+                for col, hyp, is_disc, elig_filter, assumption in present_specs:
+                    query = f"""
+                        SELECT wallet_class,
+                               COUNT({col}) AS n_eligible,
+                               COUNT(*) - COUNT({col}) AS missing,
+                               AVG(CASE WHEN {col} = 0 THEN 1.0 ELSE 0.0 END) FILTER (WHERE {col} IS NOT NULL) AS zero_share,
+                               AVG({col}) AS mean_v,
+                               STDDEV_SAMP({col}) AS std_v,
+                               SKEWNESS({col}) AS skew_v,
+                               MIN({col}) AS min_v,
+                               quantile_cont({col}, 0.01) AS p01,
+                               quantile_cont({col}, 0.10) AS p10,
+                               quantile_cont({col}, 0.25) AS p25,
+                               quantile_cont({col}, 0.50) AS p50,
+                               quantile_cont({col}, 0.75) AS p75,
+                               quantile_cont({col}, 0.90) AS p90,
+                               quantile_cont({col}, 0.95) AS p95,
+                               quantile_cont({col}, 0.99) AS p99,
+                               quantile_cont({col}, 0.999) AS p999,
+                               MAX({col}) AS max_v,
+                               SUM(CASE WHEN {col} = 1.0 THEN 1 ELSE 0 END) FILTER (WHERE {col} IS NOT NULL) AS pass_count
+                        FROM wallet_profile
+                        GROUP BY wallet_class
+                    """
+                    by_class = {str(r[0]): r for r in con.execute(query).fetchall()}
+                    for wc in COHORT_ORDER:
+                        n_cohort = cohort_totals.get(wc, 0)
+                        r = by_class.get(wc)
+                        n_elig = int(r[1]) if r else 0
+                        missing = int(r[2]) if r else n_cohort
+                        zero_share = float(r[3]) if r and r[3] is not None else None
+                        mean_v = float(r[4]) if r and r[4] is not None else None
+                        std_v = float(r[5]) if r and r[5] is not None else None
+                        skew_v = float(r[6]) if r and r[6] is not None and not math.isnan(float(r[6])) else None
+                        min_v = float(r[7]) if r and r[7] is not None else None
+                        qs = [float(r[i]) if r and r[i] is not None else None for i in range(8, 17)]
+                        max_v = float(r[17]) if r and r[17] is not None else None
+                        p50, p99 = qs[3], qs[7]
+                        p99_p50 = (p99 / p50) if (p50 is not None and p50 > 0 and p99 is not None) else None
+                        pass_count = int(r[18]) if (is_disc and col.startswith(("h1_", "h2_", "h4_", "h6_")) and r and r[18] is not None) else None
+                        pass_share = (pass_count / n_elig) if (pass_count is not None and n_elig > 0) else None
+                        dist_rows.append(
+                            {
+                                "wallet_class": wc,
+                                "hypothesis": hyp,
+                                "feature": col,
+                                "n_cohort": n_cohort,
+                                "n_eligible": n_elig,
+                                "eligible_share": (n_elig / n_cohort) if n_cohort else 0.0,
+                                "missing": missing,
+                                "zero_share": zero_share,
+                                "mean": mean_v,
+                                "stddev": std_v,
+                                "skewness": skew_v,
+                                "min": min_v,
+                                "p01": qs[0],
+                                "p10": qs[1],
+                                "p25": qs[2],
+                                "p50": p50,
+                                "p75": qs[4],
+                                "p90": qs[5],
+                                "p95": qs[6],
+                                "p99": p99,
+                                "p999": qs[8],
+                                "max": max_v,
+                                "p99_p50_ratio": p99_p50,
+                                "pass_count": pass_count,
+                                "pass_share": pass_share,
+                                "recommended_scale": recommend_scale(
+                                    min_value=min_v,
+                                    max_value=max_v,
+                                    skewness=skew_v,
+                                    p50=p50,
+                                    p99=p99,
+                                    zero_share=zero_share,
+                                    is_discrete=is_disc,
+                                ),
+                                "assumption": assumption,
+                                "snapshot_at": snapshot_id,
+                                "is_partial": is_partial,
+                            }
+                        )
+                        nflow_rows.append(
+                            {
+                                "wallet_class": wc,
+                                "hypothesis": hyp,
+                                "feature": col,
+                                "filter": elig_filter,
+                                "n_in": n_cohort,
+                                "n_out": n_elig,
+                                "n_dropped": n_cohort - n_elig,
+                                "retained_share": (n_elig / n_cohort) if n_cohort else 0.0,
+                                "reason": assumption,
+                                "snapshot_at": snapshot_id,
+                                "is_partial": is_partial,
+                            }
+                        )
+                written["distributions"] = stage_dir / "local_wallet_distributions.csv"
+                written["feature_nflow"] = stage_dir / "local_feature_nflow.csv"
+                pd.DataFrame(dist_rows).to_csv(written["distributions"], index=False)
+                pd.DataFrame(nflow_rows).to_csv(written["feature_nflow"], index=False)
+
+                hist_rows: list[dict[str, Any]] = []
+                for col, scale_label, edges in HISTOGRAM_SPECS:
+                    if col not in available_cols:
+                        continue
+                    case_clauses = [
+                        f"WHEN {col} >= {edges[i]} AND {col} < {edges[i + 1]} THEN {i}"
+                        for i in range(len(edges) - 1)
+                    ]
+                    case_sql = f"CASE {' '.join(case_clauses)} ELSE {len(edges) - 1} END"
+                    bins = con.execute(
+                        f"SELECT wallet_class, {case_sql} AS bin_idx, COUNT(*) AS n "
+                        f"FROM wallet_profile WHERE {col} IS NOT NULL GROUP BY 1, 2 ORDER BY 1, 2"
+                    ).fetchall()
+                    bin_map = {(str(wc), int(bidx)): int(cnt) for wc, bidx, cnt in bins}
+                    elig_by_wc = {
+                        str(wc): sum(cnt for (w, _), cnt in bin_map.items() if w == wc)
+                        for wc in COHORT_ORDER
+                    }
+                    for wc in COHORT_ORDER:
+                        denom = elig_by_wc[wc]
+                        for idx in range(len(edges) - 1):
+                            cnt = bin_map.get((wc, idx), 0)
+                            hist_rows.append(
+                                {
+                                    "wallet_class": wc,
+                                    "feature": col,
+                                    "scale": scale_label,
+                                    "bin_index": idx,
+                                    "bin_low": edges[idx],
+                                    "bin_high": edges[idx + 1],
+                                    "count": cnt,
+                                    "share": (cnt / denom) if denom else 0.0,
+                                    "denominator": denom,
+                                    "snapshot_at": snapshot_id,
+                                    "is_partial": is_partial,
+                                }
+                            )
+                written["histograms"] = stage_dir / "local_wallet_histograms.csv"
+                pd.DataFrame(hist_rows).to_csv(written["histograms"], index=False)
+    finally:
+        con.close()
+        shutil.rmtree(temp_dir, ignore_errors=True)
+    return written
+
+
+def run_stage_profile(
     *,
     load_dir: Path,
     output_dir: Path,
+    stage: str = "raw",
     memory_limit: str = "6GB",
-    temp_dir: Path = Path("/tmp/duckdb_pretransform_profile"),
+    temp_dir: Path = Path("/tmp/duckdb_stage_profile"),
     refresh_columns: bool = True,
 ) -> dict[str, Path]:
-    illicit_dir = _latest_snapshot_dir(load_dir, "illicit")
-    licit_dir = _latest_snapshot_dir(load_dir, "licit")
+    """Run full-frame DuckDB profiling for either ``raw`` or ``transformed`` snapshots."""
+    stage_dir = stage_output_dir(output_dir, stage)
+    stage_dir.mkdir(parents=True, exist_ok=True)
+    if stage == "transformed":
+        return _run_transformed_stage_profile(
+            load_dir=load_dir,
+            stage_dir=stage_dir,
+            memory_limit=memory_limit,
+            temp_dir=temp_dir,
+            refresh_columns=refresh_columns,
+        )
+
+    illicit_dir = _latest_snapshot_dir(load_dir, "illicit", stage="raw")
+    licit_dir = _latest_snapshot_dir(load_dir, "licit", stage="raw")
     illicit_manifest = _load_manifest(illicit_dir)
     licit_manifest = _load_manifest(licit_dir)
     snapshot_id = f"{illicit_manifest['snapshot']}+{licit_manifest['snapshot']}"
     is_partial = bool(illicit_manifest.get("partial") or licit_manifest.get("partial"))
 
-    output_dir.mkdir(parents=True, exist_ok=True)
     con = _connect_duckdb(memory_limit, temp_dir)
     written: dict[str, Path] = {}
     try:
         _create_source_views(con, illicit_dir, illicit_manifest, licit_dir, licit_manifest)
 
         if refresh_columns:
-            print("[pretransform] refreshing exact column null profiles...", flush=True)
+            print("[stage:raw] refreshing exact column null profiles...", flush=True)
             written["illicit_columns"] = _refresh_exact_columns(
                 con,
                 "illicit",
@@ -1262,7 +1484,7 @@ def run_pretransform_profile(
                 },
                 snapshot_id,
                 is_partial,
-                output_dir,
+                stage_dir,
             )
             written["licit_columns"] = _refresh_exact_columns(
                 con,
@@ -1275,28 +1497,28 @@ def run_pretransform_profile(
                 },
                 snapshot_id,
                 is_partial,
-                output_dir,
+                stage_dir,
             )
 
-        print("[pretransform] profiling L1 cleaning & anomaly rules...", flush=True)
+        print("[stage:raw] profiling L1 cleaning & anomaly rules...", flush=True)
         cleaning_df = _build_cleaning_profile(con, snapshot_id, is_partial)
-        written["cleaning"] = output_dir / "local_pretransform_cleaning.csv"
+        written["cleaning"] = stage_dir / "local_pretransform_cleaning.csv"
         cleaning_df.to_csv(written["cleaning"], index=False)
 
-        print("[pretransform] materializing session-local L1/L2 views in DuckDB...", flush=True)
+        print("[stage:raw] materializing session-local L1/L2 views in DuckDB...", flush=True)
         _materialize_cohort_and_clean_tx(con)
 
-        print("[pretransform] profiling L2 sampling frame & multiplicity...", flush=True)
+        print("[stage:raw] profiling L2 sampling frame & multiplicity...", flush=True)
         frame_df = _build_sampling_frame_profile(con, snapshot_id, is_partial)
-        written["sampling_frame"] = output_dir / "local_sampling_frame.csv"
+        written["sampling_frame"] = stage_dir / "local_sampling_frame.csv"
         frame_df.to_csv(written["sampling_frame"], index=False)
 
-        print("[pretransform] computing full-frame L3 H1-H6 wallet distributions...", flush=True)
+        print("[stage:raw] computing full-frame L3 H1-H6 wallet distributions...", flush=True)
         _materialize_wallet_features(con)
         dist_df, nflow_df, hist_df = _summarize_wallet_distributions(con, snapshot_id, is_partial)
-        written["distributions"] = output_dir / "local_wallet_distributions.csv"
-        written["feature_nflow"] = output_dir / "local_feature_nflow.csv"
-        written["histograms"] = output_dir / "local_wallet_histograms.csv"
+        written["distributions"] = stage_dir / "local_wallet_distributions.csv"
+        written["feature_nflow"] = stage_dir / "local_feature_nflow.csv"
+        written["histograms"] = stage_dir / "local_wallet_histograms.csv"
         dist_df.to_csv(written["distributions"], index=False)
         nflow_df.to_csv(written["feature_nflow"], index=False)
         hist_df.to_csv(written["histograms"], index=False)
@@ -1308,19 +1530,21 @@ def run_pretransform_profile(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--stage", choices=VALID_STAGES, default="raw")
     parser.add_argument("--load-dir", default=str(ETL_OUTPUT_DIR / "load"))
     parser.add_argument("--output-dir", default=str(PROFILING_OUTPUT_DIR))
     parser.add_argument("--memory-limit", default="6GB")
     parser.add_argument("--skip-columns-refresh", action="store_true")
     args = parser.parse_args(argv)
-    paths = run_pretransform_profile(
+    paths = run_stage_profile(
         load_dir=Path(args.load_dir),
         output_dir=Path(args.output_dir),
+        stage=args.stage,
         memory_limit=args.memory_limit,
         refresh_columns=not args.skip_columns_refresh,
     )
     for name, path in paths.items():
-        print(f"[pretransform:{name}] {path}")
+        print(f"[stage:{args.stage}:{name}] {path}")
     return 0
 
 

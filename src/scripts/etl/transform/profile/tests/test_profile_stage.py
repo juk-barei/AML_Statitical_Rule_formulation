@@ -1,25 +1,46 @@
-"""Assert-based checks for pre-transform profiling rules and DuckDB SQL logic."""
+"""Assert-based checks for stage profiling rules, stage routing, and DuckDB SQL logic."""
 from __future__ import annotations
 
+import json
+import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
-import tempfile
 
 import duckdb
+import pandas as pd
 
-from src.scripts.etl.transform.profile.profile_pretransform import (
+from src.scripts.etl.transform.profile.profile_stage import (
     TRX_SUPPLY_CEILING,
     USDT_SUPPLY_CEILING,
+    _amount_flag_sql,
+    _refresh_exact_columns,
     classify_amount_flag,
     classify_timestamp_flag,
     recommend_scale,
-    _amount_flag_sql,
+    run_stage_profile,
 )
+from src.scripts.etl.transform.profile.schema import stage_output_dir
 
 
 def check(condition: bool, message: str) -> None:
     if not condition:
         raise AssertionError(message)
+
+
+def test_stage_output_dir() -> None:
+    base = Path("/tmp/profile")
+    check(stage_output_dir(base, "raw") == Path("/tmp/profile/raw"), "append raw")
+    check(stage_output_dir(base, "transformed") == Path("/tmp/profile/transformed"), "append transformed")
+    check(stage_output_dir(base / "raw", "raw") == Path("/tmp/profile/raw"), "no double raw/raw")
+    check(
+        stage_output_dir(base / "transformed", "transformed") == Path("/tmp/profile/transformed"),
+        "no double transformed/transformed",
+    )
+    try:
+        stage_output_dir(base, "invalid")
+    except ValueError:
+        return
+    raise AssertionError("invalid stage must raise ValueError")
 
 
 def test_amount_flag_priority() -> None:
@@ -96,8 +117,6 @@ def test_sql_amount_flag_matches_python() -> None:
 
 def test_duckdb_fixture_null_free() -> None:
     """Verify exact Parquet column profiling never produces negative nulls."""
-    from src.scripts.etl.transform.profile.profile_pretransform import _refresh_exact_columns
-
     with tempfile.TemporaryDirectory() as tmp:
         out_dir = Path(tmp)
         con = duckdb.connect()
@@ -120,9 +139,60 @@ def test_duckdb_fixture_null_free() -> None:
             con.close()
 
 
+def test_transformed_stage_fixture() -> None:
+    """Verify --stage transformed writes matching CSV schemas into output_dir/transformed/."""
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        load_dir = root / "load"
+        snap_dir = load_dir / "phase1_transformed_unified_20261127T000000Z"
+        snap_dir.mkdir(parents=True)
+        out_dir = root / "profile_out"
+
+        wf_path = snap_dir / "wallet_features.parquet"
+        con = duckdb.connect()
+        try:
+            con.execute(
+                f"""
+                COPY (
+                    SELECT * FROM (VALUES
+                        ('T1', 'illicit', 10.0, LN(11.0), 0.8),
+                        ('T2', 'illicit', 2.0, LN(3.0), 0.9),
+                        ('T3', 'licit', 20.0, LN(21.0), 0.2),
+                        ('T4', 'licit', NULL::DOUBLE, NULL::DOUBLE, NULL::DOUBLE)
+                    ) AS t(wallet_address, wallet_class, tx_lifetime_days, log1p_tx_lifetime_days, burst_ratio_usdt)
+                ) TO '{wf_path}' (FORMAT PARQUET)
+                """
+            )
+        finally:
+            con.close()
+
+        manifest = {
+            "snapshot": "phase1_transformed_unified_20261127T000000Z",
+            "stage": "transformed",
+            "schema": "transformed",
+            "partial": False,
+            "tables": {"wallet_features": {"file": "wallet_features.parquet"}},
+        }
+        (snap_dir / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+        written = run_stage_profile(
+            load_dir=load_dir,
+            output_dir=out_dir,
+            stage="transformed",
+            temp_dir=root / "duck_tmp",
+        )
+        check(written["distributions"].parent == out_dir / "transformed", "writes inside transformed/")
+        dist = pd.read_csv(written["distributions"])
+        nflow = pd.read_csv(written["feature_nflow"])
+        check(len(dist) > 0 and set(dist["feature"]) == {"tx_lifetime_days", "log1p_tx_lifetime_days", "burst_ratio_usdt"}, "present features only")
+        check((nflow["n_in"] - nflow["n_out"] == nflow["n_dropped"]).all(), "nflow arithmetic")
+
+
+test_stage_output_dir()
 test_amount_flag_priority()
 test_timestamp_flag()
 test_recommend_scale()
 test_sql_amount_flag_matches_python()
 test_duckdb_fixture_null_free()
-print("profile pretransform checks passed")
+test_transformed_stage_fixture()
+print("profile stage checks passed")

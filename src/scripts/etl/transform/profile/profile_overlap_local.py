@@ -19,7 +19,7 @@ from sqlalchemy.sql import Select
 from src.scripts.config import PROFILING_OUTPUT_DIR
 from src.scripts.etl.db import get_local_engine, validate_schema_name
 from src.scripts.etl.transform.profile.adapters import PostgresDataset
-from src.scripts.etl.transform.profile.schema import utc_snapshot_id
+from src.scripts.etl.transform.profile.schema import VALID_STAGES, stage_output_dir, utc_snapshot_id
 
 MIN_HOP = 1
 MAX_HOP = 5
@@ -321,6 +321,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--illicit-schema", default="illicit")
     parser.add_argument("--licit-schema", default="licit")
+    parser.add_argument("--stage", choices=VALID_STAGES, default="raw")
     parser.add_argument("--output-dir", default=str(PROFILING_OUTPUT_DIR))
     parser.add_argument("--snapshot-id", default="")
     args = parser.parse_args(argv)
@@ -337,7 +338,9 @@ def main(argv: list[str] | None = None) -> int:
             schema=validate_schema_name(args.licit_schema),
             snapshot_id=snapshot_id,
         )
-        paths = profile_overlap(illicit, licit, Path(args.output_dir))
+        paths = profile_overlap(
+            illicit, licit, stage_output_dir(Path(args.output_dir), args.stage)
+        )
         print(f"wrote {', '.join(str(path) for path in paths.values())}")
     finally:
         engine.dispose()

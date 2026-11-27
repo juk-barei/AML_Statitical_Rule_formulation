@@ -17,7 +17,7 @@ from sqlalchemy import MetaData, Table, func, inspect, select, tablesample
 from src.scripts.config import PROFILING_OUTPUT_DIR
 from src.scripts.etl.db import get_local_engine, validate_schema_name
 from src.scripts.etl.transform.profile.adapters import PostgresDataset, table_coverage
-from src.scripts.etl.transform.profile.schema import utc_snapshot_id
+from src.scripts.etl.transform.profile.schema import VALID_STAGES, stage_output_dir, utc_snapshot_id
 
 SAMPLE_THRESHOLD_ROWS = 100_000
 KEY_COLUMNS = {
@@ -248,6 +248,7 @@ def profile_schema(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--schemas", default="illicit,licit")
+    parser.add_argument("--stage", choices=VALID_STAGES, default="raw")
     parser.add_argument("--output-dir", default=str(PROFILING_OUTPUT_DIR))
     parser.add_argument("--mode", choices=("quick", "full"), default="quick")
     parser.add_argument("--sample-percent", type=float, default=2.0)
@@ -255,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     engine = get_local_engine()
     snapshot_id = args.snapshot_id or utc_snapshot_id()
-    output_dir = Path(args.output_dir)
+    output_dir = stage_output_dir(Path(args.output_dir), args.stage)
     try:
         for schema in [s.strip() for s in args.schemas.split(",") if s.strip()]:
             dataset = PostgresDataset(
