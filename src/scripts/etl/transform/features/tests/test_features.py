@@ -58,6 +58,7 @@ def test_sql_guardrails() -> None:
         assert "hex_address" not in no_comments
         assert "fee_trx" not in no_comments
         assert "illicit." not in no_comments and "licit." not in no_comments
+        assert "{" not in no_comments and "}" not in no_comments
 
 
 def test_sql_fixture_parity_in_memory_duckdb() -> None:

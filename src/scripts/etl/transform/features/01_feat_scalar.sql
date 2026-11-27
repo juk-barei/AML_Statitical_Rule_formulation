@@ -2,8 +2,8 @@
 -- L3 Step 1: Scalar wallet counts, volumes, H2 tx_lifetime_days, H3 amount_cv_usdt,
 --            and dust / 4444.444444 TRX sensitivity metrics.
 --
--- Source (L1):  {transform_schema}.clean_transactions
--- Target (stg): {transform_schema}._stg_feat_scalar
+-- Source (L1):  transform.clean_transactions
+-- Target (stg): transform._stg_feat_scalar
 --
 -- Rules enforced:
 --   - Uses ONLY L1 clean_transactions (never touches L0 raw tables).
@@ -12,9 +12,9 @@
 --   - Uses NULLIF(..., 0) for divide-by-zero protection (10-sql-rules.md Rule 8).
 -- =============================================================================
 
-DROP TABLE IF EXISTS {transform_schema}._stg_feat_scalar;
+DROP TABLE IF EXISTS transform._stg_feat_scalar;
 
-CREATE TABLE {transform_schema}._stg_feat_scalar AS
+CREATE TABLE transform._stg_feat_scalar AS
 WITH wallet_events AS (
     SELECT
         from_address AS wallet_address,
@@ -26,7 +26,7 @@ WITH wallet_events AS (
         is_trx_4444_artifact,
         is_valid_for_features,
         (timestamp_flag = 'ok' AND amount_flag = 'zero') AS is_clean_zero
-    FROM {transform_schema}.clean_transactions
+    FROM transform.clean_transactions
     WHERE timestamp_flag = 'ok'
       AND (is_valid_for_features OR amount_flag = 'zero')
     UNION ALL
@@ -40,7 +40,7 @@ WITH wallet_events AS (
         is_trx_4444_artifact,
         is_valid_for_features,
         (timestamp_flag = 'ok' AND amount_flag = 'zero') AS is_clean_zero
-    FROM {transform_schema}.clean_transactions
+    FROM transform.clean_transactions
     WHERE timestamp_flag = 'ok'
       AND (is_valid_for_features OR amount_flag = 'zero')
 )
