@@ -14,6 +14,7 @@ VALID_EDA_STAGES: tuple[str, ...] = (*VALID_STAGES, "compare")
 PROFILE_FILES: dict[str, str] = {
     "illicit_db_overview": "local_illicit_db_overview.csv",
     "licit_db_overview": "local_licit_db_overview.csv",
+    "transform_db_overview": "local_transform_db_overview.csv",
     "illicit_coverage": "local_illicit_coverage.csv",
     "licit_coverage": "local_licit_coverage.csv",
     "illicit_columns": "local_illicit_columns.csv",
@@ -151,11 +152,22 @@ def load_profile_bundle(
 
 
 def _snapshot_phase_token(snapshot_str: str) -> str:
-    """Extract phase prefix (e.g. 'phase1') across composite snapshot labels if present."""
+    """Extract a unique phase prefix (e.g. 'phase1') across composite snapshot strings.
+
+    Returns the single phase token when all phase-prefixed tokens agree, an empty
+    string when conflicting phases are mixed, or the first token when no phase
+    prefix is present.
+    """
     parts = [p.strip() for chunk in snapshot_str.split(";") for p in chunk.split("+") if p.strip()]
-    for part in parts:
-        if part.startswith("phase") and "_" in part:
-            return part.split("_", 1)[0]
+    phase_tokens = {
+        p.split("_", 1)[0]
+        for p in parts
+        if p.startswith("phase") and "_" in p
+    }
+    if len(phase_tokens) == 1:
+        return next(iter(phase_tokens))
+    if len(phase_tokens) > 1:
+        return ""
     return parts[0] if parts else snapshot_str.strip()
 
 

@@ -1,6 +1,6 @@
 {
   "stage": "raw",
-  "generated_at_utc": "2026-11-27T13:29:31Z",
+  "generated_at_utc": "2026-11-28T13:53:03Z",
   "source_dir": "/home/annoy/projects/team/capstone-1/dev/data_analysis/outputs/etl/transform/profile/raw",
   "snapshot_at": "2026-11-23T03:10:00Z ; phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z",
   "is_partial": false,
@@ -24,7 +24,10 @@
     "wallet_distributions",
     "wallet_histograms"
   ],
-  "missing_tables": [],
+  "missing_tables": [
+    "transform_columns",
+    "transform_db_overview"
+  ],
   "generated": [
     {
       "group": "schema",
@@ -78,7 +81,7 @@
       "group": "features",
       "figure": "09_feature_skew_zero_tail.png",
       "table": "09_feature_skew_zero_tail.csv",
-      "summary_rows": 88
+      "summary_rows": 92
     },
     {
       "group": "features",

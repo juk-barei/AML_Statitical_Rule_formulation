@@ -44,6 +44,8 @@ SCHEMA_COLORS: Mapping[str, str] = {
     "illicit": "#C83E2B",
     "licit": "#1F6F8B",
     "both": "#5B4B8A",
+    "transform": "#2E7D6F",
+    "transformed": "#2E7D6F",
 }
 
 TOKEN_COLORS: Mapping[str, str] = {

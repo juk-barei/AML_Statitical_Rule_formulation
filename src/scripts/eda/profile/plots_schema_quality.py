@@ -35,7 +35,7 @@ def plot_table_overview_coverage(
     apply_theme()
     frames = [
         bundle.get(k)
-        for k in ("illicit_db_overview", "licit_db_overview")
+        for k in ("illicit_db_overview", "licit_db_overview", "transform_db_overview")
         if bundle.has(k)
     ]
     if not frames:
@@ -116,12 +116,19 @@ def plot_table_overview_coverage(
     ax.grid(axis="y", visible=False)
     ax.legend(loc="lower right", title="Database schema", frameon=True)
 
-    snap, is_partial = bundle.snapshot_for("illicit_db_overview", "licit_db_overview")
+    snap, is_partial = bundle.snapshot_for(
+        "illicit_db_overview", "licit_db_overview", "transform_db_overview"
+    )
     total_rows = int(df["rows"].sum())
+    title_str = (
+        "01. Transformed Table Volume & Coverage"
+        if schemas == ["transform"]
+        else "01. Mirror Table Volume & Ingestion Coverage"
+    )
     stamp_figure(
         fig,
-        title="01. Mirror Table Volume & Ingestion Coverage",
-        subtitle="Exact row counts per table across illicit and licit schemas; non-complete statuses flagged in amber.",
+        title=title_str,
+        subtitle="Exact row counts per table across profiled schemas; non-complete statuses flagged in amber.",
         stage=bundle.stage,
         snapshot_at=snap,
         denominator_text=f"Total rows across profiled tables: {total_rows:,}",
@@ -269,7 +276,7 @@ def plot_quality_and_cleaning_anomalies(
         raise ValueError("Neither quality nor pretransform_cleaning is available in profile bundle.")
 
     n_panels = int(has_q) + int(has_c)
-    fig, axes = plt.subplots(1, n_panels, figsize=(7.2 * n_panels, 6.8))
+    fig, axes = plt.subplots(1, n_panels, figsize=(11.2 if n_panels == 1 else 7.2 * n_panels, 6.8))
     axes_arr = np.atleast_1d(axes)
     panel_idx = 0
     summary_parts: list[pd.DataFrame] = []
@@ -366,7 +373,9 @@ def plot_quality_and_cleaning_anomalies(
         ax.set_yticks(y)
         ax.set_yticklabels(anom["label"], fontsize=8.1)
         ax.set_xlabel("Flagged transaction rows (log10 scale)")
-        ax.set_title("B. L1 Pre-Transform Cleaning Flags (non-ok rows)", loc="left")
+        panel_prefix = "B. " if has_q else ""
+        stage_label = "Post-L1 Valid-Row" if bundle.stage == "transformed" else "L1 Pre-Transform"
+        ax.set_title(f"{panel_prefix}{stage_label} Cleaning Flags (non-ok rows)", loc="left")
         ax.grid(axis="y", visible=False)
         ax.legend(
             handles=[

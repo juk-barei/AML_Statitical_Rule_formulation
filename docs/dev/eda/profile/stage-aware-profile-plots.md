@@ -1,5 +1,5 @@
 # Stage-Aware EDA Profile Plotting Mechanism
-<!-- Last updated: 2026-11-27 | Edit count: 1 -->
+<!-- Last updated: 2026-11-28 | Edit count: 2 -->
 
 Explains how `src/scripts/eda/profile/` renders reproducible profiling figures
 across `raw`, `transformed`, and `compare` stages without reading raw mirror
@@ -28,19 +28,23 @@ outputs/etl/transform/profile/
                                  └─▶ --stage compare     ─▶ outputs/eda/profile/compare/12_*.{png,csv} + manifest.json
 ```
 
-### Graceful degradation on `transformed`
+### Schema routing & graceful degradation on `transformed`
 
-The `raw` stage contains both PostgreSQL mirror audits (`local_illicit_db_overview.csv`,
-`local_quality.csv`, `local_nflow.csv`) and DuckDB Parquet stage profiles
+The `raw` stage consumes `illicit`/`licit` mirror audits (`local_{illicit,licit}_{db_overview,columns}.csv`,
+`local_quality.csv`, `local_nflow.csv`) plus DuckDB stage profiles
 (`local_wallet_distributions.csv`, `local_wallet_histograms.csv`,
 `local_sampling_frame.csv`, `local_pretransform_cleaning.csv`). When
 `profile_stage.py --stage transformed` runs over frozen transformed Parquet
-snapshots, mirror-only CSVs may not exist.
+snapshots, it emits `local_transform_{db_overview,columns}.csv` alongside
+post-L1 `local_pretransform_cleaning.csv` and L2/L3 cohort and feature CSVs so
+all 11 stage figures (`01`–`11`) and Plot `12`'s *Cleaning Flag Reduction* panel
+render without a live PostgreSQL mirror.
 
 `ProfileBundle` tracks `loaded_tables` and `missing_tables`. Each plot spec in
 `main.py` checks `_can_run_plot(bundle, ...)` before rendering:
-- Available plots render normally and record their artifact in `manifest.json`.
-- Unavailable mirror-only plots are recorded under `manifest.json["skipped"]`
+- Available plots render normally (routing `transform_db_overview` / `transform_columns`
+  automatically for Plots `01`–`02`) and record their artifact in `manifest.json`.
+- Unavailable optional plots are recorded under `manifest.json["skipped"]`
   with the missing table keys instead of aborting the stage run.
 
 ### Mixed-snapshot refusal in `compare` mode
