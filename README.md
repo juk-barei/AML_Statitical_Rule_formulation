@@ -10,6 +10,12 @@ wallets. Active hypotheses are **H2, H4, H6**; **H1, H3, H5** are deferred.
 - [`tasks/hypothesis_testing/README.md`](tasks/hypothesis_testing/README.md) — the live 8-step ANOVA tracker for H2/H4/H6.
 - [`tasks/etl/README.md`](tasks/etl/README.md) — the shared data gate every hypothesis depends on.
 
+## Team Handoff & Updates
+
+- **For the Data Engineering Team (Online DB Update):** [`docs/dev/etl/extract/online-db-data-engineering-feedback.md`](docs/dev/etl/extract/online-db-data-engineering-feedback.md) — verified upstream ingestion bugs (`4444.444444` TRX conversion artifact, TRC-20 `Approval` sentinels, pre-mainnet timestamps, asymmetric `fee_trx`, cross-schema `tx_hash` conflicts), unused tables/columns to drop (`hex_address`, `pipeline_crawl_state`, 96–100% NULL account timestamps), 1-SUN dust hop-crawl fixes, and pre-freeze SQL verification checks.
+- **For the Hypothesis Testing & Data Science Team (`H1`–`H6` / ML):** [`docs/dev/etl/load/handoff-ds-hypothesis-team.md`](docs/dev/etl/load/handoff-ds-hypothesis-team.md) — frozen transformed Parquet inventory, DuckDB query patterns, `H1`–`H6` readiness, and anti-leakage guardrails.
+- **For the Web Application Team (`wallet_serving`):** [`docs/dev/etl/load/handoff-webapp-team.md`](docs/dev/etl/load/handoff-webapp-team.md) — `wallet_serving` schema, post-COPY indexing contract, and `S1`–`S6` API mapping.
+
 ## Current directives
 
 The enforceable version of each of these is in [`AGENTS.md`](AGENTS.md); this is
