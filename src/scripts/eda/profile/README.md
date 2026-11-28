@@ -1,5 +1,5 @@
 # `eda/profile` — stage-aware profile visualization
-<!-- Last updated: 2026-11-27 | Edit count: 1 -->
+<!-- Last updated: 2026-11-28 | Edit count: 2 -->
 
 Generates diagnostic figures and companion summary tables for data profiling across
 `raw`, `transformed`, and `compare` (`raw → transformed`) stages.
@@ -14,7 +14,7 @@ raw `accounts`, `transactions`, or `wallet_hops` tables into pandas.
 # Baseline raw profile plots (Plots 01–11)
 python -m src.scripts.eda.profile.main --stage raw
 
-# Post-transform profile plots (Plots 01–11; skips mirror-only tables if absent)
+# Post-transform profile plots (Plots 01–11; uses transform_* overview/columns + post-L1 cleaning/cohort CSVs)
 python -m src.scripts.eda.profile.main --stage transformed
 
 # Subset of plot groups (schema, cohort, features)

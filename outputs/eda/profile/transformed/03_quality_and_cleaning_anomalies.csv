@@ -1,0 +1,17 @@
+section,schema,token_symbol,category,count,denominator,share,source_table
+amount_flag,illicit,TRX,large_review,262,10236873,2.5593753092374988e-05,local_pretransform_cleaning
+cross_schema_tx_overlap,both,ALL,diff_ts,313,154288,0.00202867364927927,local_pretransform_cleaning
+cross_schema_tx_overlap,both,ALL,diff_amount,2867,154288,0.018582132116561238,local_pretransform_cleaning
+amount_flag,licit,USDT,large_review,3136,2190063,0.001431922278034924,local_pretransform_cleaning
+amount_flag,illicit,USDT,dust,18441,4725449,0.00390248630341794,local_pretransform_cleaning
+amount_flag,illicit,USDT,large_review,18513,4725449,0.0039177229507714505,local_pretransform_cleaning
+amount_flag,licit,USDT,dust,19791,2190063,0.009036726340749101,local_pretransform_cleaning
+amount_flag,licit,TRX,large_review,22491,8941823,0.0025152589130874098,local_pretransform_cleaning
+cross_schema_tx_overlap,both,ALL,overlap_tx_hash,154288,26343989,0.00585666809988419,local_pretransform_cleaning
+trx_anomaly_detail,licit,TRX,repeated_4444.444444_artifact,1017778,8941823,0.11382220381682795,local_pretransform_cleaning
+trx_anomaly_detail,licit,TRX,exact_1_sun_0.000001,2207073,8941823,0.2468258430076283,local_pretransform_cleaning
+trx_anomaly_detail,licit,TRX,micro_dust_gt_1sun_lt_0.01,3297949,8941823,0.3688228899185323,local_pretransform_cleaning
+trx_anomaly_detail,illicit,TRX,exact_1_sun_0.000001,3313515,10236873,0.32368429304534696,local_pretransform_cleaning
+amount_flag,licit,TRX,dust,5505022,8941823,0.6156487329261606,local_pretransform_cleaning
+trx_anomaly_detail,illicit,TRX,micro_dust_gt_1sun_lt_0.01,5803353,10236873,0.5669068083583727,local_pretransform_cleaning
+amount_flag,illicit,TRX,dust,9116868,10236873,0.8905911014037197,local_pretransform_cleaning

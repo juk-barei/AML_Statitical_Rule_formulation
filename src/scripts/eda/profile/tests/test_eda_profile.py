@@ -201,7 +201,14 @@ def _write_synthetic_stage(
     pd.DataFrame(sf_rows).to_csv(stage_dir / "local_sampling_frame.csv", index=False)
 
     dist_rows = []
-    for hyp, feat in (("shared", "total_tx_count"), ("H2", "tx_lifetime_days"), ("H4", "jaccard_index"), ("H6", "cv_delta_t_all")):
+    for hyp, feat in (
+        ("shared", "total_tx_count"),
+        ("H1", "min_passthrough_sec_usdt"),
+        ("H1", "h1_pass_15m"),
+        ("H2", "tx_lifetime_days"),
+        ("H4", "jaccard_index"),
+        ("H6", "cv_delta_t_all"),
+    ):
         for idx, coh in enumerate(COHORT_ORDER):
             base = (idx + 1) * 10.0 * scale_factor
             dist_rows.append(
@@ -304,6 +311,90 @@ class TestEdaProfile(unittest.TestCase):
             self.assertEqual(len(cmp_manifest["generated"]), 1)
             self.assertTrue((out / "compare" / "12_raw_vs_transformed_shift.png").exists())
             self.assertTrue((out / "compare" / "12_raw_vs_transformed_shift.csv").exists())
+
+            # Plot 09 must keep min_passthrough_sec_usdt and exclude h1_pass_15m
+            skew_df = pd.read_csv(out / "raw" / "09_feature_skew_zero_tail.csv")
+            self.assertIn("min_passthrough_sec_usdt", set(skew_df["feature"]))
+            self.assertNotIn("h1_pass_15m", set(skew_df["feature"]))
+
+    def test_transformed_schema_tables_render_all_11_plots(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            prof = root / "profile"
+            out = root / "eda_out"
+            tr_dir = prof / "transformed"
+            snap = "phase1_transformed_transform_20261127T224625Z"
+            _write_synthetic_stage(tr_dir, snapshot_at=snap, include_mirror_tables=False)
+            # Replace illicit_columns with transform_columns + transform_db_overview
+            (tr_dir / "local_illicit_columns.csv").unlink()
+            pd.DataFrame(
+                [
+                    {
+                        "schema": "transform",
+                        "table": "clean_transactions",
+                        "rows": 5000,
+                        "source_rows": 5000,
+                        "coverage_status": "complete",
+                        "snapshot_at": snap,
+                        "is_partial": False,
+                    },
+                    {
+                        "schema": "transform",
+                        "table": "wallet_features",
+                        "rows": 2800,
+                        "source_rows": 2800,
+                        "coverage_status": "complete",
+                        "snapshot_at": snap,
+                        "is_partial": False,
+                    },
+                ]
+            ).to_csv(tr_dir / "local_transform_db_overview.csv", index=False)
+            pd.DataFrame(
+                [
+                    {
+                        "schema": "transform",
+                        "table": "wallet_features",
+                        "column": "wallet_address",
+                        "data_type": "VARCHAR",
+                        "rows": 2800,
+                        "nulls": 0,
+                        "null_share": 0.0,
+                        "distinct_approx": 2800,
+                        "snapshot_at": snap,
+                        "is_partial": False,
+                    },
+                ]
+            ).to_csv(tr_dir / "local_transform_columns.csv", index=False)
+            # Keep only illicit_seeds in sampling_frame to verify single-group Plot 07
+            sf = pd.read_csv(tr_dir / "local_sampling_frame.csv")
+            sf = sf[~sf["section"].isin(["licit_hop_band"]) & (sf["group"] != "licit_seeds")]
+            sf.to_csv(tr_dir / "local_sampling_frame.csv", index=False)
+
+            manifest = run_stage_plots("transformed", profile_base_dir=prof, output_base_dir=out, verbose=False)
+            self.assertEqual(len(manifest["generated"]), 11)
+            self.assertEqual(len(manifest["skipped"]), 0)
+
+    def test_compare_ignores_mirror_timestamp_when_stage_phase_matches(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            prof = Path(tmp) / "profile"
+            _write_synthetic_stage(
+                prof / "raw",
+                snapshot_at="phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z",
+            )
+            # Mirror-sourced cohort_counts carries an ISO timestamp rather than phase1_*
+            pd.DataFrame(
+                [{"group": "illicit", "count": 100, "share": 0.1, "snapshot_at": "2026-11-23T03:10:00Z", "is_partial": False}]
+            ).to_csv(prof / "raw" / "local_cohort_counts.csv", index=False)
+            _write_synthetic_stage(
+                prof / "transformed",
+                snapshot_at="phase1_transformed_transform_20261127T224625Z",
+                include_mirror_tables=False,
+            )
+            raw_b = load_profile_bundle("raw", profile_base_dir=prof)
+            tr_b = load_profile_bundle("transformed", profile_base_dir=prof)
+            raw_snap, tr_snap = validate_compare_compatibility(raw_b, tr_b)
+            self.assertIn("phase1_raw", raw_snap)
+            self.assertIn("phase1_transformed", tr_snap)
 
     def test_compare_refuses_mixed_snapshot_phases(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

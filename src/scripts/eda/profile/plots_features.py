@@ -147,8 +147,9 @@ def plot_feature_skew_zero_tail(
     """Plot 09: Three-column diagnostic of zero-mass, tail ratio (p99/p50), and skewness."""
     apply_theme()
     df = bundle.get("wallet_distributions").copy()
-    # Exclude binary pass indicators (pass_0_1) so continuous/count features stay readable.
-    cont = df[~df["feature"].astype(str).str.contains("_pass")].copy()
+    # Exclude binary hypothesis pass indicators (h*_pass*) without dropping
+    # continuous passthrough-time features such as min_passthrough_sec_usdt.
+    cont = df[~df["feature"].astype(str).str.match(r"^h\d+_pass")].copy()
     if cont.empty:
         cont = df.copy()
     for col in ("zero_share", "p99_p50_ratio", "skewness"):

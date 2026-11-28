@@ -316,11 +316,15 @@ def plot_hop_and_seed_structure(
     ax0 = axes_arr[0]
     hops = [f"hop_{k}" for k in range(1, 6)]
     x = np.arange(len(hops))
-    bar_w = 0.36
     series_cfg = [
-        ("suspicious_hop_band", "suspicious (illicit crawl)", COHORT_COLORS["suspicious"]),
-        ("licit_hop_band", "licit (licit crawl)", COHORT_COLORS["licit"]),
+        cfg
+        for cfg in (
+            ("suspicious_hop_band", "suspicious (illicit crawl)", COHORT_COLORS["suspicious"]),
+            ("licit_hop_band", "licit (licit crawl)", COHORT_COLORS["licit"]),
+        )
+        if cfg[0] in set(hop_rows["section"])
     ]
+    bar_w = 0.36 if len(series_cfg) > 1 else 0.52
     for idx, (sec, label, color) in enumerate(series_cfg):
         sdf = hop_rows[hop_rows["section"] == sec].set_index("group")
         shares = []
@@ -334,7 +338,7 @@ def plot_hop_and_seed_structure(
             else:
                 counts.append(0.0)
                 shares.append(0.0)
-        offset = (idx - 0.5) * bar_w
+        offset = (idx - (len(series_cfg) - 1) / 2.0) * bar_w
         bars = ax0.bar(x + offset, shares, width=bar_w * 0.92, color=color, alpha=0.92, label=label, edgecolor="white")
         for bar, cnt, sh in zip(bars, counts, shares, strict=True):
             if cnt > 0:
@@ -388,10 +392,14 @@ def plot_hop_and_seed_structure(
             color=INK_PRIMARY,
         )
 
+    seed_label_map = {
+        "illicit_seeds": "Illicit seeds\n(suspicious clusters)",
+        "licit_seeds": "Licit seeds\n(licit crawl clusters)",
+    }
     ax1.set_xscale("log")
     ax1.set_xlim(0.7, max(seed_rows["value"].max(), 100.0) * 3.5)
     ax1.set_yticks(y)
-    ax1.set_yticklabels(["Illicit seeds\n(suspicious clusters)", "Licit seeds\n(licit crawl clusters)"], fontsize=8.8)
+    ax1.set_yticklabels([seed_label_map.get(g, g) for g in groups], fontsize=8.8)
     ax1.set_ylim(-0.65, len(groups) - 0.35)
     ax1.set_xlabel("Wallets per seed cluster (log10 scale; bar=IQR, circle=p50, diamond=mean)")
     ax1.set_title("B. Seed-Cluster Fan-Out & Graph Non-Independence", loc="left")
@@ -415,13 +423,16 @@ def plot_hop_and_seed_structure(
     snap, is_partial = bundle.snapshot_for("sampling_frame", "hop_seed")
     susp_den = int(hop_rows.loc[hop_rows["section"] == "suspicious_hop_band", "denominator"].dropna().iloc[0]) if not hop_rows[hop_rows["section"] == "suspicious_hop_band"].empty else 0
     licit_den = int(hop_rows.loc[hop_rows["section"] == "licit_hop_band", "denominator"].dropna().iloc[0]) if not hop_rows[hop_rows["section"] == "licit_hop_band"].empty else 0
+    denom_parts = [f"Suspicious hop wallets: {susp_den:,}"]
+    if licit_den > 0:
+        denom_parts.append(f"Licit hop wallets: {licit_den:,}")
     stamp_figure(
         fig,
         title="07. Sampling-Frame Geometry: Hop Nesting & Seed-Cluster Dependence",
         subtitle="Hop depth is nested inside crawl arms; heavy seed-cluster fan-out invalidates naive i.i.d. assumptions for suspicious.",
         stage=bundle.stage,
         snapshot_at=snap,
-        denominator_text=f"Suspicious hop wallets: {susp_den:,} | Licit hop wallets: {licit_den:,}",
+        denominator_text=" | ".join(denom_parts),
         is_partial=is_partial,
         top=0.86,
         bottom=0.14,

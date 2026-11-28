@@ -35,7 +35,7 @@ def plot_table_overview_coverage(
     apply_theme()
     frames = [
         bundle.get(k)
-        for k in ("illicit_db_overview", "licit_db_overview")
+        for k in ("illicit_db_overview", "licit_db_overview", "transform_db_overview")
         if bundle.has(k)
     ]
     if not frames:
@@ -116,12 +116,19 @@ def plot_table_overview_coverage(
     ax.grid(axis="y", visible=False)
     ax.legend(loc="lower right", title="Database schema", frameon=True)
 
-    snap, is_partial = bundle.snapshot_for("illicit_db_overview", "licit_db_overview")
+    snap, is_partial = bundle.snapshot_for(
+        "illicit_db_overview", "licit_db_overview", "transform_db_overview"
+    )
     total_rows = int(df["rows"].sum())
+    title_str = (
+        "01. Transformed Table Volume & Coverage"
+        if schemas == ["transform"]
+        else "01. Mirror Table Volume & Ingestion Coverage"
+    )
     stamp_figure(
         fig,
-        title="01. Mirror Table Volume & Ingestion Coverage",
-        subtitle="Exact row counts per table across illicit and licit schemas; non-complete statuses flagged in amber.",
+        title=title_str,
+        subtitle="Exact row counts per table across profiled schemas; non-complete statuses flagged in amber.",
         stage=bundle.stage,
         snapshot_at=snap,
         denominator_text=f"Total rows across profiled tables: {total_rows:,}",
@@ -149,7 +156,7 @@ def plot_column_missingness_dtypes(
     apply_theme()
     frames = [
         bundle.get(k)
-        for k in ("illicit_columns", "licit_columns")
+        for k in ("illicit_columns", "licit_columns", "transform_columns")
         if bundle.has(k)
     ]
     if not frames:
@@ -170,14 +177,28 @@ def plot_column_missingness_dtypes(
     if not schemas:
         schemas = sorted(df["schema"].astype(str).unique().tolist())
 
-    max_rows = max(len(df[df["schema"] == s]) for s in schemas)
+    panels: list[tuple[str, str, pd.DataFrame]] = []
+    if len(schemas) == 1 and len(df) > 45 and "wallet_features" in set(df["table"]):
+        s = schemas[0]
+        left_df = df[(df["schema"] == s) & (df["table"] != "wallet_features")]
+        right_df = df[(df["schema"] == s) & (df["table"] == "wallet_features")]
+        if not left_df.empty:
+            panels.append((f"{s}: L1/L2 tables ({len(left_df)} columns)", s, left_df))
+        if not right_df.empty:
+            panels.append((f"{s}: L3 wallet_features ({len(right_df)} columns)", s, right_df))
+    else:
+        for s in schemas:
+            sub_s = df[df["schema"] == s]
+            panels.append((f"{s} schema ({len(sub_s)} columns)", s, sub_s))
+
+    max_rows = max(len(p[2]) for p in panels)
     fig_h = max(6.8, max_rows * 0.27 + 2.0)
-    fig, axes = plt.subplots(1, len(schemas), figsize=(7.0 * len(schemas), fig_h), sharex=True)
+    fig, axes = plt.subplots(1, len(panels), figsize=(7.4 * len(panels), fig_h), sharex=True)
     axes_arr = np.atleast_1d(axes)
 
-    for ax, schema in zip(axes_arr, schemas, strict=True):
+    for ax, (panel_title, schema, panel_df) in zip(axes_arr, panels, strict=True):
         sub = (
-            df[df["schema"] == schema]
+            panel_df
             .sort_values(["null_share", "table", "column"], ascending=[True, False, False])
             .reset_index(drop=True)
         )
@@ -208,14 +229,14 @@ def plot_column_missingness_dtypes(
         ax.set_xticklabels(["0%", "25%", "50%", "75%", "100%"])
         ax.set_xlabel("Null percentage (%)")
         ax.set_title(
-            f"{schema} schema ({len(sub)} columns)",
+            panel_title,
             color=SCHEMA_COLORS.get(schema, INK_PRIMARY),
             loc="left",
         )
         ax.grid(axis="x", alpha=0.7)
         ax.grid(axis="y", visible=False)
 
-    snap, is_partial = bundle.snapshot_for("illicit_columns", "licit_columns")
+    snap, is_partial = bundle.snapshot_for("illicit_columns", "licit_columns", "transform_columns")
     n_with_nulls = int((df["null_share"] > 0).sum())
     stamp_figure(
         fig,
@@ -253,7 +274,7 @@ def plot_quality_and_cleaning_anomalies(
         raise ValueError("Neither quality nor pretransform_cleaning is available in profile bundle.")
 
     n_panels = int(has_q) + int(has_c)
-    fig, axes = plt.subplots(1, n_panels, figsize=(7.2 * n_panels, 6.8))
+    fig, axes = plt.subplots(1, n_panels, figsize=(11.2 if n_panels == 1 else 7.2 * n_panels, 6.8))
     axes_arr = np.atleast_1d(axes)
     panel_idx = 0
     summary_parts: list[pd.DataFrame] = []
@@ -350,7 +371,9 @@ def plot_quality_and_cleaning_anomalies(
         ax.set_yticks(y)
         ax.set_yticklabels(anom["label"], fontsize=8.1)
         ax.set_xlabel("Flagged transaction rows (log10 scale)")
-        ax.set_title("B. L1 Pre-Transform Cleaning Flags (non-ok rows)", loc="left")
+        panel_prefix = "B. " if has_q else ""
+        stage_label = "Post-L1 Valid-Row" if bundle.stage == "transformed" else "L1 Pre-Transform"
+        ax.set_title(f"{panel_prefix}{stage_label} Cleaning Flags (non-ok rows)", loc="left")
         ax.grid(axis="y", visible=False)
         ax.legend(
             handles=[

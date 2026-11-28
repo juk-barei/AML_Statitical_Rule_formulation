@@ -14,10 +14,12 @@ VALID_EDA_STAGES: tuple[str, ...] = (*VALID_STAGES, "compare")
 PROFILE_FILES: dict[str, str] = {
     "illicit_db_overview": "local_illicit_db_overview.csv",
     "licit_db_overview": "local_licit_db_overview.csv",
+    "transform_db_overview": "local_transform_db_overview.csv",
     "illicit_coverage": "local_illicit_coverage.csv",
     "licit_coverage": "local_licit_coverage.csv",
     "illicit_columns": "local_illicit_columns.csv",
     "licit_columns": "local_licit_columns.csv",
+    "transform_columns": "local_transform_columns.csv",
     "quality": "local_quality.csv",
     "pretransform_cleaning": "local_pretransform_cleaning.csv",
     "cohort_counts": "local_cohort_counts.csv",
@@ -150,11 +152,18 @@ def load_profile_bundle(
 
 
 def _snapshot_phase_token(snapshot_str: str) -> str:
-    """Extract phase prefix (e.g. 'phase1') if present, else return raw snapshot string."""
-    head = snapshot_str.split("+")[0].split(";")[0].strip()
-    if head.startswith("phase") and "_" in head:
-        return head.split("_", 1)[0]
-    return head
+    """Extract phase prefix (e.g. 'phase1') across composite snapshot strings."""
+    parts = [p.strip() for chunk in snapshot_str.split(";") for p in chunk.split("+") if p.strip()]
+    phase_tokens = {
+        p.split("_", 1)[0]
+        for p in parts
+        if p.startswith("phase") and "_" in p
+    }
+    if len(phase_tokens) == 1:
+        return next(iter(phase_tokens))
+    if len(phase_tokens) > 1:
+        return ";".join(sorted(phase_tokens))
+    return parts[0] if parts else snapshot_str.strip()
 
 
 def validate_compare_compatibility(
@@ -168,10 +177,10 @@ def validate_compare_compatibility(
     Raises ValueError if snapshots are incompatible unless allow_cross_snapshot=True.
     """
     raw_snap, _ = raw_bundle.snapshot_for(
-        "wallet_distributions", "feature_nflow", "cohort_counts", "pretransform_cleaning"
+        "wallet_distributions", "feature_nflow", "pretransform_cleaning"
     )
     tr_snap, _ = transformed_bundle.snapshot_for(
-        "wallet_distributions", "feature_nflow", "cohort_counts", "pretransform_cleaning"
+        "wallet_distributions", "feature_nflow", "pretransform_cleaning"
     )
     if raw_snap == "unknown" or tr_snap == "unknown":
         raise ValueError(

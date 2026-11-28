@@ -1,0 +1,10 @@
+comparison,left_count,right_count,overlap,left_share,right_share,method,snapshot_at,is_partial,panel,section,schema,token_symbol,category,count,denominator,share,note
+illicit blacklist vs licit accounts,17046.0,6614681.0,3387.0,0.19869764167546639,0.0005120428332069226,exact_parquet,phase1_transformed_transform_20261127T224625Z,False,wallet_overlap,,,,,,,,
+suspicious vs licit accounts,3959525.0,6614681.0,1430799.0,0.3613562232843586,0.21630657623549798,exact_parquet,phase1_transformed_transform_20261127T224625Z,False,wallet_overlap,,,,,,,,
+illicit blacklist vs licit seed wallets,17046.0,721.0,6.0,0.00035198873636043646,0.008321775312066574,exact_parquet,phase1_transformed_transform_20261127T224625Z,False,wallet_overlap,,,,,,,,
+,,,,,,,phase1_transformed_transform_20261127T224625Z,False,tx_overlap,cross_schema_tx_overlap,both,ALL,diff_token,0.0,154288.0,0.0,resolved conflict logged in transform.clean_tx_conflicts
+,,,,,,,phase1_transformed_transform_20261127T224625Z,False,tx_overlap,cross_schema_tx_overlap,both,ALL,diff_from,53.0,154288.0,0.0003435134294306751,resolved conflict logged in transform.clean_tx_conflicts
+,,,,,,,phase1_transformed_transform_20261127T224625Z,False,tx_overlap,cross_schema_tx_overlap,both,ALL,diff_to,85.0,154288.0,0.0005509177641812714,resolved conflict logged in transform.clean_tx_conflicts
+,,,,,,,phase1_transformed_transform_20261127T224625Z,False,tx_overlap,cross_schema_tx_overlap,both,ALL,diff_ts,313.0,154288.0,0.00202867364927927,resolved conflict logged in transform.clean_tx_conflicts
+,,,,,,,phase1_transformed_transform_20261127T224625Z,False,tx_overlap,cross_schema_tx_overlap,both,ALL,diff_amount,2867.0,154288.0,0.018582132116561238,resolved conflict logged in transform.clean_tx_conflicts
+,,,,,,,phase1_transformed_transform_20261127T224625Z,False,tx_overlap,cross_schema_tx_overlap,both,ALL,overlap_tx_hash,154288.0,26343989.0,0.00585666809988419,tx_hash present in both schemas (resolved deterministically)

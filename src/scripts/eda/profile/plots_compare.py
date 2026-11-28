@@ -68,7 +68,7 @@ def plot_raw_vs_transformed_shift(
     cohorts = [c for c in COHORT_ORDER if c in set(merged["wallet_class"])]
     features = sorted(merged["feature"].astype(str).unique().tolist())
 
-    fig, axes = plt.subplots(1, 3, figsize=(15.6, max(6.4, len(features) * 0.28 + 2.0)))
+    fig, axes = plt.subplots(1, 3, figsize=(17.6, max(6.8, len(features) * 0.29 + 2.0)))
     axes_arr = np.atleast_1d(axes)
 
     # Panel A: Eligibility share delta heatmap (percentage points)
@@ -90,7 +90,7 @@ def plot_raw_vs_transformed_shift(
     ax0.set_yticklabels(features, fontsize=7.8)
     ax0.set_title("A. Eligibility Shift (pp)", loc="left")
     ax0.grid(False)
-    fig.colorbar(im, ax=ax0, fraction=0.045, pad=0.02)
+    fig.colorbar(im, ax=ax0, fraction=0.042, pad=0.03)
 
     # Panel B: Median (p50) relative % shift by cohort for top shifted features
     ax1 = axes_arr[1]
@@ -139,14 +139,29 @@ def plot_raw_vs_transformed_shift(
             suffixes=("_raw", "_tr"),
         ).fillna(0)
         cm["label"] = cm["schema"].astype(str) + " " + cm["token_symbol"].astype(str) + " | " + cm["category"].astype(str)
-        cm = cm.sort_values("count_raw", ascending=True).tail(10)
+        cm = cm.sort_values("count_raw", ascending=True).tail(14)
         y2 = np.arange(len(cm))
         ax2.barh(y2 - 0.17, cm["count_raw"].clip(lower=0.5), height=0.32, color=STATUS_COLORS["error"], alpha=0.82, label="raw")
         ax2.barh(y2 + 0.17, cm["count_tr"].clip(lower=0.5), height=0.32, color=STATUS_COLORS["retained"], alpha=0.92, label="transformed")
+        for yi, row in zip(y2, cm.itertuples(index=False), strict=True):
+            raw_c = int(round(row.count_raw))
+            tr_c = int(round(row.count_tr))
+            note_txt = f"{format_compact(raw_c)} → 0" if tr_c == 0 and raw_c > 0 else f"{format_compact(raw_c)} → {format_compact(tr_c)}"
+            ax2.text(
+                max(row.count_raw, row.count_tr, 1.0) * 1.18,
+                yi,
+                note_txt,
+                va="center",
+                ha="left",
+                fontsize=7.3,
+                color=STATUS_COLORS["ok"] if tr_c == 0 and raw_c > 0 else INK_PRIMARY,
+                fontweight="bold" if tr_c == 0 and raw_c > 0 else "normal",
+            )
         ax2.set_xscale("log")
+        ax2.set_xlim(0.35, max(float(cm["count_raw"].max()), 10.0) * 80.0)
         ax2.set_yticks(y2)
         ax2.set_yticklabels(cm["label"], fontsize=7.8)
-        ax2.set_xlabel("Flagged rows (log10 scale)")
+        ax2.set_xlabel("Flagged rows (log10 scale; 0 shown at 0.5 floor)")
         ax2.set_title("C. Cleaning Flag Reduction", loc="left")
         ax2.legend(loc="lower right", fontsize=8.0)
     else:
@@ -181,7 +196,7 @@ def plot_raw_vs_transformed_shift(
         top=0.90,
         bottom=0.09,
     )
-    fig.subplots_adjust(wspace=0.45)
+    fig.subplots_adjust(wspace=0.72)
 
     summary = merged[
         [
