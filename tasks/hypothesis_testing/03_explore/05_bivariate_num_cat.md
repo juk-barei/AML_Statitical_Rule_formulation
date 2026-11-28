@@ -1,15 +1,16 @@
 # Numerical with categorical
+<!-- Last updated: 2026-11-28 | Edit count: 2 -->
 
-- **Status:** blocked
-- **Blocked by:** Step 1 cohort
+- **Status:** todo (unblocked — query frozen `phase1_transformed_transform_20261127T224625Z__wallet_features.parquet` via DuckDB)
+- **Blocked by:** —
 - **Blocks:** Step 4
 - **Owner:** worker
 - **Output:** group comparison plots
-- **Updated:** 2026-11-20
+- **Updated:** 2026-11-28
 
 ## Objective
 
-Side-by-side boxplots, overlaid densities, and mean ± SD strip plots for illicit / suspicious / licit (or unlabeled).
+Side-by-side boxplots, overlaid densities, and mean ± SD strip plots comparing clean `illicit` vs. `licit` alongside nested `suspicious` (`min_hop_level` 1–5) and `unlabeled`.
 
 ## Resources / context
 
