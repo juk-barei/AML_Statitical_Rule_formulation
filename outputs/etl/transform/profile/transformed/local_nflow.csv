@@ -1,0 +1,7 @@
+stage,filter,n_in,n_out,n_dropped,reason,snapshot_at,is_partial
+account_union,cross_schema_dedupe,11484681,9849850,1634831,address present in both schemas,phase1_transformed_transform_20261127T224625Z,False
+universe,accounts_plus_blacklist_plus_hop,9876867,9876867,0,full L2 cohort_wallet universe (accounts + blacklist + hop 1..5),phase1_transformed_transform_20261127T224625Z,False
+illicit,blacklist_label_1,17046,17046,0,priority group,phase1_transformed_transform_20261127T224625Z,False
+suspicious,min_hop_1_5_and_not_blacklisted,3967831,3959525,8306,blacklist wins at every hop,phase1_transformed_transform_20261127T224625Z,False
+licit,external_minus_illicit_minus_suspicious,6614681,5180495,1434186,illicit/suspicious overlap,phase1_transformed_transform_20261127T224625Z,False
+unlabeled,remaining_illicit_accounts,719801,719801,0,provisional residual arm,phase1_transformed_transform_20261127T224625Z,False

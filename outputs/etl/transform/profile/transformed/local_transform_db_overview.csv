@@ -1,0 +1,6 @@
+schema,table,rows,source_rows,run_id,coverage_status,columns,sample_rows,null_cells,null_share,time_min,time_max,key_columns,method,snapshot_at,is_partial
+transform,clean_transactions,26189701,26189701,,complete,19,26189701,19205642,0.03859621242555975,1970-07-12 16:26:03.000000+07:00,2026-11-21 21:45:46.680521+07:00,,exact_parquet,phase1_transformed_transform_20261127T224625Z,False
+transform,clean_tx_conflicts,3194,3194,,complete,18,3194,0,0.0,1990-03-20 14:42:09.642504+07:00,2026-11-12 01:39:57.000000+07:00,,exact_parquet,phase1_transformed_transform_20261127T224625Z,False
+transform,clean_wallet_hops,6965210,6965210,,complete,12,6965210,108106,0.0012934044103958579,2026-10-28 21:24:56.802650+07:00,2026-11-22 08:09:11.825941+07:00,,exact_parquet,phase1_transformed_transform_20261127T224625Z,False
+transform,cohort_wallet,9876867,9876867,,complete,15,9876867,27603335,0.1863164030996199,2020-06-26 22:22:39.000000+07:00,2026-10-20 08:18:12.000000+07:00,,exact_parquet,phase1_transformed_transform_20261127T224625Z,False
+transform,wallet_features,9876867,9876867,,complete,73,9876867,362924730,0.5033551270697091,,,,exact_parquet,phase1_transformed_transform_20261127T224625Z,False
