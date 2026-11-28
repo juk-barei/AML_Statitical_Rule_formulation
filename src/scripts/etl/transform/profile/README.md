@@ -1,5 +1,5 @@
 # `etl/transform/profile` — data-engineering profiling
-<!-- Last updated: 2026-11-27 | Edit count: 4 -->
+<!-- Last updated: 2026-11-28 | Edit count: 5 -->
 
 Read-only profiling of the source, local mirror, and frozen Parquet snapshots (`raw` and `transformed`):
 schema, row counts, column types, relations, quality checks, cleaning anomalies,
@@ -24,7 +24,7 @@ no top-level `outputs/etl/profile/`.
 | `profile_quality.py` | duplicates, nulls, orphans, amounts, timestamps, token/contract, hops | `local_quality.csv` |
 | `profile_overlap_local.py` | local cohort counts, overlap, n-flow, hop/seed multiplicity | `local_{cohort_counts,group_overlap,nflow,hop_seed}.csv` |
 | `profile_features.py` | PostgreSQL H2/H4/H6 feature/eligibility helper | (bounded smoke mode; full-frame handled by `profile_stage.py`) |
-| `profile_stage.py` | full-frame DuckDB profile over frozen Parquet snapshots (`--stage raw\|transformed`): L1 cleaning anomalies, L2 sampling frame, L3 H1–H6 distributions, histograms, and reconciled n-flow | `<stage>/local_{illicit,licit}_columns.csv`, `<stage>/local_pretransform_cleaning.csv`, `<stage>/local_sampling_frame.csv`, `<stage>/local_wallet_distributions.csv`, `<stage>/local_wallet_histograms.csv`, `<stage>/local_feature_nflow.csv` |
+| `profile_stage.py` | full-frame DuckDB profile over frozen Parquet snapshots (`--stage raw\|transformed`): table overview, exact columns, L1 cleaning anomalies, L2 cohort/overlap/hop/sampling frame, and L3 H1–H6 distributions, histograms, and reconciled n-flow | `<stage>/local_{illicit,licit,transform}_{columns,db_overview}.csv`, `<stage>/local_pretransform_cleaning.csv`, `<stage>/local_{cohort_counts,nflow,group_overlap,hop_seed,sampling_frame}.csv`, `<stage>/local_wallet_distributions.csv`, `<stage>/local_wallet_histograms.csv`, `<stage>/local_feature_nflow.csv` |
 | `benchmark_queries.py` | `EXPLAIN (ANALYZE, BUFFERS)` benchmarks | `<stage>/query_benchmarks.csv` (raw JSON plans omitted from git; regenerate on demand) |
 | `run_profile.py` | run `local`, `quality`, `overlap`, `features`, `benchmarks`, `stage` with `--stage raw\|transformed` | all of the above under `outputs/etl/transform/profile/<stage>/` |
 | `schema.py` | `DatasetRef`, `ProfileRecord`, `StageManifest`, `ComparisonRecord`, `VALID_STAGES`, `stage_output_dir` | — |

@@ -1,6 +1,6 @@
 {
   "stage": "raw",
-  "generated_at_utc": "2026-11-28T13:37:20Z",
+  "generated_at_utc": "2026-11-28T13:53:03Z",
   "source_dir": "/home/annoy/projects/team/capstone-1/dev/data_analysis/outputs/etl/transform/profile/raw",
   "snapshot_at": "2026-11-23T03:10:00Z ; phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z",
   "is_partial": false,

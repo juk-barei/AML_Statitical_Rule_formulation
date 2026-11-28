@@ -480,9 +480,15 @@ def load_coverage(
 def completeness(
     coverage: Coverage | None,
     local_rows: int,
+    *,
+    stage: str = "raw",
 ) -> tuple[str, float]:
     """Return (status, coverage percent) for one table."""
     if coverage is None or coverage.shard_count == 0:
+        # Transformed schemas are materialized locally by SQL rather than sharded
+        # ingestion runs, so absence of _etl_runs/_etl_progress is expected.
+        if stage == "transformed" and coverage is None:
+            return "complete", 100.0
         return "unknown", 0.0
     percent = (
         100.0
@@ -540,7 +546,7 @@ def build_plan(engine: Engine, args: argparse.Namespace) -> ExportPlan:
         )
         local_rows = table_row_count(engine, schema, table)
         coverage = coverage_by_table.get(table)
-        status, percent = completeness(coverage, local_rows)
+        status, percent = completeness(coverage, local_rows, stage=stage)
         plans.append(
             TablePlan(
                 table=table,

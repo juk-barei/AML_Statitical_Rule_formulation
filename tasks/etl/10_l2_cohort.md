@@ -1,12 +1,12 @@
-# L2 Cohort Builder (`cohort/`) — Proposal
-<!-- Created: 2026-11-27 | Last updated: 2026-11-27 | Edit count: 1 -->
+# L2 Cohort Builder (`cohort/`)
+<!-- Created: 2026-11-27 | Last updated: 2026-11-28 | Edit count: 2 -->
 
-- **Status:** todo (scripts proposed; awaiting manual line-by-line execution by user)
+- **Status:** done (merged in PR #41; materialized and exported in `phase1_transformed_transform_20261127T224625Z`)
 - **Blocked by:** `06_feature_profile.md` (done)
-- **Blocks:** `11_l3_features.md`, `12_transformed_export_audit.md`
+- **Blocks:** `11_l3_features.md` (done), `12_transformed_export_audit.md` (in_progress)
 - **Owner:** user manual execution + agent proposal
-- **Output:** `transform.cohort_wallet`, `outputs/etl/transform/cohort/{cohort_counts,cohort_nflow}.csv`
-- **Updated:** 2026-11-27
+- **Output:** `transform.cohort_wallet` (`9,876,867` rows: `17,046` illicit + `3,959,525` suspicious + `5,180,495` licit + `719,801` unlabeled)
+- **Updated:** 2026-11-28
 
 ## Resources / context
 

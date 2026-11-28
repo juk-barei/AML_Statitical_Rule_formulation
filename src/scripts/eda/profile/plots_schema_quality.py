@@ -173,30 +173,32 @@ def plot_column_missingness_dtypes(
     )
     df["col_label"] = df["table"].astype(str) + "." + df["column"].astype(str)
 
-    schemas = [s for s in ("illicit", "licit") if s in set(df["schema"])]
-    if not schemas:
-        schemas = sorted(df["schema"].astype(str).unique().tolist())
-
-    panels: list[tuple[str, str, pd.DataFrame]] = []
-    if len(schemas) == 1 and len(df) > 45 and "wallet_features" in set(df["table"]):
-        s = schemas[0]
-        left_df = df[(df["schema"] == s) & (df["table"] != "wallet_features")]
-        right_df = df[(df["schema"] == s) & (df["table"] == "wallet_features")]
-        if not left_df.empty:
-            panels.append((f"{s}: L1/L2 tables ({len(left_df)} columns)", s, left_df))
-        if not right_df.empty:
-            panels.append((f"{s}: L3 wallet_features ({len(right_df)} columns)", s, right_df))
+    # For transformed Parquet profiles, omit *_exact string shadow mirrors from the plot
+    # (kept in full summary CSV) and split L1-L2 tables vs L3 wallet_features for readability.
+    raw_schemas = [s for s in ("illicit", "licit") if s in set(df["schema"])]
+    if raw_schemas:
+        panels = [(f"{s} schema", df[df["schema"] == s], SCHEMA_COLORS.get(s, INK_PRIMARY)) for s in raw_schemas]
     else:
-        for s in schemas:
-            sub_s = df[df["schema"] == s]
-            panels.append((f"{s} schema ({len(sub_s)} columns)", s, sub_s))
+        plot_df = df[~df["column"].astype(str).str.endswith("_exact")].copy()
+        if plot_df.empty:
+            plot_df = df.copy()
+        l12 = plot_df[plot_df["table"].astype(str) != "wallet_features"]
+        l3 = plot_df[plot_df["table"].astype(str) == "wallet_features"]
+        panels = []
+        if not l12.empty:
+            panels.append(("transform L1–L2 (clean & cohort)", l12, STATUS_COLORS["retained"]))
+        if not l3.empty:
+            panels.append(("transform L3 (wallet_features)", l3, STATUS_COLORS["neutral"]))
+        if not panels:
+            for s in sorted(plot_df["schema"].astype(str).unique().tolist()):
+                panels.append((f"{s} schema", plot_df[plot_df["schema"] == s], INK_PRIMARY))
 
-    max_rows = max(len(p[2]) for p in panels)
-    fig_h = max(6.8, max_rows * 0.27 + 2.0)
-    fig, axes = plt.subplots(1, len(panels), figsize=(7.4 * len(panels), fig_h), sharex=True)
+    max_rows = max(len(sub_df) for _, sub_df, _ in panels)
+    fig_h = max(6.8, max_rows * 0.24 + 2.0)
+    fig, axes = plt.subplots(1, len(panels), figsize=(7.6 * len(panels), fig_h), sharex=True)
     axes_arr = np.atleast_1d(axes)
 
-    for ax, (panel_title, schema, panel_df) in zip(axes_arr, panels, strict=True):
+    for ax, (panel_title, panel_df, title_color) in zip(axes_arr, panels, strict=True):
         sub = (
             panel_df
             .sort_values(["null_share", "table", "column"], ascending=[True, False, False])
@@ -229,8 +231,8 @@ def plot_column_missingness_dtypes(
         ax.set_xticklabels(["0%", "25%", "50%", "75%", "100%"])
         ax.set_xlabel("Null percentage (%)")
         ax.set_title(
-            panel_title,
-            color=SCHEMA_COLORS.get(schema, INK_PRIMARY),
+            f"{panel_title} ({len(sub)} columns)",
+            color=title_color,
             loc="left",
         )
         ax.grid(axis="x", alpha=0.7)

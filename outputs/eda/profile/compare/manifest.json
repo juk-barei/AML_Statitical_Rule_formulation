@@ -1,11 +1,11 @@
 {
   "stage": "compare",
-  "generated_at_utc": "2026-11-28T13:38:44Z",
+  "generated_at_utc": "2026-11-28T13:53:29Z",
   "raw_source_dir": "/home/annoy/projects/team/capstone-1/dev/data_analysis/outputs/etl/transform/profile/raw",
   "transformed_source_dir": "/home/annoy/projects/team/capstone-1/dev/data_analysis/outputs/etl/transform/profile/transformed",
   "raw_snapshot_at": "2026-11-23T03:10:00Z ; phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z",
   "transformed_snapshot_at": "phase1_transformed_transform_20261127T224625Z",
-  "is_partial": false,
+  "is_partial": true,
   "generated": [
     {
       "group": "compare",

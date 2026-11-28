@@ -1,9 +1,10 @@
 # Step 1 — Response, factor, groups
+<!-- Last updated: 2026-11-28 | Edit count: 2 -->
 
-- **Status:** in_progress
+- **Status:** in_progress (L2 `cohort_wallet` and L3 `wallet_features` frozen; `11_licit_eda_notebook.md` remains)
 - **Blocked by:** —
-- **Blocks:** [Step 2](../02_hypotheses_alpha/main.md)
-- **Updated:** 2026-11-22
+- **Blocks:** [Step 2](../02_hypotheses_alpha/main.md) (unblocked on clean licit frame)
+- **Updated:** 2026-11-28
 
 ## Objective
 
@@ -14,10 +15,10 @@ Fix the experimental unit, response, factor, levels, group rules, and nesting be
 - `AGENTS.md` — data authority, cohort priority, task rules
 - `docs/context/step_1_profiling_samples.md` — cohort/response decisions
 - `docs/context/statistical_info.md` — proposed groups and profiling
-- `docs/hypothesis.md` — H2/H4/H6 definitions and thresholds
+- `docs/dev/hypothesis_testing/general/all_hypothesis.md` — H1–H6 definitions and thresholds
 - `src/scripts/etl/extract/main.py` — ingestion, loader, and source-link behavior
 - [`tasks/etl/README.md`](../../etl/README.md) — shared ETL/data-gate tracker (export contract, memory-safe access, export pipeline, web serving)
-- `docs/hypothesis_testing/variabe_type.md` — variable types; `docs/hypothesis_testing/hypothesis_prerequsites.md` — H0/test prerequisites
+- `docs/dev/hypothesis_testing/general/variabe_type.md` — variable types; `docs/dev/hypothesis_testing/general/hypothesis_prerequsites.md` — H0/test prerequisites
 
 ## Files
 
@@ -51,7 +52,7 @@ Done tasks are archived under `tasks/_archive/`; their links point there.
 | [`01_profile_illicit_licit.md`](../../_archive/hypothesis_testing/01_response_factor_groups/01_profile_illicit_licit.md) | done | — | `docs/context/statistical_info.md` |
 | [`02_group_validation.md`](../../_archive/hypothesis_testing/01_response_factor_groups/02_group_validation.md) | done | `01_profile_illicit_licit.md` | group verdict |
 | [`03_reproducible_evidence.md`](../../_archive/hypothesis_testing/01_response_factor_groups/03_reproducible_evidence.md) | done | `01_profile_illicit_licit.md` | `scripts/` + cited lines |
-| `04_cohort_contract_v2.md` | in_progress | `02_group_validation.md` | cohort table |
+| [`04_cohort_contract_v2.md`](../../_archive/hypothesis_testing/01_response_factor_groups/04_cohort_contract_v2.md) | done | `02_group_validation.md` | `phase1_transformed_transform_20261127T224625Z__cohort_wallet.parquet` |
 | [`05_licit_ingestion_etl.md`](../../_archive/hypothesis_testing/01_response_factor_groups/05_licit_ingestion_etl.md) | done | — | licit tables |
 | [`06_online_db_refresh_profile.md`](../../_archive/hypothesis_testing/01_response_factor_groups/06_online_db_refresh_profile.md) | done | — | fixed sample recommendation |
 | [`07_incremental_ingestion_check.md`](../../_archive/hypothesis_testing/01_response_factor_groups/07_incremental_ingestion_check.md) | done | `06_online_db_refresh_profile.md` | ETL safety note |

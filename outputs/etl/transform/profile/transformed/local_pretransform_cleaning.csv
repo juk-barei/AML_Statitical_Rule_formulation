@@ -1,0 +1,74 @@
+section,schema,token_symbol,category,count,denominator,share,note,snapshot_at,is_partial
+cross_schema_tx_overlap,both,ALL,raw_union_rows,26343989,26343989,1.0,deduped + overlap rows reconstructed from clean_transactions,phase1_transformed_transform_20261127T224625Z,False
+cross_schema_tx_overlap,both,ALL,overlap_tx_hash,154288,26343989,0.00585666809988419,tx_hash present in both schemas (resolved deterministically),phase1_transformed_transform_20261127T224625Z,False
+cross_schema_tx_overlap,both,ALL,deduped_tx_rows,26189701,26343989,0.9941433319001158,unique tx_hash in transform.clean_transactions,phase1_transformed_transform_20261127T224625Z,False
+cross_schema_tx_overlap,both,ALL,diff_token,0,154288,0.0,resolved conflict logged in transform.clean_tx_conflicts,phase1_transformed_transform_20261127T224625Z,False
+cross_schema_tx_overlap,both,ALL,diff_amount,2867,154288,0.018582132116561238,resolved conflict logged in transform.clean_tx_conflicts,phase1_transformed_transform_20261127T224625Z,False
+cross_schema_tx_overlap,both,ALL,diff_amount_exact,2867,154288,0.018582132116561238,resolved conflict logged in transform.clean_tx_conflicts,phase1_transformed_transform_20261127T224625Z,False
+cross_schema_tx_overlap,both,ALL,diff_from,53,154288,0.0003435134294306751,resolved conflict logged in transform.clean_tx_conflicts,phase1_transformed_transform_20261127T224625Z,False
+cross_schema_tx_overlap,both,ALL,diff_to,85,154288,0.0005509177641812714,resolved conflict logged in transform.clean_tx_conflicts,phase1_transformed_transform_20261127T224625Z,False
+cross_schema_tx_overlap,both,ALL,diff_ts,313,154288,0.00202867364927927,resolved conflict logged in transform.clean_tx_conflicts,phase1_transformed_transform_20261127T224625Z,False
+amount_flag,illicit,TRX,dust,9116868,10236873,0.8905911014037197,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+amount_flag,illicit,TRX,large_review,262,10236873,2.5593753092374988e-05,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+amount_flag,illicit,TRX,ok,1119743,10236873,0.10938330484318795,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+amount_flag,illicit,USDT,dust,18441,4725449,0.00390248630341794,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+amount_flag,illicit,USDT,large_review,18513,4725449,0.0039177229507714505,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+amount_flag,illicit,USDT,ok,4688495,4725449,0.9921797907458106,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+amount_flag,licit,TRX,dust,5505022,8941823,0.6156487329261606,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+amount_flag,licit,TRX,large_review,22491,8941823,0.0025152589130874098,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+amount_flag,licit,TRX,ok,3414310,8941823,0.381836008160752,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+amount_flag,licit,USDT,dust,19791,2190063,0.009036726340749101,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+amount_flag,licit,USDT,large_review,3136,2190063,0.001431922278034924,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+amount_flag,licit,USDT,ok,2167136,2190063,0.989531351381216,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+trx_anomaly_detail,illicit,TRX,exact_1_sun_0.000001,3313515,10236873,0.32368429304534696,flagged 1-SUN dust retained for sensitivity checks,phase1_transformed_transform_20261127T224625Z,False
+trx_anomaly_detail,illicit,TRX,micro_dust_gt_1sun_lt_0.01,5803353,10236873,0.5669068083583727,sub-cent TRX transfers,phase1_transformed_transform_20261127T224625Z,False
+trx_anomaly_detail,illicit,TRX,repeated_4444.444444_artifact,0,10236873,0.0,flagged 4444.444444 artifact retained for sensitivity checks,phase1_transformed_transform_20261127T224625Z,False
+trx_anomaly_detail,illicit,TRX,above_100b_trx_supply,0,10236873,0.0,physically impossible TRX amount (0 after L1 filter),phase1_transformed_transform_20261127T224625Z,False
+trx_anomaly_detail,licit,TRX,exact_1_sun_0.000001,2207073,8941823,0.2468258430076283,flagged 1-SUN dust retained for sensitivity checks,phase1_transformed_transform_20261127T224625Z,False
+trx_anomaly_detail,licit,TRX,micro_dust_gt_1sun_lt_0.01,3297949,8941823,0.3688228899185323,sub-cent TRX transfers,phase1_transformed_transform_20261127T224625Z,False
+trx_anomaly_detail,licit,TRX,repeated_4444.444444_artifact,1017778,8941823,0.11382220381682795,flagged 4444.444444 artifact retained for sensitivity checks,phase1_transformed_transform_20261127T224625Z,False
+trx_anomaly_detail,licit,TRX,above_100b_trx_supply,0,8941823,0.0,physically impossible TRX amount (0 after L1 filter),phase1_transformed_transform_20261127T224625Z,False
+timestamp_flag,illicit,ALL,ok,14962322,14962322,1.0,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+timestamp_flag,licit,ALL,ok,11131886,11131886,1.0,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,TRX,2019,1,14962322,6.683454613528569e-08,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,TRX,2020,274,14962322,1.831266564106828e-05,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,USDT,2020,398,14962322,2.6600149361843704e-05,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,TRX,2021,5165,14962322,0.0003452004307887506,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,USDT,2021,4120,14962322,0.000275358330077377,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,TRX,2022,66165,14962322,0.004422107745041178,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,USDT,2022,26038,14962322,0.0017402379122705687,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,TRX,2023,188593,14962322,0.012604527559291933,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,USDT,2023,68746,14962322,0.00459460770861635,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,TRX,2024,179929,14962322,0.012025473051575818,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,USDT,2024,212703,14962322,0.01421590846661367,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,TRX,2025,448845,14962322,0.029998351860092302,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,USDT,2025,541340,14962322,0.03618021320487556,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,TRX,2026,9347901,14962322,0.6247627206525832,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,illicit,USDT,2026,3872104,14962322,0.25879031342862424,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,TRX,2019,57,11131886,5.1204261344393935e-06,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,USDT,2019,22,11131886,1.976304823818713e-06,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,TRX,2020,351,11131886,3.1531045143653105e-05,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,USDT,2020,766,11131886,6.881134068386974e-05,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,TRX,2021,37395,11131886,0.003359269040304581,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,USDT,2021,19843,11131886,0.001782537119047033,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,TRX,2022,752916,11131886,0.06763597830592229,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,USDT,2022,218224,11131886,0.019603506539682493,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,TRX,2023,141758,11131886,0.012734409964313324,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,USDT,2023,82213,11131886,0.007385361294573085,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,TRX,2024,170035,11131886,0.015274590487182495,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,USDT,2024,100204,11131886,0.009001529480269561,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,TRX,2025,111704,11131886,0.01003459791090207,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,USDT,2025,154819,11131886,0.013907706205399516,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,TRX,2026,7727607,11131886,0.6941866813943298,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+tx_by_year,licit,USDT,2026,1613972,11131886,0.144986393141288,post-L1 valid-for-features rows,phase1_transformed_transform_20261127T224625Z,False
+hop_edge_tx_flag,illicit,ALL,dust,5441596,6965210,0.7812536879720784,transform.clean_wallet_hops via_tx_status,phase1_transformed_transform_20261127T224625Z,False
+hop_edge_tx_flag,illicit,ALL,ok,1397695,6965210,0.20066803441676562,transform.clean_wallet_hops via_tx_status,phase1_transformed_transform_20261127T224625Z,False
+hop_edge_tx_flag,illicit,ALL,missing_tx,106637,6965210,0.015309947582341379,transform.clean_wallet_hops via_tx_status,phase1_transformed_transform_20261127T224625Z,False
+hop_edge_tx_flag,illicit,ALL,zero,10146,6965210,0.0014566682124444203,transform.clean_wallet_hops via_tx_status,phase1_transformed_transform_20261127T224625Z,False
+hop_edge_tx_flag,illicit,ALL,large_review,5569,6965210,0.0007995451680566702,transform.clean_wallet_hops via_tx_status,phase1_transformed_transform_20261127T224625Z,False
+hop_edge_tx_flag,illicit,ALL,sentinel,2861,6965210,0.0004107557417507871,transform.clean_wallet_hops via_tx_status,phase1_transformed_transform_20261127T224625Z,False
+hop_edge_tx_flag,illicit,ALL,null_hop0,495,6965210,7.106749114527774e-05,transform.clean_wallet_hops via_tx_status,phase1_transformed_transform_20261127T224625Z,False
+hop_edge_tx_flag,illicit,ALL,above_supply,211,6965210,3.029341541748203e-05,transform.clean_wallet_hops via_tx_status,phase1_transformed_transform_20261127T224625Z,False
+hop_only_reconciliation,both,ALL,hop_only_not_in_accounts,27017,3967831,0.0068090097587321635,in clean_wallet_hops (1..5) but absent from accounts union,phase1_transformed_transform_20261127T224625Z,False
+hop_only_reconciliation,both,ALL,hop_only_present_in_transactions,0,27017,0.0,hop-only wallets with >=1 valid tx,phase1_transformed_transform_20261127T224625Z,False
+hop_only_reconciliation,both,ALL,hop_only_blacklisted,0,27017,0.0,hop-only wallets in blacklist,phase1_transformed_transform_20261127T224625Z,False

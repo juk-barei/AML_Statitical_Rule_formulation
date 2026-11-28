@@ -1,12 +1,12 @@
-# L1 Cleaning Builder (`clean/`) — Proposal
-<!-- Created: 2026-11-27 | Last updated: 2026-11-27 | Edit count: 1 -->
+# L1 Cleaning Builder (`clean/`)
+<!-- Created: 2026-11-27 | Last updated: 2026-11-28 | Edit count: 2 -->
 
-- **Status:** todo (scripts proposed; awaiting manual line-by-line execution by user)
+- **Status:** done (merged in PR #40; materialized and exported in `phase1_transformed_transform_20261127T224625Z`)
 - **Blocked by:** `06_feature_profile.md` (done)
-- **Blocks:** `11_l3_features.md`, `12_transformed_export_audit.md`
+- **Blocks:** `11_l3_features.md` (done), `12_transformed_export_audit.md` (in_progress)
 - **Owner:** user manual execution + agent proposal
-- **Output:** `transform.clean_transactions`, `transform.clean_tx_conflicts`, `transform.clean_wallet_hops`, `outputs/etl/transform/clean/{clean_nflow,clean_flag_breakdown}.csv`
-- **Updated:** 2026-11-27
+- **Output:** `transform.clean_transactions` (`26,189,701` rows), `transform.clean_tx_conflicts` (`3,194` rows), `transform.clean_wallet_hops` (`6,965,210` rows)
+- **Updated:** 2026-11-28
 
 ## Resources / context
 

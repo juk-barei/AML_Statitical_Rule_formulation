@@ -1,0 +1,117 @@
+wallet_class,hypothesis,feature,filter,n_in,n_out,n_dropped,retained_share,reason,snapshot_at,is_partial
+illicit,shared,total_tx_count,all wallets (non-zero clean events),17046,17046,0,1.0,deduped clean tx; excludes sentinel/above_supply/pre_mainnet/zero,phase1_transformed_transform_20261127T224625Z,True
+suspicious,shared,total_tx_count,all wallets (non-zero clean events),3959525,3959525,0,1.0,deduped clean tx; excludes sentinel/above_supply/pre_mainnet/zero,phase1_transformed_transform_20261127T224625Z,True
+licit,shared,total_tx_count,all wallets (non-zero clean events),5180495,5180495,0,1.0,deduped clean tx; excludes sentinel/above_supply/pre_mainnet/zero,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,shared,total_tx_count,all wallets (non-zero clean events),719801,719801,0,1.0,deduped clean tx; excludes sentinel/above_supply/pre_mainnet/zero,phase1_transformed_transform_20261127T224625Z,True
+illicit,shared,zero_tx_count,all wallets (zero-amount clean events),17046,17046,0,1.0,flagged zero-value transfers per wallet,phase1_transformed_transform_20261127T224625Z,True
+suspicious,shared,zero_tx_count,all wallets (zero-amount clean events),3959525,3959525,0,1.0,flagged zero-value transfers per wallet,phase1_transformed_transform_20261127T224625Z,True
+licit,shared,zero_tx_count,all wallets (zero-amount clean events),5180495,5180495,0,1.0,flagged zero-value transfers per wallet,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,shared,zero_tx_count,all wallets (zero-amount clean events),719801,719801,0,1.0,flagged zero-value transfers per wallet,phase1_transformed_transform_20261127T224625Z,True
+illicit,shared,usdt_tx_count,all wallets (non-zero USDT),17046,17046,0,1.0,deduped clean USDT events,phase1_transformed_transform_20261127T224625Z,True
+suspicious,shared,usdt_tx_count,all wallets (non-zero USDT),3959525,3959525,0,1.0,deduped clean USDT events,phase1_transformed_transform_20261127T224625Z,True
+licit,shared,usdt_tx_count,all wallets (non-zero USDT),5180495,5180495,0,1.0,deduped clean USDT events,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,shared,usdt_tx_count,all wallets (non-zero USDT),719801,719801,0,1.0,deduped clean USDT events,phase1_transformed_transform_20261127T224625Z,True
+illicit,shared,trx_tx_count,all wallets (non-zero TRX),17046,17046,0,1.0,deduped clean TRX events (includes 1-SUN dust),phase1_transformed_transform_20261127T224625Z,True
+suspicious,shared,trx_tx_count,all wallets (non-zero TRX),3959525,3959525,0,1.0,deduped clean TRX events (includes 1-SUN dust),phase1_transformed_transform_20261127T224625Z,True
+licit,shared,trx_tx_count,all wallets (non-zero TRX),5180495,5180495,0,1.0,deduped clean TRX events (includes 1-SUN dust),phase1_transformed_transform_20261127T224625Z,True
+unlabeled,shared,trx_tx_count,all wallets (non-zero TRX),719801,719801,0,1.0,deduped clean TRX events (includes 1-SUN dust),phase1_transformed_transform_20261127T224625Z,True
+illicit,H3,in_degree_all,all wallets,17046,17046,0,1.0,distinct inbound counterparties across TRX+USDT,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H3,in_degree_all,all wallets,3959525,3959525,0,1.0,distinct inbound counterparties across TRX+USDT,phase1_transformed_transform_20261127T224625Z,True
+licit,H3,in_degree_all,all wallets,5180495,5180495,0,1.0,distinct inbound counterparties across TRX+USDT,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H3,in_degree_all,all wallets,719801,719801,0,1.0,distinct inbound counterparties across TRX+USDT,phase1_transformed_transform_20261127T224625Z,True
+illicit,H3,out_degree_all,all wallets,17046,17046,0,1.0,distinct outbound counterparties across TRX+USDT,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H3,out_degree_all,all wallets,3959525,3959525,0,1.0,distinct outbound counterparties across TRX+USDT,phase1_transformed_transform_20261127T224625Z,True
+licit,H3,out_degree_all,all wallets,5180495,5180495,0,1.0,distinct outbound counterparties across TRX+USDT,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H3,out_degree_all,all wallets,719801,719801,0,1.0,distinct outbound counterparties across TRX+USDT,phase1_transformed_transform_20261127T224625Z,True
+illicit,H3,in_degree_usdt,all wallets,17046,17046,0,1.0,distinct inbound USDT counterparties,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H3,in_degree_usdt,all wallets,3959525,3959525,0,1.0,distinct inbound USDT counterparties,phase1_transformed_transform_20261127T224625Z,True
+licit,H3,in_degree_usdt,all wallets,5180495,5180495,0,1.0,distinct inbound USDT counterparties,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H3,in_degree_usdt,all wallets,719801,719801,0,1.0,distinct inbound USDT counterparties,phase1_transformed_transform_20261127T224625Z,True
+illicit,H3,out_degree_usdt,all wallets,17046,17046,0,1.0,distinct outbound USDT counterparties,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H3,out_degree_usdt,all wallets,3959525,3959525,0,1.0,distinct outbound USDT counterparties,phase1_transformed_transform_20261127T224625Z,True
+licit,H3,out_degree_usdt,all wallets,5180495,5180495,0,1.0,distinct outbound USDT counterparties,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H3,out_degree_usdt,all wallets,719801,719801,0,1.0,distinct outbound USDT counterparties,phase1_transformed_transform_20261127T224625Z,True
+illicit,H3,fan_out_in_ratio_usdt,>=1 USDT event,17046,15426,1620,0.9049630411826821,(out_degree_usdt + 1) / (in_degree_usdt + 1),phase1_transformed_transform_20261127T224625Z,True
+suspicious,H3,fan_out_in_ratio_usdt,>=1 USDT event,3959525,1064765,2894760,0.26891230640038893,(out_degree_usdt + 1) / (in_degree_usdt + 1),phase1_transformed_transform_20261127T224625Z,True
+licit,H3,fan_out_in_ratio_usdt,>=1 USDT event,5180495,708582,4471913,0.13677882132884986,(out_degree_usdt + 1) / (in_degree_usdt + 1),phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H3,fan_out_in_ratio_usdt,>=1 USDT event,719801,231534,488267,0.3216639043291132,(out_degree_usdt + 1) / (in_degree_usdt + 1),phase1_transformed_transform_20261127T224625Z,True
+illicit,shared,usdt_volume,>=1 non-zero USDT event,17046,15426,1620,0.9049630411826821,total clean USDT in+out volume,phase1_transformed_transform_20261127T224625Z,True
+suspicious,shared,usdt_volume,>=1 non-zero USDT event,3959525,1064765,2894760,0.26891230640038893,total clean USDT in+out volume,phase1_transformed_transform_20261127T224625Z,True
+licit,shared,usdt_volume,>=1 non-zero USDT event,5180495,708582,4471913,0.13677882132884986,total clean USDT in+out volume,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,shared,usdt_volume,>=1 non-zero USDT event,719801,231534,488267,0.3216639043291132,total clean USDT in+out volume,phase1_transformed_transform_20261127T224625Z,True
+illicit,shared,trx_volume,>=1 non-zero TRX event,17046,15444,1602,0.9060190073917634,total clean TRX in+out volume (<=100B cap),phase1_transformed_transform_20261127T224625Z,True
+suspicious,shared,trx_volume,>=1 non-zero TRX event,3959525,3471934,487591,0.876856188557971,total clean TRX in+out volume (<=100B cap),phase1_transformed_transform_20261127T224625Z,True
+licit,shared,trx_volume,>=1 non-zero TRX event,5180495,4654352,526143,0.8984376975559285,total clean TRX in+out volume (<=100B cap),phase1_transformed_transform_20261127T224625Z,True
+unlabeled,shared,trx_volume,>=1 non-zero TRX event,719801,484944,234857,0.6737195419289498,total clean TRX in+out volume (<=100B cap),phase1_transformed_transform_20261127T224625Z,True
+illicit,H1,in_out_vol_ratio_usdt,both USDT in>0 and out>0,17046,13900,3146,0.8154405725683445,usdt_out_volume / usdt_in_volume,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H1,in_out_vol_ratio_usdt,both USDT in>0 and out>0,3959525,225970,3733555,0.05706997682802861,usdt_out_volume / usdt_in_volume,phase1_transformed_transform_20261127T224625Z,True
+licit,H1,in_out_vol_ratio_usdt,both USDT in>0 and out>0,5180495,51677,5128818,0.009975301587975667,usdt_out_volume / usdt_in_volume,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H1,in_out_vol_ratio_usdt,both USDT in>0 and out>0,719801,9124,710677,0.012675725651951025,usdt_out_volume / usdt_in_volume,phase1_transformed_transform_20261127T224625Z,True
+illicit,H1,min_passthrough_sec_usdt,paired USDT IN -> subsequent OUT,17046,13893,3153,0.8150299190425906,min seconds from prior USDT IN to next USDT OUT,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H1,min_passthrough_sec_usdt,paired USDT IN -> subsequent OUT,3959525,191862,3767663,0.04845581225020678,min seconds from prior USDT IN to next USDT OUT,phase1_transformed_transform_20261127T224625Z,True
+licit,H1,min_passthrough_sec_usdt,paired USDT IN -> subsequent OUT,5180495,47238,5133257,0.009118433663192416,min seconds from prior USDT IN to next USDT OUT,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H1,min_passthrough_sec_usdt,paired USDT IN -> subsequent OUT,719801,6891,712910,0.00957347933664999,min seconds from prior USDT IN to next USDT OUT,phase1_transformed_transform_20261127T224625Z,True
+illicit,H1,h1_pass_15m,paired USDT IN -> subsequent OUT,17046,13893,3153,0.8150299190425906,min_passthrough_sec_usdt <= 900s (15 min),phase1_transformed_transform_20261127T224625Z,True
+suspicious,H1,h1_pass_15m,paired USDT IN -> subsequent OUT,3959525,191862,3767663,0.04845581225020678,min_passthrough_sec_usdt <= 900s (15 min),phase1_transformed_transform_20261127T224625Z,True
+licit,H1,h1_pass_15m,paired USDT IN -> subsequent OUT,5180495,47238,5133257,0.009118433663192416,min_passthrough_sec_usdt <= 900s (15 min),phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H1,h1_pass_15m,paired USDT IN -> subsequent OUT,719801,6891,712910,0.00957347933664999,min_passthrough_sec_usdt <= 900s (15 min),phase1_transformed_transform_20261127T224625Z,True
+illicit,H2,tx_lifetime_days,>=2 non-zero events (all tokens),17046,16041,1005,0.9410418866596268,"transaction span, not accounts.first_seen",phase1_transformed_transform_20261127T224625Z,True
+suspicious,H2,tx_lifetime_days,>=2 non-zero events (all tokens),3959525,2515876,1443649,0.6353984379439453,"transaction span, not accounts.first_seen",phase1_transformed_transform_20261127T224625Z,True
+licit,H2,tx_lifetime_days,>=2 non-zero events (all tokens),5180495,871241,4309254,0.16817717225863552,"transaction span, not accounts.first_seen",phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H2,tx_lifetime_days,>=2 non-zero events (all tokens),719801,122212,597589,0.16978581580186747,"transaction span, not accounts.first_seen",phase1_transformed_transform_20261127T224625Z,True
+illicit,H2,log1p_tx_lifetime_days,>=2 non-zero events (all tokens),17046,16041,1005,0.9410418866596268,stateless log1p(tx_lifetime_days) primary ANOVA response,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H2,log1p_tx_lifetime_days,>=2 non-zero events (all tokens),3959525,2515876,1443649,0.6353984379439453,stateless log1p(tx_lifetime_days) primary ANOVA response,phase1_transformed_transform_20261127T224625Z,True
+licit,H2,log1p_tx_lifetime_days,>=2 non-zero events (all tokens),5180495,871241,4309254,0.16817717225863552,stateless log1p(tx_lifetime_days) primary ANOVA response,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H2,log1p_tx_lifetime_days,>=2 non-zero events (all tokens),719801,122212,597589,0.16978581580186747,stateless log1p(tx_lifetime_days) primary ANOVA response,phase1_transformed_transform_20261127T224625Z,True
+illicit,H2,burst_ratio_usdt,>=5 non-zero USDT events,17046,12764,4282,0.7487973718174352,max 1h USDT vol / total USDT vol (USDT-only),phase1_transformed_transform_20261127T224625Z,True
+suspicious,H2,burst_ratio_usdt,>=5 non-zero USDT events,3959525,235556,3723969,0.05949097429615926,max 1h USDT vol / total USDT vol (USDT-only),phase1_transformed_transform_20261127T224625Z,True
+licit,H2,burst_ratio_usdt,>=5 non-zero USDT events,5180495,37965,5142530,0.007328450273574243,max 1h USDT vol / total USDT vol (USDT-only),phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H2,burst_ratio_usdt,>=5 non-zero USDT events,719801,11545,708256,0.016039155266525055,max 1h USDT vol / total USDT vol (USDT-only),phase1_transformed_transform_20261127T224625Z,True
+illicit,H2,h2_pass_ge5,>=2 events and >=5 USDT events,17046,12764,4282,0.7487973718174352,lifetime <= 7d AND burst_ratio_usdt >= 0.75,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H2,h2_pass_ge5,>=2 events and >=5 USDT events,3959525,235556,3723969,0.05949097429615926,lifetime <= 7d AND burst_ratio_usdt >= 0.75,phase1_transformed_transform_20261127T224625Z,True
+licit,H2,h2_pass_ge5,>=2 events and >=5 USDT events,5180495,37965,5142530,0.007328450273574243,lifetime <= 7d AND burst_ratio_usdt >= 0.75,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H2,h2_pass_ge5,>=2 events and >=5 USDT events,719801,11545,708256,0.016039155266525055,lifetime <= 7d AND burst_ratio_usdt >= 0.75,phase1_transformed_transform_20261127T224625Z,True
+illicit,H2,h2_pass_any_usdt,>=1 non-zero USDT event,17046,15426,1620,0.9049630411826821,activity-floor sensitivity check (no >=5 USDT gate),phase1_transformed_transform_20261127T224625Z,True
+suspicious,H2,h2_pass_any_usdt,>=1 non-zero USDT event,3959525,1064765,2894760,0.26891230640038893,activity-floor sensitivity check (no >=5 USDT gate),phase1_transformed_transform_20261127T224625Z,True
+licit,H2,h2_pass_any_usdt,>=1 non-zero USDT event,5180495,708582,4471913,0.13677882132884986,activity-floor sensitivity check (no >=5 USDT gate),phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H2,h2_pass_any_usdt,>=1 non-zero USDT event,719801,231534,488267,0.3216639043291132,activity-floor sensitivity check (no >=5 USDT gate),phase1_transformed_transform_20261127T224625Z,True
+illicit,H3,amount_cv_usdt,>=5 non-zero USDT events,17046,12764,4282,0.7487973718174352,stddev/mean of clean USDT amounts,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H3,amount_cv_usdt,>=5 non-zero USDT events,3959525,235556,3723969,0.05949097429615926,stddev/mean of clean USDT amounts,phase1_transformed_transform_20261127T224625Z,True
+licit,H3,amount_cv_usdt,>=5 non-zero USDT events,5180495,37965,5142530,0.007328450273574243,stddev/mean of clean USDT amounts,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H3,amount_cv_usdt,>=5 non-zero USDT events,719801,11545,708256,0.016039155266525055,stddev/mean of clean USDT amounts,phase1_transformed_transform_20261127T224625Z,True
+illicit,H4,jaccard_index,both TRX funders>0 and USDT recipients>0,17046,13417,3629,0.7871054792913293,"Jaccard(TRX funders, USDT recipients)",phase1_transformed_transform_20261127T224625Z,True
+suspicious,H4,jaccard_index,both TRX funders>0 and USDT recipients>0,3959525,386981,3572544,0.09773419791515396,"Jaccard(TRX funders, USDT recipients)",phase1_transformed_transform_20261127T224625Z,True
+licit,H4,jaccard_index,both TRX funders>0 and USDT recipients>0,5180495,135588,5044907,0.02617278850766191,"Jaccard(TRX funders, USDT recipients)",phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H4,jaccard_index,both TRX funders>0 and USDT recipients>0,719801,3016,716785,0.0041900469713156835,"Jaccard(TRX funders, USDT recipients)",phase1_transformed_transform_20261127T224625Z,True
+illicit,H4,h4_pass,both TRX funders>0 and USDT recipients>0,17046,13417,3629,0.7871054792913293,jaccard_index >= 0.50,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H4,h4_pass,both TRX funders>0 and USDT recipients>0,3959525,386981,3572544,0.09773419791515396,jaccard_index >= 0.50,phase1_transformed_transform_20261127T224625Z,True
+licit,H4,h4_pass,both TRX funders>0 and USDT recipients>0,5180495,135588,5044907,0.02617278850766191,jaccard_index >= 0.50,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H4,h4_pass,both TRX funders>0 and USDT recipients>0,719801,3016,716785,0.0041900469713156835,jaccard_index >= 0.50,phase1_transformed_transform_20261127T224625Z,True
+illicit,H5,min_hop_level,suspicious wallets (hop 1..5),17046,0,17046,0.0,nested inside suspicious; NULL for other cohorts,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H5,min_hop_level,suspicious wallets (hop 1..5),3959525,3959525,0,1.0,nested inside suspicious; NULL for other cohorts,phase1_transformed_transform_20261127T224625Z,True
+licit,H5,min_hop_level,suspicious wallets (hop 1..5),5180495,0,5180495,0.0,nested inside suspicious; NULL for other cohorts,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H5,min_hop_level,suspicious wallets (hop 1..5),719801,0,719801,0.0,nested inside suspicious; NULL for other cohorts,phase1_transformed_transform_20261127T224625Z,True
+illicit,H5,seed_count,all wallets,17046,17046,0,1.0,distinct illicit seed_address count in wallet_hops,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H5,seed_count,all wallets,3959525,3959525,0,1.0,distinct illicit seed_address count in wallet_hops,phase1_transformed_transform_20261127T224625Z,True
+licit,H5,seed_count,all wallets,5180495,5180495,0,1.0,distinct illicit seed_address count in wallet_hops,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H5,seed_count,all wallets,719801,719801,0,1.0,distinct illicit seed_address count in wallet_hops,phase1_transformed_transform_20261127T224625Z,True
+illicit,H6,cv_delta_t_all,>=5 non-zero events and mean gap > 0,17046,15218,1828,0.8927607649888537,all-direction inter-arrival CV (no session split),phase1_transformed_transform_20261127T224625Z,True
+suspicious,H6,cv_delta_t_all,>=5 non-zero events and mean gap > 0,3959525,891564,3067961,0.2251694332022149,all-direction inter-arrival CV (no session split),phase1_transformed_transform_20261127T224625Z,True
+licit,H6,cv_delta_t_all,>=5 non-zero events and mean gap > 0,5180495,124258,5056237,0.023985738814534134,all-direction inter-arrival CV (no session split),phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H6,cv_delta_t_all,>=5 non-zero events and mean gap > 0,719801,18073,701728,0.02510832855191921,all-direction inter-arrival CV (no session split),phase1_transformed_transform_20261127T224625Z,True
+illicit,H6,log1p_cv_delta_t_all,>=5 non-zero events and mean gap > 0,17046,15218,1828,0.8927607649888537,stateless log1p(cv_delta_t_all) secondary ANOVA response,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H6,log1p_cv_delta_t_all,>=5 non-zero events and mean gap > 0,3959525,891564,3067961,0.2251694332022149,stateless log1p(cv_delta_t_all) secondary ANOVA response,phase1_transformed_transform_20261127T224625Z,True
+licit,H6,log1p_cv_delta_t_all,>=5 non-zero events and mean gap > 0,5180495,124258,5056237,0.023985738814534134,stateless log1p(cv_delta_t_all) secondary ANOVA response,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H6,log1p_cv_delta_t_all,>=5 non-zero events and mean gap > 0,719801,18073,701728,0.02510832855191921,stateless log1p(cv_delta_t_all) secondary ANOVA response,phase1_transformed_transform_20261127T224625Z,True
+illicit,H6,cv_delta_t_out,>=5 non-zero OUT events and mean gap > 0,17046,12244,4802,0.718291681332864,OUT-only directional sensitivity for H6,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H6,cv_delta_t_out,>=5 non-zero OUT events and mean gap > 0,3959525,433972,3525553,0.10960203559770428,OUT-only directional sensitivity for H6,phase1_transformed_transform_20261127T224625Z,True
+licit,H6,cv_delta_t_out,>=5 non-zero OUT events and mean gap > 0,5180495,55334,5125161,0.010681218686631296,OUT-only directional sensitivity for H6,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H6,cv_delta_t_out,>=5 non-zero OUT events and mean gap > 0,719801,9657,710144,0.013416208090847332,OUT-only directional sensitivity for H6,phase1_transformed_transform_20261127T224625Z,True
+illicit,H6,h6_pass_all,>=5 non-zero events and mean gap > 0,17046,15218,1828,0.8927607649888537,cv_delta_t_all < 0.15,phase1_transformed_transform_20261127T224625Z,True
+suspicious,H6,h6_pass_all,>=5 non-zero events and mean gap > 0,3959525,891564,3067961,0.2251694332022149,cv_delta_t_all < 0.15,phase1_transformed_transform_20261127T224625Z,True
+licit,H6,h6_pass_all,>=5 non-zero events and mean gap > 0,5180495,124258,5056237,0.023985738814534134,cv_delta_t_all < 0.15,phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H6,h6_pass_all,>=5 non-zero events and mean gap > 0,719801,18073,701728,0.02510832855191921,cv_delta_t_all < 0.15,phase1_transformed_transform_20261127T224625Z,True
+illicit,H6,h6_pass_out,>=5 non-zero OUT events and mean gap > 0,17046,12244,4802,0.718291681332864,cv_delta_t_out < 0.15 (OUT-only sensitivity),phase1_transformed_transform_20261127T224625Z,True
+suspicious,H6,h6_pass_out,>=5 non-zero OUT events and mean gap > 0,3959525,433972,3525553,0.10960203559770428,cv_delta_t_out < 0.15 (OUT-only sensitivity),phase1_transformed_transform_20261127T224625Z,True
+licit,H6,h6_pass_out,>=5 non-zero OUT events and mean gap > 0,5180495,55334,5125161,0.010681218686631296,cv_delta_t_out < 0.15 (OUT-only sensitivity),phase1_transformed_transform_20261127T224625Z,True
+unlabeled,H6,h6_pass_out,>=5 non-zero OUT events and mean gap > 0,719801,9657,710144,0.013416208090847332,cv_delta_t_out < 0.15 (OUT-only sensitivity),phase1_transformed_transform_20261127T224625Z,True

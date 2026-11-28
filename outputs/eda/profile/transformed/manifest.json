@@ -1,9 +1,9 @@
 {
   "stage": "transformed",
-  "generated_at_utc": "2026-11-28T13:37:40Z",
+  "generated_at_utc": "2026-11-28T13:53:21Z",
   "source_dir": "/home/annoy/projects/team/capstone-1/dev/data_analysis/outputs/etl/transform/profile/transformed",
   "snapshot_at": "phase1_transformed_transform_20261127T224625Z",
-  "is_partial": false,
+  "is_partial": true,
   "loaded_tables": [
     "cohort_counts",
     "feature_nflow",
@@ -75,13 +75,13 @@
       "group": "features",
       "figure": "08_feature_eligibility_nflow.png",
       "table": "08_feature_eligibility_nflow.csv",
-      "summary_rows": 152
+      "summary_rows": 116
     },
     {
       "group": "features",
       "figure": "09_feature_skew_zero_tail.png",
       "table": "09_feature_skew_zero_tail.csv",
-      "summary_rows": 128
+      "summary_rows": 92
     },
     {
       "group": "features",

@@ -152,7 +152,12 @@ def load_profile_bundle(
 
 
 def _snapshot_phase_token(snapshot_str: str) -> str:
-    """Extract phase prefix (e.g. 'phase1') across composite snapshot strings."""
+    """Extract a unique phase prefix (e.g. 'phase1') across composite snapshot strings.
+
+    Returns the single phase token when all phase-prefixed tokens agree, an empty
+    string when conflicting phases are mixed, or the first token when no phase
+    prefix is present.
+    """
     parts = [p.strip() for chunk in snapshot_str.split(";") for p in chunk.split("+") if p.strip()]
     phase_tokens = {
         p.split("_", 1)[0]
@@ -162,7 +167,7 @@ def _snapshot_phase_token(snapshot_str: str) -> str:
     if len(phase_tokens) == 1:
         return next(iter(phase_tokens))
     if len(phase_tokens) > 1:
-        return ";".join(sorted(phase_tokens))
+        return ""
     return parts[0] if parts else snapshot_str.strip()
 
 
@@ -176,12 +181,14 @@ def validate_compare_compatibility(
 
     Raises ValueError if snapshots are incompatible unless allow_cross_snapshot=True.
     """
-    raw_snap, _ = raw_bundle.snapshot_for(
-        "wallet_distributions", "feature_nflow", "pretransform_cleaning"
-    )
-    tr_snap, _ = transformed_bundle.snapshot_for(
-        "wallet_distributions", "feature_nflow", "pretransform_cleaning"
-    )
+    primary_tables = ("wallet_distributions", "feature_nflow")
+    fallback_tables = ("cohort_counts", "pretransform_cleaning")
+    raw_snap, _ = raw_bundle.snapshot_for(*primary_tables)
+    if raw_snap == "unknown":
+        raw_snap, _ = raw_bundle.snapshot_for(*fallback_tables)
+    tr_snap, _ = transformed_bundle.snapshot_for(*primary_tables)
+    if tr_snap == "unknown":
+        tr_snap, _ = transformed_bundle.snapshot_for(*fallback_tables)
     if raw_snap == "unknown" or tr_snap == "unknown":
         raise ValueError(
             f"Refusing to compare missing snapshots: raw={raw_snap!r}, transformed={tr_snap!r}"
