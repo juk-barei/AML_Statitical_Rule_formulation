@@ -1,9 +1,10 @@
 # Step 2 — H0, Ha, alpha
+<!-- Last updated: 2026-11-28 | Edit count: 2 -->
 
-- **Status:** in_progress
-- **Blocked by:** licit cleaning (H0_L)
+- **Status:** in_progress (unblocked on clean licit frame `phase1_transformed_transform_20261127T224625Z`)
+- **Blocked by:** —
 - **Blocks:** [Step 3](../03_explore/main.md)
-- **Updated:** 2026-11-22
+- **Updated:** 2026-11-28
 
 ## Objective
 
@@ -12,8 +13,8 @@ Write the null and alternative hypotheses, the alpha level, and the multiplicity
 ## Resources / context
 
 - `docs/context/step_1_profiling_samples.md` — cohort/response decisions
-- `docs/hypothesis.md` — H2/H4/H6 definitions and thresholds
-- `docs/flow.md` — test and weight plan
+- `docs/dev/hypothesis_testing/general/all_hypothesis.md` — H1–H6 definitions and thresholds
+- `docs/dev/hypothesis_testing/overall_flow.md` — test and weight plan
 - NIST/SEMATECH one-way ANOVA
 
 ## Files
@@ -49,4 +50,4 @@ Done tasks are archived under `tasks/_archive/`; their links point there.
 | [`02_secondary_hypotheses.md`](../../_archive/hypothesis_testing/02_hypotheses_alpha/02_secondary_hypotheses.md) | done | `01_primary_hypotheses.md` | H0/Ha text |
 | [`03_alpha_multiplicity.md`](../../_archive/hypothesis_testing/02_hypotheses_alpha/03_alpha_multiplicity.md) | done | — | alpha/Holm policy |
 | [`04_licit_substitution_policy.md`](../../_archive/hypothesis_testing/02_hypotheses_alpha/04_licit_substitution_policy.md) | done | — | naming rule |
-| `05_licit_hypotheses.md` | blocked | licit cleaning | H0_L/Ha_L |
+| `05_licit_hypotheses.md` | todo | — | `H0_L`/`Ha_L` sign-off in `docs/context/test_plan.md` |

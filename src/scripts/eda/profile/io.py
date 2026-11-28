@@ -18,6 +18,7 @@ PROFILE_FILES: dict[str, str] = {
     "licit_coverage": "local_licit_coverage.csv",
     "illicit_columns": "local_illicit_columns.csv",
     "licit_columns": "local_licit_columns.csv",
+    "transform_columns": "local_transform_columns.csv",
     "quality": "local_quality.csv",
     "pretransform_cleaning": "local_pretransform_cleaning.csv",
     "cohort_counts": "local_cohort_counts.csv",
@@ -150,28 +151,12 @@ def load_profile_bundle(
 
 
 def _snapshot_phase_token(snapshot_str: str) -> str:
-    """Extract a unique phase prefix (e.g. 'phase1') across ';' / '+' tokens.
-
-    Returns the single phase token when all phase-prefixed tokens agree, an
-    empty string if conflicting phase tokens are mixed, or the first token when
-    no phase prefix is present.
-    """
-    tokens = [
-        part.strip()
-        for chunk in snapshot_str.split(";")
-        for part in chunk.split("+")
-        if part.strip()
-    ]
-    phases = {
-        tok.split("_", 1)[0]
-        for tok in tokens
-        if tok.startswith("phase") and "_" in tok
-    }
-    if len(phases) == 1:
-        return next(iter(phases))
-    if len(phases) > 1:
-        return ""
-    return tokens[0] if tokens else ""
+    """Extract phase prefix (e.g. 'phase1') across composite snapshot labels if present."""
+    parts = [p.strip() for chunk in snapshot_str.split(";") for p in chunk.split("+") if p.strip()]
+    for part in parts:
+        if part.startswith("phase") and "_" in part:
+            return part.split("_", 1)[0]
+    return parts[0] if parts else snapshot_str.strip()
 
 
 def validate_compare_compatibility(
@@ -184,12 +169,14 @@ def validate_compare_compatibility(
 
     Raises ValueError if snapshots are incompatible unless allow_cross_snapshot=True.
     """
-    raw_snap, _ = raw_bundle.snapshot_for(
-        "wallet_distributions", "feature_nflow", "pretransform_cleaning"
-    )
-    tr_snap, _ = transformed_bundle.snapshot_for(
-        "wallet_distributions", "feature_nflow", "pretransform_cleaning"
-    )
+    primary_tables = ("wallet_distributions", "feature_nflow")
+    fallback_tables = ("cohort_counts", "pretransform_cleaning")
+    raw_snap, _ = raw_bundle.snapshot_for(*primary_tables)
+    if raw_snap == "unknown":
+        raw_snap, _ = raw_bundle.snapshot_for(*fallback_tables)
+    tr_snap, _ = transformed_bundle.snapshot_for(*primary_tables)
+    if tr_snap == "unknown":
+        tr_snap, _ = transformed_bundle.snapshot_for(*fallback_tables)
     if raw_snap == "unknown" or tr_snap == "unknown":
         raise ValueError(
             f"Refusing to compare missing snapshots: raw={raw_snap!r}, transformed={tr_snap!r}"

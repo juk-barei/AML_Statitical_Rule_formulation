@@ -68,7 +68,11 @@ def _can_run_plot(bundle: ProfileBundle, filename: str, required_hint: tuple[str
     if filename == "01_table_overview_coverage.png":
         return bundle.has("illicit_db_overview") or bundle.has("licit_db_overview")
     if filename == "02_column_missingness_dtypes.png":
-        return bundle.has("illicit_columns") or bundle.has("licit_columns")
+        return (
+            bundle.has("illicit_columns")
+            or bundle.has("licit_columns")
+            or bundle.has("transform_columns")
+        )
     if filename == "03_quality_and_cleaning_anomalies.png":
         return bundle.has("quality") or bundle.has("pretransform_cleaning")
     if filename == "05_cohort_composition_nflow.png":

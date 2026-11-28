@@ -5,11 +5,11 @@
 - **Blocks:** Step 3
 - **Owner:** worker
 - **Output:** `src/notebooks/1.2_LICIT_EDA.ipynb`
-- **Updated:** 2026-11-23
+- **Updated:** 2026-11-28
 
 ## Objective
 
-Build the licit EDA using the same Lecture 02 structure and the same cohort contract as the illicit notebook.
+Build the licit EDA using the same Lecture 02 structure and the same cohort contract as the illicit notebook, querying frozen Parquet snapshot `phase1_transformed_transform_20261127T224625Z` directly via DuckDB (no live local PostgreSQL required).
 
 ## Resources / context
 

@@ -1,0 +1,7 @@
+stage,filter,n_in,n_out,n_dropped,reason,generated_at
+L2_cohort,accounts_cross_schema_dedupe,11484681,9849850,1634831,address present in both illicit.accounts and licit.accounts,2026-11-27T17:09:41+00:00
+L2_cohort,universe_with_hop_only_wallets,9849850,9876867,-27017,negative n_dropped = hop-only wallets added to reconcile full universe,2026-11-27T17:09:41+00:00
+L2_cohort,illicit_priority,9876867,17046,9859821,blacklisted (label=1) or hop_level=0; wins at every hop,2026-11-27T17:09:41+00:00
+L2_cohort,suspicious_hop_1_5_minus_blacklist,3967831,3959525,8306,blacklist wins over hop 1..5,2026-11-27T17:09:41+00:00
+L2_cohort,licit_minus_illicit_minus_suspicious,6614681,5180495,1434186,illicit and suspicious overlap removed from licit.accounts,2026-11-27T17:09:41+00:00
+L2_cohort,unlabeled_remainder,9876867,719801,9157066,"universe minus illicit, suspicious, and licit",2026-11-27T17:09:41+00:00

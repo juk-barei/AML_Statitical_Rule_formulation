@@ -1,7 +1,8 @@
 # Deferred hypotheses and the shared data gate
+<!-- Last updated: 2026-11-28 | Edit count: 2 -->
 
-- **Status:** H1, H3, H5 deferred; data work shared by every hypothesis
-- **Updated:** 2026-11-22
+- **Status:** H1, H3, H5 deferred; shared data gate **open** via frozen snapshot `phase1_transformed_transform_20261127T224625Z`
+- **Updated:** 2026-11-28
 
 ## Phase split
 
@@ -17,7 +18,7 @@
 | `H5` | `S5` seed proximity | decay score is deterministic from hop distance; the open question is threshold calibration, which needs the cleaned licit arm |
 
 Deferred means **not scheduled**, never **disproven**. Rules stay canonical in
-`docs/hypothesis_testing/all_hypothesis.md`. No `H1`/`H3`/`H5` tracker and no
+`docs/dev/hypothesis_testing/general/all_hypothesis.md`. No `H1`/`H3`/`H5` tracker and no
 per-step folders exist.
 
 ## Exception: shared data work
@@ -33,12 +34,12 @@ the hypothesis-time shared tasks that consume that gate.
 
 | Task | Status | Produces |
 | --- | --- | --- |
-| `01_response_factor_groups/04_cohort_contract_v2.md` | in_progress | `outputs/etl/transform/cohort_wallet.parquet` |
-| `01_response_factor_groups/05_licit_ingestion_etl.md` | done (archived; licit 100%) | namespaced licit tables in the mirror |
-| `01_response_factor_groups/11_licit_eda_notebook.md` | todo | `1.2_LICIT_EDA.ipynb` licit profile |
-| `02_hypotheses_alpha/05_licit_hypotheses.md` | blocked | `H0_L` / `Ha_L` in `test_plan.md` |
-| `04_assumptions/04_transform_decision.md` | blocked | pre-specified `log1p` or rank/permutation path |
-| `03_explore/08_nflow_tables.md` | todo | n-flow by group × filter |
+| [`01_response_factor_groups/04_cohort_contract_v2.md`](../_archive/hypothesis_testing/01_response_factor_groups/04_cohort_contract_v2.md) | done (archived) | `phase1_transformed_transform_20261127T224625Z__cohort_wallet.parquet` (`9,876,867` wallets) |
+| [`01_response_factor_groups/05_licit_ingestion_etl.md`](../_archive/hypothesis_testing/01_response_factor_groups/05_licit_ingestion_etl.md) | done (archived; licit 100%) | namespaced licit tables in the mirror |
+| `01_response_factor_groups/11_licit_eda_notebook.md` | todo | `1.2_LICIT_EDA.ipynb` licit profile (DuckDB over frozen Parquet) |
+| `02_hypotheses_alpha/05_licit_hypotheses.md` | todo (unblocked) | `H0_L` / `Ha_L` sign-off in `docs/context/test_plan.md` |
+| `04_assumptions/04_transform_decision.md` | todo | pre-specified `log1p` or rank/permutation path |
+| `03_explore/08_nflow_tables.md` | todo (unblocked) | n-flow by group × filter (`wallet_features.parquet`) |
 
 **Gate closes when** the cohort table, licit tables, transform rule, and n-flow
 table are frozen. Everything downstream is per-hypothesis.
