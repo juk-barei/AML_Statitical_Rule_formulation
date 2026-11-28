@@ -1,7 +1,10 @@
 # Sampling evaluation
+<!-- Last updated: 2026-11-28 | Edit count: 2 -->
 
-The two online DBs are live and not a fixed snapshot: counts moved during profiling. The local mirror (2,125,343 accounts) is older than the online illicit DB (4.5M accounts).
+**Historical online drift resolved:** Live cloud DB drift has been frozen into Phase-1 raw snapshots (`phase1_raw_illicit_20261123T043155Z` + `phase1_raw_licit_20261123T043744Z`) and reconciled into the frozen transformed Parquet snapshot `phase1_transformed_transform_20261127T224625Z` (`9,876,867` unique wallets).
 
-The licit DB is not a clean sampling frame. It has 6.6M accounts, 0 blacklisted rows, and 721 seed wallets; yet 2,977 licit accounts are in the illicit blacklist, 6/721 licit seeds are blacklisted, and 49.7% of a 5,000 suspicious sample is present in licit accounts.
+**Licit cleaning & frame asymmetry (reconciled counts):**
+- Raw `licit.accounts` (`6,614,681`) overlapped `3,387` blacklisted wallets and `1,430,799` suspicious wallets (`1,434,186` removed by priority in L2 `cohort_wallet`, leaving `5,180,495` clean `licit` wallets). `6 / 721` licit seeds were blacklisted (`is_contaminated_licit_seed` flagged for sensitivity).
+- Even after cleaning, the sampling frames differ sharply in activity and era: `licit` p10 timestamp `2023-04-28`, `80.1%` TRX, median `1` tx, `86.3%` zero-USDT vs. `illicit` p10 `2025-10-18`, `90.5%` USDT, median `100` tx.
 
-**Implication:** freeze a timestamp, clean licit by priority, and report the licit sampling frame before pooling. For phase 1, use all eligible illicit wallets (≈6,300), then 50,000 per comparison arm, seed-cluster sampled. Treat any uncleaned licit result as `unlabeled`, not a control.
+**Implication:** Do not prune inactive wallets in ETL; report exact `wallet_class × filter` n-flow and stratify downstream comparisons by activity band. For Phase-1 testing, census all eligible `illicit` wallets (`12,764`–`16,041`), use census or `50,000`–`100,000` stratified samples for `licit` (and seed-cluster samples on `primary_seed_address` for `suspicious`), and keep `unlabeled` (`719,801`) separate from `licit`.
