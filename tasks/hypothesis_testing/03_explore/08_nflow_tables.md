@@ -1,11 +1,12 @@
 # n-flow tables
+<!-- Last updated: 2026-11-28 | Edit count: 2 -->
 
-- **Status:** todo
-- **Blocked by:** Step 1 cohort
+- **Status:** todo (unblocked — reconcile directly from frozen `phase1_transformed_transform_20261127T224625Z__wallet_features.parquet` via DuckDB)
+- **Blocked by:** —
 - **Blocks:** Steps 4–8
 - **Owner:** subagent
 - **Output:** n-flow table
-- **Updated:** 2026-11-20
+- **Updated:** 2026-11-28
 
 ## Objective
 

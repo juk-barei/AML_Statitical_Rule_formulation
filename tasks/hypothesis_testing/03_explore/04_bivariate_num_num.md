@@ -15,7 +15,7 @@ Scatter, correlation, regression line, and correlation heatmap for the rule feat
 
 - `docs/external_resources/Lecture_02_Exploratory Data Analysis_v1.pdf`
 - `src/notebooks/1.1_ILLICIT_EDA.ipynb` — current EDA and executed outputs
-- `docs/hypothesis.md` — H2/H4/H6 definitions and thresholds
+- `docs/dev/hypothesis_testing/general/all_hypothesis.md` — H1–H6 definitions and thresholds
 
 ## Files
 

@@ -1,11 +1,12 @@
 # Licit-frame hypotheses
+<!-- Last updated: 2026-11-28 | Edit count: 2 -->
 
-- **Status:** blocked
-- **Blocked by:** licit cleaning in Step 1
-- **Blocks:** H0_L execution
+- **Status:** todo (unblocked — clean `licit` arm `5,180,495` wallets frozen in `phase1_transformed_transform_20261127T224625Z`)
+- **Blocked by:** —
+- **Blocks:** `H0_L` execution
 - **Owner:** subagent
-- **Output:** updated `docs/context/test_plan.md`
-- **Updated:** 2026-11-20
+- **Output:** reviewed `docs/context/test_plan.md` (`H0_L`/`Ha_L` sign-off)
+- **Updated:** 2026-11-28
 
 ## Objective
 
@@ -16,7 +17,7 @@ Write H0_L/Ha_L for the cleaned licit frame: μ_illicit = μ_suspicious = μ_lic
 - `docs/context/test_plan.md` — current H0_U/H0_L split
 - `docs/context/cohort_contract.md` — priority and cleaning rule
 - `docs/context/statistical_info.md` — licit overlap
-- `tasks/01_response_factor_groups/04_cohort_contract_v2.md`
+- `tasks/_archive/hypothesis_testing/01_response_factor_groups/04_cohort_contract_v2.md`
 
 ## Files
 
