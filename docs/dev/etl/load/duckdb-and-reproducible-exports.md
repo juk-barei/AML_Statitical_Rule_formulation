@@ -1,5 +1,5 @@
 # DuckDB and reproducible export environments
-<!-- Last updated: 2026-11-26 | Edit count: 2 -->
+<!-- Last updated: 2026-11-28 | Edit count: 3 -->
 
 - **Scope:** why `src/scripts/etl/load/main.py` uses DuckDB, how the engine is distributed, and when a container image is warranted.
 - **Applies to:** ETL export (`load/main.py`), Parquet handoff, public raw-data releases, paper reproduction.
@@ -162,3 +162,4 @@ Limits to record in the export contract:
 - Explicit column typing is mandatory; never trust CSV inference for a frozen snapshot.
 - Offline images must disable extension auto-install/auto-load or preinstall every required extension.
 - A DuckDB version is part of the environment manifest when the engine participates in conversion or verification.
+- Completeness bookkeeping (`_etl_runs` / `_etl_progress`) exists only on extracted `raw` mirror schemas (`illicit`, `licit`); locally materialized `--stage transformed` exports have no shard bookkeeping and resolve to `status="complete"` (`partial=false`) unless explicit shard failures are recorded.
