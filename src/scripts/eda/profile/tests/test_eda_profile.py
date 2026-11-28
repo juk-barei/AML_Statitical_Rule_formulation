@@ -325,6 +325,32 @@ class TestEdaProfile(unittest.TestCase):
             self.assertFalse(summary.empty)
             plt.close(fig)
 
+    def test_compare_ignores_legacy_mirror_cohort_timestamp(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            prof = Path(tmp) / "profile"
+            raw_snap_id = "phase1_raw_illicit_20261123T043155Z+phase1_raw_licit_20261123T043744Z"
+            tr_snap_id = "phase1_transformed_transform_20261127T224625Z"
+            _write_synthetic_stage(prof / "raw", snapshot_at=raw_snap_id, include_mirror_tables=True)
+            # Mirror-only local_cohort_counts.csv carries a bare UTC timestamp, not phase1_*.
+            pd.DataFrame(
+                [{"wallet_class": "illicit", "wallets": 100, "snapshot_at": "2026-11-23T03:10:00Z", "is_partial": False}]
+            ).to_csv(prof / "raw" / "local_cohort_counts.csv", index=False)
+            _write_synthetic_stage(prof / "transformed", snapshot_at=tr_snap_id, include_mirror_tables=False)
+
+            raw_b = load_profile_bundle("raw", profile_base_dir=prof)
+            tr_b = load_profile_bundle("transformed", profile_base_dir=prof)
+            got_raw, got_tr = validate_compare_compatibility(raw_b, tr_b)
+            self.assertEqual(got_raw, raw_snap_id)
+            self.assertEqual(got_tr, tr_snap_id)
+
+            # Conflicting phases mixed inside raw_bundle must still be rejected.
+            pd.DataFrame(
+                [{"section": "amount_flag", "schema": "illicit", "token_symbol": "USDT", "category": "zero", "count": 1, "denominator": 10, "share": 0.1, "snapshot_at": "phase2_raw_illicit_20261201T000000Z", "is_partial": False}]
+            ).to_csv(prof / "raw" / "local_pretransform_cleaning.csv", index=False)
+            mixed_raw_b = load_profile_bundle("raw", profile_base_dir=prof)
+            with self.assertRaises(ValueError):
+                validate_compare_compatibility(mixed_raw_b, tr_b)
+
 
 if __name__ == "__main__":
     unittest.main()

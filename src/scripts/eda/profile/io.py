@@ -150,11 +150,28 @@ def load_profile_bundle(
 
 
 def _snapshot_phase_token(snapshot_str: str) -> str:
-    """Extract phase prefix (e.g. 'phase1') if present, else return raw snapshot string."""
-    head = snapshot_str.split("+")[0].split(";")[0].strip()
-    if head.startswith("phase") and "_" in head:
-        return head.split("_", 1)[0]
-    return head
+    """Extract a unique phase prefix (e.g. 'phase1') across ';' / '+' tokens.
+
+    Returns the single phase token when all phase-prefixed tokens agree, an
+    empty string if conflicting phase tokens are mixed, or the first token when
+    no phase prefix is present.
+    """
+    tokens = [
+        part.strip()
+        for chunk in snapshot_str.split(";")
+        for part in chunk.split("+")
+        if part.strip()
+    ]
+    phases = {
+        tok.split("_", 1)[0]
+        for tok in tokens
+        if tok.startswith("phase") and "_" in tok
+    }
+    if len(phases) == 1:
+        return next(iter(phases))
+    if len(phases) > 1:
+        return ""
+    return tokens[0] if tokens else ""
 
 
 def validate_compare_compatibility(
@@ -168,10 +185,10 @@ def validate_compare_compatibility(
     Raises ValueError if snapshots are incompatible unless allow_cross_snapshot=True.
     """
     raw_snap, _ = raw_bundle.snapshot_for(
-        "wallet_distributions", "feature_nflow", "cohort_counts", "pretransform_cleaning"
+        "wallet_distributions", "feature_nflow", "pretransform_cleaning"
     )
     tr_snap, _ = transformed_bundle.snapshot_for(
-        "wallet_distributions", "feature_nflow", "cohort_counts", "pretransform_cleaning"
+        "wallet_distributions", "feature_nflow", "pretransform_cleaning"
     )
     if raw_snap == "unknown" or tr_snap == "unknown":
         raise ValueError(
