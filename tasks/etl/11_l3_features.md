@@ -1,12 +1,12 @@
-# L3 Wallet Features Builder (`features/`) — Proposal
-<!-- Created: 2026-11-27 | Last updated: 2026-11-27 | Edit count: 1 -->
+# L3 Wallet Features Builder (`features/`)
+<!-- Created: 2026-11-27 | Last updated: 2026-11-28 | Edit count: 2 -->
 
-- **Status:** todo (scripts proposed; awaiting manual line-by-line execution by user)
-- **Blocked by:** `09_l1_clean.md`, `10_l2_cohort.md`
-- **Blocks:** `12_transformed_export_audit.md`
+- **Status:** done (merged in PR #42; materialized and exported in `phase1_transformed_transform_20261127T224625Z`)
+- **Blocked by:** `09_l1_clean.md` (done), `10_l2_cohort.md` (done)
+- **Blocks:** `12_transformed_export_audit.md` (in_progress)
 - **Owner:** user manual execution + agent proposal
-- **Output:** `transform.wallet_features`, `outputs/etl/transform/features/feature_nflow.csv`
-- **Updated:** 2026-11-27
+- **Output:** `transform.wallet_features` (`9,876,867` rows, `73` columns covering `H1`–`H6`)
+- **Updated:** 2026-11-28
 
 ## Resources / context
 
