@@ -1,12 +1,12 @@
-# Transformed Export & Raw-vs-Transformed Audit — Proposal
-<!-- Created: 2026-11-27 | Last updated: 2026-11-27 | Edit count: 1 -->
+# Transformed Export & Raw-vs-Transformed Audit
+<!-- Created: 2026-11-27 | Last updated: 2026-11-28 | Edit count: 2 -->
 
-- **Status:** todo (comparator + runbook proposed; awaits manual L1–L3 execution)
-- **Blocked by:** `09_l1_clean.md`, `10_l2_cohort.md`, `11_l3_features.md`
-- **Blocks:** `04_web_serving.md`, downstream `H2`/`H4`/`H6` hypothesis testing, teammate `H1`/`H3`/`H5` handoff
+- **Status:** in_progress (Parquet snapshot `phase1_transformed_transform_20261127T224625Z` exported & verified; run offline DuckDB stage profile + diff + EDA plots)
+- **Blocked by:** `09_l1_clean.md` (done), `10_l2_cohort.md` (done), `11_l3_features.md` (done)
+- **Blocks:** `04_web_serving.md` (web app); downstream `H2`/`H4`/`H6` & teammate `H1`/`H3`/`H5` analysis already unblocked on frozen Parquet
 - **Owner:** user manual execution + agent proposal
-- **Output:** `outputs/etl/load/phase1_transformed_transform_<UTC>/`, `outputs/etl/transform/profile/transformed/`, `raw_vs_transformed_diff.csv`
-- **Updated:** 2026-11-27
+- **Output:** `outputs/etl/load/phase1_transformed_transform_20261127T224625Z/` (done), `outputs/etl/transform/profile/transformed/` (pending CLI run), `raw_vs_transformed_diff.csv` (pending CLI run)
+- **Updated:** 2026-11-28
 
 ## Files
 

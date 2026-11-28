@@ -87,12 +87,16 @@ def execute_sql_step(
 ) -> None:
     """Execute one SQL step inside a transaction with conservative session memory."""
     with engine.begin() as conn:
-        conn.execute(text("SET LOCAL work_mem = :wm"), {"wm": work_mem})
+        conn.execute(text("SELECT set_config('work_mem', :wm, true)"), {"wm": work_mem})
         conn.execute(
-            text("SET LOCAL maintenance_work_mem = :mwm"),
+            text("SELECT set_config('maintenance_work_mem', :mwm, true)"),
             {"mwm": maintenance_work_mem},
         )
-        conn.exec_driver_sql(sql_text)
+        # Keep plans and index builds serial so small /dev/shm containers never fail with DiskFull.
+        conn.execute(text("SELECT set_config('max_parallel_workers_per_gather', '0', true)"))
+        conn.execute(text("SELECT set_config('max_parallel_maintenance_workers', '0', true)"))
+        # Escape literal '%' (e.g. in comments) so psycopg pyformat parsing never trips.
+        conn.exec_driver_sql(sql_text.replace("%", "%%"))
 
 
 def write_feature_nflow(
@@ -106,6 +110,7 @@ def write_feature_nflow(
     run_ts = datetime.now(UTC).isoformat(timespec="seconds")
 
     with engine.connect() as conn:
+        conn.execute(text("SET max_parallel_workers_per_gather = 0"))
         n_cohort = int(conn.execute(text(f"SELECT COUNT(*) FROM {t_schema}.cohort_wallet")).scalar_one())
         n_feat = int(conn.execute(text(f"SELECT COUNT(*) FROM {t_schema}.wallet_features")).scalar_one())
         if n_feat != n_cohort:

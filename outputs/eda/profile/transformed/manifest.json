@@ -1,0 +1,94 @@
+{
+  "stage": "transformed",
+  "generated_at_utc": "2026-11-27T23:00:51Z",
+  "source_dir": "/home/annoy/projects/team/capstone-1/dev/data_analysis/outputs/etl/transform/profile/transformed",
+  "snapshot_at": "phase1_transformed_transform_20261127T224625Z",
+  "is_partial": true,
+  "loaded_tables": [
+    "feature_nflow",
+    "transform_columns",
+    "wallet_distributions",
+    "wallet_histograms"
+  ],
+  "missing_tables": [
+    "cohort_counts",
+    "group_overlap",
+    "hop_seed",
+    "illicit_columns",
+    "illicit_coverage",
+    "illicit_db_overview",
+    "licit_columns",
+    "licit_coverage",
+    "licit_db_overview",
+    "nflow",
+    "pretransform_cleaning",
+    "quality",
+    "query_benchmarks",
+    "relations",
+    "sampling_frame"
+  ],
+  "generated": [
+    {
+      "group": "schema",
+      "figure": "02_column_missingness_dtypes.png",
+      "table": "02_column_missingness_dtypes.csv",
+      "summary_rows": 137
+    },
+    {
+      "group": "features",
+      "figure": "08_feature_eligibility_nflow.png",
+      "table": "08_feature_eligibility_nflow.csv",
+      "summary_rows": 116
+    },
+    {
+      "group": "features",
+      "figure": "09_feature_skew_zero_tail.png",
+      "table": "09_feature_skew_zero_tail.csv",
+      "summary_rows": 88
+    },
+    {
+      "group": "features",
+      "figure": "10_feature_quantile_ranges.png",
+      "table": "10_feature_quantile_ranges.csv",
+      "summary_rows": 40
+    },
+    {
+      "group": "features",
+      "figure": "11_feature_histograms_grid.png",
+      "table": "11_feature_histograms_grid.csv",
+      "summary_rows": 360
+    }
+  ],
+  "skipped": [
+    {
+      "group": "schema",
+      "figure": "01_table_overview_coverage.png",
+      "reason": "missing inputs (illicit_db_overview)"
+    },
+    {
+      "group": "schema",
+      "figure": "03_quality_and_cleaning_anomalies.png",
+      "reason": "missing inputs (pretransform_cleaning)"
+    },
+    {
+      "group": "schema",
+      "figure": "04_tx_volume_by_year.png",
+      "reason": "missing inputs (pretransform_cleaning)"
+    },
+    {
+      "group": "cohort",
+      "figure": "05_cohort_composition_nflow.png",
+      "reason": "missing inputs (sampling_frame)"
+    },
+    {
+      "group": "cohort",
+      "figure": "06_cross_schema_overlap.png",
+      "reason": "missing inputs (group_overlap)"
+    },
+    {
+      "group": "cohort",
+      "figure": "07_hop_and_seed_structure.png",
+      "reason": "missing inputs (sampling_frame)"
+    }
+  ]
+}

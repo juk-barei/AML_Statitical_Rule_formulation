@@ -226,7 +226,15 @@ def test_completeness() -> None:
     )
     check(completeness(empty, 0) == ("complete", 100.0), "empty table is complete")
 
-    check(completeness(None, 10) == ("unknown", 0.0), "no bookkeeping is unknown")
+    check(completeness(None, 10) == ("unknown", 0.0), "no bookkeeping is unknown for raw")
+    check(
+        completeness(None, 10, stage="transformed") == ("complete", 100.0),
+        "transformed schema without ingestion bookkeeping is complete",
+    )
+    check(
+        completeness(failed, 100, stage="transformed")[0] == "partial",
+        "explicit failed coverage still marks transformed table partial",
+    )
 
 
 def test_force_cleanup_is_bounded() -> None:

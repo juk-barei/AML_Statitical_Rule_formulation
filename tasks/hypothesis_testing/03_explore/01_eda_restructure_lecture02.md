@@ -1,11 +1,12 @@
 # EDA restructure to Lecture 02
+<!-- Last updated: 2026-11-28 | Edit count: 2 -->
 
-- **Status:** todo
-- **Blocked by:** Step 1 cohort
+- **Status:** todo (unblocked — frozen `phase1_transformed_transform_20261127T224625Z` Parquet ready via DuckDB)
+- **Blocked by:** —
 - **Blocks:** `02`–`06`
 - **Owner:** worker
-- **Output:** notebook structure
-- **Updated:** 2026-11-20
+- **Output:** notebook structure + reusable `src/scripts/eda/` modules
+- **Updated:** 2026-11-28
 
 ## Objective
 

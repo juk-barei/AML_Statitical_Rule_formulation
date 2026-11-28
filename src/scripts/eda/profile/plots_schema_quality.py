@@ -149,7 +149,7 @@ def plot_column_missingness_dtypes(
     apply_theme()
     frames = [
         bundle.get(k)
-        for k in ("illicit_columns", "licit_columns")
+        for k in ("illicit_columns", "licit_columns", "transform_columns")
         if bundle.has(k)
     ]
     if not frames:
@@ -166,18 +166,34 @@ def plot_column_missingness_dtypes(
     )
     df["col_label"] = df["table"].astype(str) + "." + df["column"].astype(str)
 
-    schemas = [s for s in ("illicit", "licit") if s in set(df["schema"])]
-    if not schemas:
-        schemas = sorted(df["schema"].astype(str).unique().tolist())
+    # For transformed Parquet profiles, omit *_exact string shadow mirrors from the plot
+    # (kept in full summary CSV) and split L1-L2 tables vs L3 wallet_features for readability.
+    raw_schemas = [s for s in ("illicit", "licit") if s in set(df["schema"])]
+    if raw_schemas:
+        panels = [(f"{s} schema", df[df["schema"] == s], SCHEMA_COLORS.get(s, INK_PRIMARY)) for s in raw_schemas]
+    else:
+        plot_df = df[~df["column"].astype(str).str.endswith("_exact")].copy()
+        if plot_df.empty:
+            plot_df = df.copy()
+        l12 = plot_df[plot_df["table"].astype(str) != "wallet_features"]
+        l3 = plot_df[plot_df["table"].astype(str) == "wallet_features"]
+        panels = []
+        if not l12.empty:
+            panels.append(("transform L1–L2 (clean & cohort)", l12, STATUS_COLORS["retained"]))
+        if not l3.empty:
+            panels.append(("transform L3 (wallet_features)", l3, STATUS_COLORS["neutral"]))
+        if not panels:
+            for s in sorted(plot_df["schema"].astype(str).unique().tolist()):
+                panels.append((f"{s} schema", plot_df[plot_df["schema"] == s], INK_PRIMARY))
 
-    max_rows = max(len(df[df["schema"] == s]) for s in schemas)
-    fig_h = max(6.8, max_rows * 0.27 + 2.0)
-    fig, axes = plt.subplots(1, len(schemas), figsize=(7.0 * len(schemas), fig_h), sharex=True)
+    max_rows = max(len(sub_df) for _, sub_df, _ in panels)
+    fig_h = max(6.8, max_rows * 0.24 + 2.0)
+    fig, axes = plt.subplots(1, len(panels), figsize=(7.6 * len(panels), fig_h), sharex=True)
     axes_arr = np.atleast_1d(axes)
 
-    for ax, schema in zip(axes_arr, schemas, strict=True):
+    for ax, (panel_title, panel_df, title_color) in zip(axes_arr, panels, strict=True):
         sub = (
-            df[df["schema"] == schema]
+            panel_df
             .sort_values(["null_share", "table", "column"], ascending=[True, False, False])
             .reset_index(drop=True)
         )
@@ -208,14 +224,14 @@ def plot_column_missingness_dtypes(
         ax.set_xticklabels(["0%", "25%", "50%", "75%", "100%"])
         ax.set_xlabel("Null percentage (%)")
         ax.set_title(
-            f"{schema} schema ({len(sub)} columns)",
-            color=SCHEMA_COLORS.get(schema, INK_PRIMARY),
+            f"{panel_title} ({len(sub)} columns)",
+            color=title_color,
             loc="left",
         )
         ax.grid(axis="x", alpha=0.7)
         ax.grid(axis="y", visible=False)
 
-    snap, is_partial = bundle.snapshot_for("illicit_columns", "licit_columns")
+    snap, is_partial = bundle.snapshot_for("illicit_columns", "licit_columns", "transform_columns")
     n_with_nulls = int((df["null_share"] > 0).sum())
     stamp_figure(
         fig,

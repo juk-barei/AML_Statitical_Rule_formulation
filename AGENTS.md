@@ -1,5 +1,5 @@
 # AGENTS.md — project contract
-<!-- Last updated: 2026-11-27 | Edit count: 5 -->
+<!-- Last updated: 2026-11-28 | Edit count: 6 -->
 
 This file is the short, enforceable contract for agents working in this repo.
 Detailed evidence and decisions live in `docs/context/step_1_profiling_samples.md`.
@@ -38,7 +38,7 @@ The user commits, creates the branch, or approves the plan first.
 Every stall and phase report names the location (directories/files), scope (area / subcategory / label), and the exact next action for the user.
 
 ## Data authority
-- Terminology is canonical in `docs/context/glossary.md`: rules are `S1`–`S6`, research questions `H1`–`H6`, null/alternative `H0`/`Ha` (never `H1`), and the third implemented level is `unlabeled` (never `background`).
+- Terminology is canonical in `docs/context/glossary.md`: rules are `S1`–`S6`, research questions `H1`–`H6`, null/alternative `H0`/`Ha` (never `H1`), and the four implemented cohort levels in `cohort_wallet` are `illicit`, `suspicious`, `licit`, and `unlabeled` (never `background`, and never pool `unlabeled` into `licit`).
 - **PostgreSQL mirror** is the analysis dataset. `src/scripts/etl/extract/main.py` is the only writer of the local mirror; `src/scripts/etl/load/main.py` is the designated writer for shared exports.
 - `datasets/*.csv` is a **stale, partial export**. Never mix CSV and mirror counts in one table or conclusion.
 - State the snapshot and row counts beside any quantitative claim.
@@ -85,8 +85,8 @@ Details and code patterns: `src/scripts/etl/README.md`.
 | --- | --- |
 | `illicit` | Blacklisted wallets (`blacklisted_wallets`) plus hop-0 wallets |
 | `suspicious` | `min(hop_level) ∈ 1..5` **and** not blacklisted |
-| `licit` | External licit database (`LICIT_ONLINE_DATABASE_LINK`); 100% ingested into mirror |
-| `unlabeled` | Universe minus illicit and suspicious; **provisional**, never called licit |
+| `licit` | External licit database (`LICIT_ONLINE_DATABASE_LINK`) minus illicit and suspicious overlaps (cleaned in L2 `cohort_wallet`) |
+| `unlabeled` | Universe minus illicit, suspicious, and licit; **provisional**, never called licit |
 
 **Priority:** blacklist wins at every hop. Any wallet with a blacklist record at hop 1–5 is **illicit**, not suspicious — not just hop 3.
 
@@ -167,9 +167,10 @@ Details and code patterns: `src/scripts/etl/README.md`.
 
 ## Open items
 
-- Profile licit schema, coverage, and overlap with the blacklist (licit database ingestion is 100% complete).
-- Build the authoritative cohort table with `illicit / suspicious / licit / unlabeled`.
-- Add written H0/H1 per response and run the assumption checks.
+- Run post-transform profiling & raw-vs-transformed audit (`profile_stage --stage transformed`, `compare_stages`, `eda/profile/main --stage transformed|compare`) over frozen snapshot `phase1_transformed_transform_20261127T224625Z`.
+- Execute Lecture 02 Hypothesis EDA (`src/scripts/eda/{univariate,bivariate,multivariate}/`, `1.1_ILLICIT_EDA.ipynb`, `1.2_LICIT_EDA.ipynb`) via DuckDB over the frozen transformed Parquet snapshot.
+- Execute `H0_L`/`Ha_L` (clean `illicit` vs. `licit`) assumption checks, omnibus/post-hoc tests, and rule verdicts for `H2`, `H4`, `H6`.
+- Load managed PostgreSQL `wallet_serving` table (`load/main.py --target serving`) and archive/drop the local `transform` schema when audits finish.
 ## Terminology
 - Hedgehog analogy: Hedgehog mode is about organization of files and directory that reflects each other in src/scripts/, outputs/, and tasks/. It is about having clear separation in each section clearly like ETL has Extract, load, and transform. Inside Extract there are Extract from parquet, online db. In load there are load to parquet, csv, or online db.
 - When I askeed you to help me with hedgehog situation or mode, I meant to ask you to help find category for that directory I am asking you about, and also consider crating reflected or connecting directory in other parts of the project as well/ Ex: I ask about hedgehog analogy for transform directory in src/scripts/etl/transform. You can try to think of the right way to categorize takss in transform here given the context and info and also  think of what directories to create in outputs/ and tasks and in docs/dev/.
